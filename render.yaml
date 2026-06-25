@@ -1,0 +1,44 @@
+# render.yaml
+# Render Blueprint Specification for One-Click Template Deployment
+# Learn more at https://render.com/docs/blueprints
+
+services:
+  - type: web
+    name: master-hustle-engine
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: GEMINI_API_KEY
+        sync: false
+        placeholder: "Your Google Gemini API Key"
+      
+      # SMTP Email Configuration
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+        placeholder: "sender@gmail.com"
+      - key: SMTP_PASS
+        sync: false
+        placeholder: "Gmail App Password"
+      
+      # Admin Notification Email
+      - key: ADMIN_EMAIL
+        sync: false
+        placeholder: "admin@domain.com"
+      
+      # Bottom Promo Link
+      - key: PS_LINK
+        value: https://jacksplugreviews.com
+
+    # Uncomment this block to add a persistent disk (requires Render paid tier)
+    # disk:
+    #   name: database-storage
+    #   mountPath: /opt/render/project/src/data
+    #   sizeGB: 1
