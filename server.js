@@ -24,9 +24,15 @@ const { GoogleGenAI } = require('@google/genai');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const path = require('path');
+const Stripe = require('stripe');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    if (req.originalUrl === '/api/stripe-webhook') req.rawBody = buf;
+  }
+}));
 
 const PORT = process.env.PORT || 3000;
 const DB_PATH = path.join(__dirname, 'transactions.sqlite');
@@ -759,6 +765,170 @@ app.get('/api/admin/logs', (req, res) => {
     }
     res.status(200).json({ logs: rows });
   });
+});
+
+// =============================================================================
+// STRIPE WEBHOOK — Purchase → Run Skill → Email Buyer
+// =============================================================================
+
+async function processNicheForBuyer(niche, fields, buyerEmail) {
+  let systemInstruction, prompt, data, renderedContent, emailHtml;
+
+  switch (niche) {
+    case 'vintage': {
+      const item_name = fields.itemname || '';
+      const description = fields.itemdescription || '';
+      systemInstruction = `Act as an expert vintage appraisal and marketplace listing copywriter. Return a JSON object with: 1. "estimated_value_range": string, realistic vintage pricing. 2. "ebay_optimized_title": string, keyword-rich title. 3. "compelling_listing_description": string, detailed listing copy. 4. "key_keywords_tags": array of 5 strings.`;
+      prompt = `Item Name: ${item_name}\nDescription/Condition: ${description}`;
+      data = await callGemini(prompt, systemInstruction, 'vintage');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['vintage'], { item_name, description }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your Vintage Flipper AI Report — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'vintage', 'success', data);
+      break;
+    }
+    case 'kdp': {
+      const title = fields.booktitle || '';
+      const genre = fields.genre || '';
+      const targetAudience = fields.targetaudience || '';
+      systemInstruction = `Act as a professional self-publishing KDP book launch strategist. Return a JSON object with: 1. "optimized_title_subtitle": string. 2. "category_recommendations": array of 3 strings. 3. "amazon_description": string (SEO-rich HTML style). 4. "seven_backend_keywords": array of 7 strings.`;
+      prompt = `Book Title: ${title}\nGenre: ${genre}\nTarget Audience: ${targetAudience}`;
+      data = await callGemini(prompt, systemInstruction, 'kdp');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['kdp'], { title, genre, targetAudience }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your KDP Book Launch Kit — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'kdp', 'success', data);
+      break;
+    }
+    case 'inventor': {
+      const title = fields.inventionname || '';
+      const description = fields.inventiondesc || '';
+      systemInstruction = `Act as a high-converting technology scout and cold outreach copywriter. Return a JSON object with: 1. "elevator_pitch": string. 2. "cold_email_subject": string. 3. "cold_email_body": string. 4. "licensing_value_proposition": string.`;
+      prompt = `Invention: ${title}\nDescription: ${description}`;
+      data = await callGemini(prompt, systemInstruction, 'inventor');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['inventor'], { title, description }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your Inventor Pitch Kit — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'inventor', 'success', data);
+      break;
+    }
+    case 'voice': {
+      const businessType = fields.businesstype || '';
+      const location = fields.location || '';
+      const mainOffer = fields.mainoffer || '';
+      systemInstruction = `Act as a Vapi voice receptionist dialog engineer. Return a JSON object with: 1. "custom_receptionist_prompt": string (800+ words detailed agent system instruction). 2. "first_turn_greeting": string. 3. "suggested_voice_profile": string.`;
+      prompt = `Business Type: ${businessType}\nLocation: ${location}\nOffer: ${mainOffer}`;
+      data = await callGemini(prompt, systemInstruction, 'voice');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['voice'], { businessType, location, mainOffer }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your AI Voice Receptionist Prompt — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'voice', 'success', data);
+      break;
+    }
+    case 'review-reply': {
+      const review_text = fields.reviewtext || '';
+      const tone = fields.tone || 'professional';
+      systemInstruction = `Act as an expert customer review responder. Return a JSON object with: 1. "detected_sentiment": string (positive/negative/neutral). 2. "custom_reply": string (polite, under 80 words).`;
+      prompt = `Review Content: "${review_text}"\nTone requested: ${tone}`;
+      data = await callGemini(prompt, systemInstruction, 'review-reply');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['review-reply'], { review_text, tone }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your Google Review Reply — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'review-reply', 'success', data);
+      break;
+    }
+    case 'local-seo': {
+      const business_name = fields.businessname || '';
+      const city = fields.city || '';
+      const services = fields.services || '';
+      systemInstruction = `Act as a local SEO expert. Return a JSON object with: 1. "optimized_about_section": string (max 750 chars). 2. "top_5_local_keywords": array of 5 strings. 3. "3_GMB_posts": array of 3 optimized GMB posts.`;
+      prompt = `Business: ${business_name}\nCity: ${city}\nServices: ${services}`;
+      data = await callGemini(prompt, systemInstruction, 'local-seo');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['local-seo'], { business_name, city, services }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your Local SEO Profile Kit — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'local-seo', 'success', data);
+      break;
+    }
+    case 'marketplace': {
+      const item_name = fields.itemname || '';
+      const condition = fields.condition || '';
+      const key_features = fields.keyfeatures || '';
+      systemInstruction = `Act as a classifieds copywriter. Return a JSON object with: 1. "catchy_title": string. 2. "high_converting_description": string. 3. "FAQ_section": array of objects with "question" and "answer".`;
+      prompt = `Item: ${item_name}\nCondition: ${condition}\nFeatures: ${key_features}`;
+      data = await callGemini(prompt, systemInstruction, 'marketplace');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['marketplace'], { item_name, condition, key_features }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your Marketplace Ad Copy — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'marketplace', 'success', data);
+      break;
+    }
+    case 'faceless-video': {
+      const niche = fields.contentniche || '';
+      systemInstruction = `Act as a short-form content strategist. Return a JSON object with a "10_video_scripts" array. Each script must have: "hook": string, "visual_instructions": string, "spoken_script": string, "caption_with_hashtags": string.`;
+      prompt = `Niche: ${niche}`;
+      data = await callGemini(prompt, systemInstruction, 'faceless-video');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['faceless-video'], { niche }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your 10 Video Scripts — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'faceless-video', 'success', data);
+      break;
+    }
+    case 'contractor-proposal': {
+      const project_name = fields.projectname || '';
+      const scope = fields.scopeofwork || '';
+      systemInstruction = `Act as an elite construction and field services project estimator. Return a JSON object with: 1. "polished_title": string. 2. "executive_summary": string. 3. "detailed_bill_of_materials_milestones": array of strings. 4. "professional_closing_pitch": string.`;
+      prompt = `Project Name: ${project_name}\nScope of Work: ${scope}`;
+      data = await callGemini(prompt, systemInstruction, 'contractor-proposal');
+      renderedContent = renderJsonToHtml(data);
+      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['contractor-proposal'], { project_name, scope }, renderedContent);
+      await sendHtmlEmail(buyerEmail, 'Your Contractor Proposal — Antigravity Engine', emailHtml);
+      logTransaction(buyerEmail, 'contractor-proposal', 'success', data);
+      break;
+    }
+    default:
+      throw new Error(`Unknown niche: ${niche}`);
+  }
+}
+
+app.post('/api/stripe-webhook', async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+  } catch (err) {
+    console.error('[Stripe Webhook] Signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const buyerEmail = session.customer_details?.email;
+    const niche = session.metadata?.niche;
+
+    const fields = {};
+    if (Array.isArray(session.custom_fields)) {
+      session.custom_fields.forEach(f => {
+        fields[f.key] = f.text?.value || '';
+      });
+    }
+
+    console.log(`[Stripe Webhook] Purchase complete — niche: ${niche}, buyer: ${buyerEmail}`);
+
+    if (!niche || !buyerEmail) {
+      console.error('[Stripe Webhook] Missing niche or buyer email in session:', session.id);
+      return res.json({ received: true });
+    }
+
+    processNicheForBuyer(niche, fields, buyerEmail).catch(async (err) => {
+      console.error('[Stripe Webhook] Processing error:', err);
+      await sendAdminAlert(`Stripe purchase processing failed — niche: ${niche}, buyer: ${buyerEmail}`, err.stack || err.message);
+    });
+  }
+
+  res.json({ received: true });
 });
 
 // Global Express Error Handler Middleware to email stack trace on endpoint failure
