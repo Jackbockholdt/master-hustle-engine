@@ -37,6 +37,14 @@ services:
       - key: PS_LINK
         value: https://jacksplugreviews.com
 
+      # Stripe Payment Integration
+      - key: STRIPE_SECRET_KEY
+        sync: false
+        placeholder: "sk_live_..."
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+        placeholder: "whsec_..."
+
     # Uncomment this block to add a persistent disk (requires Render paid tier)
     # disk:
     #   name: database-storage
