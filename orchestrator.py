@@ -42,13 +42,17 @@ DB_PATH            = os.getenv("DB_PATH", "orchestrator_audit.sqlite")
 SKILLS_DIR         = Path(__file__).parent / "skills"
 REVIEW_DIR         = Path(__file__).parent / "manual_review"
 
-# ── INVENTOR CONFIG (set once; used by /skill/invention-outreach) ─────────────
-INVENTOR_NAME      = os.getenv("INVENTOR_NAME", "")
-INVENTOR_EMAIL     = os.getenv("INVENTOR_EMAIL", "") or os.getenv("ADMIN_EMAIL", "")
-INVENTION_NAME     = os.getenv("INVENTION_NAME", "")
-INVENTION_SUMMARY  = os.getenv("INVENTION_SUMMARY", "")
-PATENT_STATUS      = os.getenv("PATENT_STATUS", "Provisional Filed")
-TARGET_INDUSTRIES  = [i.strip() for i in os.getenv("TARGET_INDUSTRIES", "").split(",") if i.strip()]
+# ── B2B SALES ENGINE CONFIG (set once in Render; used by /skill/invention-outreach) ──
+DEPLOYER_NAME         = os.getenv("INVENTOR_NAME", "")
+DEPLOYER_EMAIL        = os.getenv("INVENTOR_EMAIL", "") or os.getenv("ADMIN_EMAIL", "")
+OFFER_NAME            = os.getenv("INVENTION_NAME", "Autonomous Business Infrastructure")
+OFFER_SUMMARY         = os.getenv("INVENTION_SUMMARY", "")
+PROOF_URL             = os.getenv("PROOF_URL", "https://missedcallproject.com")
+DEPLOYMENT_FEE        = os.getenv("DEPLOYMENT_FEE", "1500")
+QUALIFIED_INDUSTRIES  = [i.strip().lower() for i in os.getenv(
+    "TARGET_INDUSTRIES",
+    "construction,industrial services,logistics,b2b consulting,hvac,plumbing,electrical,property management"
+).split(",") if i.strip()]
 
 # ── LOGGING ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -747,54 +751,51 @@ async def skill_hemp_review_generator(payload: dict) -> dict:
 
 
 async def skill_invention_outreach(payload: dict) -> dict:
-    invention_name    = payload.get("invention_name", "")
-    invention_summary = payload.get("invention_summary", "")
-    patent_status     = payload.get("patent_status", "No Patent")
-    target_industries = payload.get("target_industries", [])
-    target_companies  = payload.get("target_companies", [])
-    inventor_name     = payload.get("inventor_name", "")
-    inventor_email    = payload.get("inventor_email", "")
-    campaign_id       = payload.get("campaign_id", "unknown")
+    offer_name    = payload.get("invention_name",    "") or OFFER_NAME
+    offer_summary = payload.get("invention_summary", "") or OFFER_SUMMARY
+    deployer_name = payload.get("inventor_name",     "") or DEPLOYER_NAME
+    deployer_email= payload.get("inventor_email",    "") or DEPLOYER_EMAIL
+    target_co     = payload.get("target_companies",  [])
+    campaign_id   = payload.get("campaign_id",       "unknown")
+    proof_url     = payload.get("proof_url",         PROOF_URL)
+    fee           = payload.get("deployment_fee",    DEPLOYMENT_FEE)
 
-    # ESCAPE HATCH A — summary too short
-    if len(invention_summary.split()) < 50:
+    # ESCAPE HATCH A — offer summary too short to draft a credible pitch
+    if len(offer_summary.split()) < 50:
         save_to_review("invention-outreach", campaign_id, payload)
-        raise ValueError("ERR_SUMMARY_TOO_SHORT: invention_summary must be at least 50 words")
+        raise ValueError("ERR_SUMMARY_TOO_SHORT: OFFER_SUMMARY must be at least 50 words")
 
-    no_patent  = patent_status.lower() in ("no patent", "none", "")
-    disclaimer = (
-        "\n\n*Note: This invention is not currently patent-protected.*"
-        if no_patent else ""
-    )
-
-    companies = (target_companies or target_industries)[:5]
-    if not companies:
-        companies = ["a leading manufacturer in this industry"]
+    companies = target_co[:5] or ["a leading business in this industry"]
 
     pitches = []
     for company in companies:
         system = (
-            "You are a B2B licensing outreach expert. Return JSON only: "
-            '{"subject":"string max 60 chars","body":"string max 250 words"}. '
-            "The body MUST mention the company name. No placeholders. "
-            "Structure: hook, problem/opportunity, 3 value bullets, 15-min call CTA, "
-            "end with {{INVENTOR_EMAIL}}."
+            "You are an elite B2B sales copywriter. Write a cold outreach email selling an AI automation "
+            "deployment service to a business owner. Return JSON only: "
+            '{"subject":"string max 60 chars","body":"string max 220 words"}. '
+            "Rules: "
+            "1. The body MUST name the target company. "
+            "2. Frame this as a PARTNER OPPORTUNITY, not a product sale — the sender is selecting 3 partners this month. "
+            "3. Lead with the bottleneck the business owner lives with every day (missed calls, manual follow-up, admin cost). "
+            "4. Present the offer as deploying a 'Digital Workforce' — AI infrastructure that handles lead gen, inbound telephony, and appointment setting 24/7. "
+            "5. Include exactly 3 value bullets: (a) never miss a lead again, (b) admin replaced by AI, (c) ROI math at the deployment fee. "
+            f"6. End CTA: request a 15-min call. Close with proof link: {proof_url} and contact email {{{{DEPLOYER_EMAIL}}}}. "
+            "7. No buzzwords, no hype, no mockups. Direct, peer-to-peer, confident tone."
         )
         prompt = (
-            f"Inventor: {inventor_name}. Invention: {invention_name}. "
-            f"Summary: {invention_summary}. Patent: {patent_status}. "
-            f"Target company: {company}. Industry: {', '.join(target_industries)}."
+            f"Deployer: {deployer_name}. Offer: {offer_name}. "
+            f"Summary: {offer_summary}. Monthly fee: ${fee}. "
+            f"Target company: {company}."
         )
         raw   = await call_gemini(prompt, system)
         pitch = json.loads(_clean_json(raw))
 
-        # GUARDRAIL — ensure personalization
+        # GUARDRAIL — reject generic non-personalized draft
         if company.lower() not in pitch.get("body", "").lower():
             pitch["body"] = f"I'm reaching out to {company} specifically because {pitch.get('body', '')}"
 
-        pitch["body"]     = pitch["body"].replace("{{INVENTOR_EMAIL}}", inventor_email)
-        pitch["body"]    += disclaimer
-        pitch["company"]  = company
+        pitch["body"]    = pitch["body"].replace("{{DEPLOYER_EMAIL}}", deployer_email)
+        pitch["company"] = company
         pitch["sequence"] = [
             {"step": 1, "send_on": "Day 0",  "status": "PENDING"},
             {"step": 2, "send_on": "Day 5",  "status": "PENDING"},
@@ -803,16 +804,15 @@ async def skill_invention_outreach(payload: dict) -> dict:
         pitches.append(pitch)
 
     return {
-        "campaign_id":    campaign_id,
-        "invention_name": invention_name,
-        "inventor_name":  inventor_name,
-        "pitches":        pitches,
-        "no_patent_flag": no_patent,
+        "campaign_id":   campaign_id,
+        "offer_name":    offer_name,
+        "deployer_name": deployer_name,
+        "proof_url":     proof_url,
+        "pitches":       pitches,
         "key_decisions": {
             "pitches_generated":  len(pitches),
             "companies_targeted": companies,
-            "no_patent_flag":     no_patent,
-            "disclaimer_added":   no_patent,
+            "deployment_fee":     fee,
         },
     }
 
@@ -959,16 +959,32 @@ async def webhook_gumloop(request: Request):
     return JSONResponse({"received": True, "skill": skill, "result": result})
 
 
+def _qualify_lead(company_name: str, industry: str) -> tuple[bool, str]:
+    """
+    Return (qualified: bool, reason: str).
+    Discard any lead whose industry doesn't match QUALIFIED_INDUSTRIES.
+    An empty industry field passes through — let the pitch attempt rather than false-discard.
+    """
+    if not industry:
+        return True, "industry not provided — passing through"
+    ind = industry.strip().lower()
+    for q in QUALIFIED_INDUSTRIES:
+        if q in ind or ind in q:
+            return True, f"matched qualified industry: {q}"
+    return False, f"industry '{industry}' not in qualified list — discard"
+
+
 @app.post("/skill/invention-outreach")
 async def run_invention_outreach(request: Request):
     """
-    Gumloop-facing endpoint for the invention-outreach skill.
-    Required fields: company_name, contact_email, website.
-    Inventor config is loaded from env vars (set once in Render dashboard).
+    Gumloop intake for the B2B sales engine.
+    Required: company_name, contact_email, website.
+    Optional: industry (used for lead qualification filter).
+    Leads outside QUALIFIED_INDUSTRIES are silently discarded with status DISQUALIFIED.
     """
     body = await request.json()
 
-    # ── Field validation — 400 if any required field is missing ──────────────
+    # ── Field validation — 400 if required fields missing ────────────────────
     missing = [f for f in ("company_name", "contact_email", "website") if not body.get(f)]
     if missing:
         raise HTTPException(
@@ -977,22 +993,34 @@ async def run_invention_outreach(request: Request):
                    "Payload must include company_name, contact_email, and website."
         )
 
-    # ── Build full skill payload enriched with inventor config ───────────────
+    # ── Lead qualification — discard non-target industries ───────────────────
+    industry = body.get("industry", "")
+    qualified, reason = _qualify_lead(body["company_name"], industry)
+    if not qualified:
+        log.info("[invention-outreach] DISQUALIFIED %s — %s", body["company_name"], reason)
+        return JSONResponse({
+            "skill":   "invention-outreach",
+            "status":  "DISQUALIFIED",
+            "company": body["company_name"],
+            "reason":  reason,
+        })
+
+    # ── Build full payload enriched with deployer config from env vars ────────
     campaign_id = body.get("campaign_id") or f"gumloop-{body['company_name'].lower().replace(' ', '-')}"
     payload = {
-        "invention_name":    body.get("invention_name")    or INVENTION_NAME,
-        "invention_summary": body.get("invention_summary") or INVENTION_SUMMARY,
-        "patent_status":     body.get("patent_status")     or PATENT_STATUS,
-        "target_industries": body.get("target_industries") or TARGET_INDUSTRIES,
+        "invention_name":    OFFER_NAME,
+        "invention_summary": OFFER_SUMMARY,
         "target_companies":  [body["company_name"]],
-        "inventor_name":     body.get("inventor_name")     or INVENTOR_NAME,
-        "inventor_email":    body.get("inventor_email")    or INVENTOR_EMAIL,
+        "inventor_name":     DEPLOYER_NAME,
+        "inventor_email":    DEPLOYER_EMAIL,
         "contact_email":     body["contact_email"],
         "website":           body["website"],
+        "proof_url":         PROOF_URL,
+        "deployment_fee":    DEPLOYMENT_FEE,
         "campaign_id":       campaign_id,
     }
 
-    # ── Run skill — _run() handles SQLite audit on both SUCCESS and FAIL ─────
+    # ── Run skill — _run() handles SQLite audit on SUCCESS and FAIL ──────────
     try:
         result = await _run("invention-outreach", payload,
                             input_source="direct:POST /skill/invention-outreach")
