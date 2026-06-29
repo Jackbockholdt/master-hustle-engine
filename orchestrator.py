@@ -184,9 +184,9 @@ def load_skill_md(skill_name: str) -> str:
 
 
 def _extract_lead_id(payload: dict) -> str:
-    for field in ("caller_phone", "lead_phone", "from_address", "request_id",
-                  "email_id", "client_id", "content_id", "campaign_id",
-                  "job_id", "submission_id"):
+    for field in ("caller_phone", "customer_phone", "lead_phone", "from_address",
+                  "request_id", "email_id", "client_id", "content_id",
+                  "campaign_id", "job_id", "submission_id"):
         if val := payload.get(field):
             return str(val)
     return "unknown"
@@ -196,6 +196,25 @@ def _clean_json(raw: str) -> str:
     return raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
 
+def _to_e164(phone: str) -> str:
+    """
+    Silently normalize a US phone number to E.164 (+1XXXXXXXXXX).
+    Accepts: 2175121377 | 217-512-1377 | (217) 512-1377 | +12175121377
+    Returns the original string unchanged if it cannot be normalized.
+    """
+    if not phone:
+        return phone
+    # Already valid E.164
+    if phone.startswith("+") and phone[1:].isdigit() and len(phone) >= 11:
+        return phone
+    digits = "".join(c for c in phone if c.isdigit())
+    if len(digits) == 10:
+        return f"+1{digits}"
+    if len(digits) == 11 and digits.startswith("1"):
+        return f"+{digits}"
+    return phone  # unrecognized format — return as-is, guardrail will catch it
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # SECTION 3 — SKILL HANDLERS
 # Each handler implements the execution flow defined in its SKILL.md file,
@@ -203,14 +222,16 @@ def _clean_json(raw: str) -> str:
 # ══════════════════════════════════════════════════════════════════════════════
 
 async def skill_call_catcher(payload: dict) -> dict:
-    caller_phone  = payload.get("caller_phone", "")
+    # Accept caller_phone or customer_phone interchangeably
+    raw_phone     = payload.get("caller_phone") or payload.get("customer_phone", "")
+    caller_phone  = _to_e164(raw_phone)
     transcript    = payload.get("voicemail_transcript", "")
     business_name = payload.get("business_name", "the team")
 
-    # ESCAPE HATCH A — missing or malformed phone
+    # ESCAPE HATCH A — missing or still-malformed phone after sanitization
     if not caller_phone or not caller_phone.startswith("+"):
-        save_to_review("call-catcher", caller_phone or "unknown", payload)
-        raise ValueError("ERR_PAYLOAD_INVALID: caller_phone missing or not E.164")
+        save_to_review("call-catcher", raw_phone or "unknown", payload)
+        raise ValueError(f"ERR_PAYLOAD_INVALID: could not normalize '{raw_phone}' to E.164")
 
     # LLM intent classification (ESCAPE HATCH B — use defaults on failure)
     urgency, primary_need = "UNKNOWN", "General Inquiry"
