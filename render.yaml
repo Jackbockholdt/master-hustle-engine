@@ -50,3 +50,41 @@ services:
     #   name: database-storage
     #   mountPath: /opt/render/project/src/data
     #   sizeGB: 1
+
+  # ── Python FastAPI Orchestrator ────────────────────────────────────────────
+  - type: web
+    name: antigravity-orchestrator
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn orchestrator:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: GEMINI_API_KEY
+        sync: false
+        placeholder: "Your Google Gemini API Key"
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+        placeholder: "sender@gmail.com"
+      - key: SMTP_PASS
+        sync: false
+        placeholder: "Gmail App Password"
+      - key: ADMIN_EMAIL
+        sync: false
+        placeholder: "admin@domain.com"
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+        placeholder: "ACxxxxxxxxxxxx"
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+        placeholder: "Your Twilio Auth Token"
+      - key: TWILIO_FROM_PHONE
+        sync: false
+        placeholder: "+1XXXXXXXXXX"
+      - key: DB_PATH
+        value: /opt/render/project/src/orchestrator_audit.sqlite
