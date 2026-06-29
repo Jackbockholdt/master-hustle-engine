@@ -49,6 +49,7 @@ OFFER_NAME            = os.getenv("INVENTION_NAME", "Autonomous Business Infrast
 OFFER_SUMMARY         = os.getenv("INVENTION_SUMMARY", "")
 PROOF_URL             = os.getenv("PROOF_URL", "https://missedcallproject.com")
 DEPLOYMENT_FEE        = os.getenv("DEPLOYMENT_FEE", "1500")
+STRIPE_PAYMENT_LINK   = os.getenv("STRIPE_PAYMENT_LINK", "")
 QUALIFIED_INDUSTRIES  = [i.strip().lower() for i in os.getenv(
     "TARGET_INDUSTRIES",
     "construction,industrial services,logistics,b2b consulting,hvac,plumbing,electrical,property management"
@@ -779,7 +780,9 @@ async def skill_invention_outreach(payload: dict) -> dict:
             "3. Lead with the bottleneck the business owner lives with every day (missed calls, manual follow-up, admin cost). "
             "4. Present the offer as deploying a 'Digital Workforce' — AI infrastructure that handles lead gen, inbound telephony, and appointment setting 24/7. "
             "5. Include exactly 3 value bullets: (a) never miss a lead again, (b) admin replaced by AI, (c) ROI math at the deployment fee. "
-            f"6. End CTA: request a 15-min call. Close with proof link: {proof_url} and contact email {{{{DEPLOYER_EMAIL}}}}. "
+            f"6. End CTA: request a 15-min call. Close with proof link: {proof_url}"
+            + (f" and payment/booking link: {STRIPE_PAYMENT_LINK}" if STRIPE_PAYMENT_LINK else "")
+            + f" and contact email {{{{DEPLOYER_EMAIL}}}}. "
             "7. No buzzwords, no hype, no mockups. Direct, peer-to-peer, confident tone."
         )
         prompt = (
@@ -957,6 +960,77 @@ async def webhook_gumloop(request: Request):
         return JSONResponse({"received": True, "skill": None, "warning": "skill could not be resolved from payload"})
     result = await _run(skill, payload, input_source="webhook:gumloop")
     return JSONResponse({"received": True, "skill": skill, "result": result})
+
+
+@app.post("/webhook/lead")
+async def webhook_lead(request: Request):
+    """
+    Dedicated Gumloop lead intake. Expects company_name, contact_email, website.
+    Runs lead qualification then fires the B2B outreach pitch on qualifying leads.
+    """
+    body = await request.json()
+    missing = [f for f in ("company_name", "contact_email", "website") if not body.get(f)]
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Missing required fields: {missing}")
+
+    industry  = body.get("industry", "")
+    qualified, reason = _qualify_lead(body["company_name"], industry)
+    if not qualified:
+        log.info("[webhook/lead] DISQUALIFIED %s — %s", body["company_name"], reason)
+        return JSONResponse({"received": True, "status": "DISQUALIFIED", "reason": reason})
+
+    campaign_id = body.get("campaign_id") or f"lead-{body['company_name'].lower().replace(' ', '-')}"
+    payload = {
+        "invention_name":    OFFER_NAME,
+        "invention_summary": OFFER_SUMMARY,
+        "target_companies":  [body["company_name"]],
+        "inventor_name":     DEPLOYER_NAME,
+        "inventor_email":    DEPLOYER_EMAIL,
+        "contact_email":     body["contact_email"],
+        "website":           body["website"],
+        "proof_url":         PROOF_URL,
+        "deployment_fee":    DEPLOYMENT_FEE,
+        "campaign_id":       campaign_id,
+    }
+    result = await _run("invention-outreach", payload, input_source="webhook:lead")
+    return JSONResponse({"received": True, "status": "SUCCESS", "result": result})
+
+
+@app.post("/webhook/openphone")
+async def webhook_openphone(request: Request):
+    """
+    OpenPhone webhook receiver. Handles call.completed and call.missed events.
+    Routes missed/unanswered calls to the Call Catcher skill for instant SMS text-back.
+    """
+    body = await request.json()
+    event_type = body.get("type", "")
+    data       = body.get("data", {}).get("object", body.get("data", {}))
+
+    log.info("[OpenPhone] event=%s", event_type)
+
+    # Only act on missed or completed-unanswered calls
+    if event_type not in ("call.completed", "call.missed", "call.ringing"):
+        return JSONResponse({"received": True, "action": "ignored", "event": event_type})
+
+    caller_phone  = data.get("from") or data.get("caller", "")
+    call_status   = data.get("status", "")
+    transcript    = data.get("transcription", {}).get("text", "") if isinstance(data.get("transcription"), dict) else ""
+
+    # Only text back missed/unanswered calls
+    if call_status not in ("missed", "no-answer", "canceled", "") and event_type != "call.missed":
+        return JSONResponse({"received": True, "action": "ignored", "reason": f"call status '{call_status}' not a missed call"})
+
+    if not caller_phone:
+        log.warning("[OpenPhone] no caller phone in payload — skipping")
+        return JSONResponse({"received": True, "action": "skipped", "reason": "no caller_phone"})
+
+    payload = {
+        "caller_phone":          caller_phone,
+        "voicemail_transcript":  transcript,
+        "business_name":         DEPLOYER_NAME or "the team",
+    }
+    result = await _run("call-catcher", payload, input_source="webhook:openphone")
+    return JSONResponse({"received": True, "status": "SUCCESS", "result": result})
 
 
 def _qualify_lead(company_name: str, industry: str) -> tuple[bool, str]:
