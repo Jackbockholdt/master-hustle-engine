@@ -1,0 +1,12 @@
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Runtime artifacts — never commit live secrets or generated data
+orchestrator_audit.sqlite
+*.sqlite
+
+# Manual review queue — contains client PII
+manual_review/
