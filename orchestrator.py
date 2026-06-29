@@ -38,9 +38,17 @@ SMTP_HOST      = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT      = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER      = os.getenv("SMTP_USER", "")
 SMTP_PASS      = os.getenv("SMTP_PASS", "")
-DB_PATH        = os.getenv("DB_PATH", "orchestrator_audit.sqlite")
-SKILLS_DIR     = Path(__file__).parent / "skills"
-REVIEW_DIR     = Path(__file__).parent / "manual_review"
+DB_PATH            = os.getenv("DB_PATH", "orchestrator_audit.sqlite")
+SKILLS_DIR         = Path(__file__).parent / "skills"
+REVIEW_DIR         = Path(__file__).parent / "manual_review"
+
+# ── INVENTOR CONFIG (set once; used by /skill/invention-outreach) ─────────────
+INVENTOR_NAME      = os.getenv("INVENTOR_NAME", "")
+INVENTOR_EMAIL     = os.getenv("INVENTOR_EMAIL", "") or os.getenv("ADMIN_EMAIL", "")
+INVENTION_NAME     = os.getenv("INVENTION_NAME", "")
+INVENTION_SUMMARY  = os.getenv("INVENTION_SUMMARY", "")
+PATENT_STATUS      = os.getenv("PATENT_STATUS", "Provisional Filed")
+TARGET_INDUSTRIES  = [i.strip() for i in os.getenv("TARGET_INDUSTRIES", "").split(",") if i.strip()]
 
 # ── LOGGING ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -949,6 +957,49 @@ async def webhook_gumloop(request: Request):
         return JSONResponse({"received": True, "skill": None, "warning": "skill could not be resolved from payload"})
     result = await _run(skill, payload, input_source="webhook:gumloop")
     return JSONResponse({"received": True, "skill": skill, "result": result})
+
+
+@app.post("/skill/invention-outreach")
+async def run_invention_outreach(request: Request):
+    """
+    Gumloop-facing endpoint for the invention-outreach skill.
+    Required fields: company_name, contact_email, website.
+    Inventor config is loaded from env vars (set once in Render dashboard).
+    """
+    body = await request.json()
+
+    # ── Field validation — 400 if any required field is missing ──────────────
+    missing = [f for f in ("company_name", "contact_email", "website") if not body.get(f)]
+    if missing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Missing required fields: {missing}. "
+                   "Payload must include company_name, contact_email, and website."
+        )
+
+    # ── Build full skill payload enriched with inventor config ───────────────
+    campaign_id = body.get("campaign_id") or f"gumloop-{body['company_name'].lower().replace(' ', '-')}"
+    payload = {
+        "invention_name":    body.get("invention_name")    or INVENTION_NAME,
+        "invention_summary": body.get("invention_summary") or INVENTION_SUMMARY,
+        "patent_status":     body.get("patent_status")     or PATENT_STATUS,
+        "target_industries": body.get("target_industries") or TARGET_INDUSTRIES,
+        "target_companies":  [body["company_name"]],
+        "inventor_name":     body.get("inventor_name")     or INVENTOR_NAME,
+        "inventor_email":    body.get("inventor_email")    or INVENTOR_EMAIL,
+        "contact_email":     body["contact_email"],
+        "website":           body["website"],
+        "campaign_id":       campaign_id,
+    }
+
+    # ── Run skill — _run() handles SQLite audit on both SUCCESS and FAIL ─────
+    try:
+        result = await _run("invention-outreach", payload,
+                            input_source="direct:POST /skill/invention-outreach")
+        return JSONResponse({"skill": "invention-outreach", "status": "SUCCESS", "result": result})
+    except Exception as exc:
+        log.error("[invention-outreach] endpoint error: %s", exc)
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @app.post("/skill/{skill_name}")
