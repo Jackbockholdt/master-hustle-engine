@@ -77,13 +77,10 @@ services:
       - key: ADMIN_EMAIL
         sync: false
         placeholder: "admin@domain.com"
-      - key: TWILIO_ACCOUNT_SID
+      - key: OPENPHONE_API_KEY
         sync: false
-        placeholder: "ACxxxxxxxxxxxx"
-      - key: TWILIO_AUTH_TOKEN
-        sync: false
-        placeholder: "Your Twilio Auth Token"
-      - key: TWILIO_FROM_PHONE
+        placeholder: "Your OpenPhone API Key"
+      - key: OPENPHONE_FROM_NUMBER
         sync: false
         placeholder: "+1XXXXXXXXXX"
       - key: DB_PATH

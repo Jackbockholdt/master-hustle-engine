@@ -29,12 +29,11 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 # ── ENV VARS ──────────────────────────────────────────────────────────────────
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL   = "gemini-2.5-flash"
-TWILIO_SID     = os.getenv("TWILIO_ACCOUNT_SID", "")
-TWILIO_TOKEN   = os.getenv("TWILIO_AUTH_TOKEN", "")
-TWILIO_FROM    = os.getenv("TWILIO_FROM_PHONE", "")
-ADMIN_EMAIL    = os.getenv("ADMIN_EMAIL", "")
+GEMINI_API_KEY     = os.getenv("GEMINI_API_KEY", "")
+GEMINI_MODEL       = "gemini-2.5-flash"
+OPENPHONE_API_KEY  = os.getenv("OPENPHONE_API_KEY", "")
+OPENPHONE_FROM     = os.getenv("OPENPHONE_FROM_NUMBER", "")
+ADMIN_EMAIL        = os.getenv("ADMIN_EMAIL", "")
 SMTP_HOST      = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT      = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER      = os.getenv("SMTP_USER", "")
@@ -130,19 +129,18 @@ async def call_gemini(prompt: str, system: str = "", timeout: float = 30.0) -> s
 
 
 async def send_sms(to: str, body: str) -> None:
-    """Send SMS via Twilio REST API. Raises on failure."""
-    if not TWILIO_SID:
-        log.warning("[SMS] Twilio not configured — skipping SMS to %s", to)
+    """Send SMS via OpenPhone REST API. Skips gracefully if not configured."""
+    if not OPENPHONE_API_KEY:
+        log.warning("[SMS] OpenPhone not configured — skipping SMS to %s", to)
         return
-    url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json"
     async with httpx.AsyncClient(timeout=10) as client:
         r = await client.post(
-            url,
-            data={"From": TWILIO_FROM, "To": to, "Body": body},
-            auth=(TWILIO_SID, TWILIO_TOKEN),
+            "https://api.openphone.com/v1/messages",
+            json={"content": body, "from": OPENPHONE_FROM, "to": [to]},
+            headers={"Authorization": OPENPHONE_API_KEY, "Content-Type": "application/json"},
         )
-    if r.status_code not in (200, 201):
-        raise RuntimeError(f"Twilio {r.status_code}: {r.text[:200]}")
+    if r.status_code not in (200, 201, 202):
+        raise RuntimeError(f"OpenPhone {r.status_code}: {r.text[:200]}")
 
 
 def send_admin_alert(subject: str, body: str) -> None:
