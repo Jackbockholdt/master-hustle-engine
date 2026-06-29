@@ -4,6 +4,9 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Local secrets — never commit
+.env
+
 # Runtime artifacts — never commit live secrets or generated data
 orchestrator_audit.sqlite
 *.sqlite
