@@ -11,6 +11,7 @@ Deploy on Render:
 ───────────────────────────────────────────────────────────────────────────────
 """
 
+import asyncio
 import json
 import logging
 import os
@@ -22,7 +23,7 @@ from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
@@ -67,6 +68,10 @@ log = logging.getLogger("orchestrator")
 # SECTION 1 — SQLITE OBSERVABILITY ENGINE
 # ══════════════════════════════════════════════════════════════════════════════
 
+BATCH_INTERVAL_HOURS = int(os.getenv("BATCH_INTERVAL_HOURS", "6"))
+BATCH_SIZE           = int(os.getenv("BATCH_SIZE", "10"))
+
+
 def init_db() -> None:
     con = sqlite3.connect(DB_PATH)
     con.execute("""
@@ -83,9 +88,88 @@ def init_db() -> None:
             created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS leads_queue (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            company_name  TEXT    NOT NULL,
+            contact_email TEXT    NOT NULL,
+            website       TEXT,
+            industry      TEXT,
+            phone         TEXT,
+            status        TEXT    NOT NULL DEFAULT 'pending',
+            added_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+            processed_at  DATETIME
+        )
+    """)
     con.commit()
     con.close()
-    log.info("[DB] audit_log table ready → %s", DB_PATH)
+    log.info("[DB] tables ready → %s", DB_PATH)
+
+
+def queue_leads(leads: List[dict]) -> int:
+    """Insert leads into the queue. Skips duplicates by email. Returns count inserted."""
+    con = sqlite3.connect(DB_PATH)
+    inserted = 0
+    for lead in leads:
+        email = lead.get("contact_email", "").strip().lower()
+        if not email:
+            continue
+        exists = con.execute(
+            "SELECT 1 FROM leads_queue WHERE contact_email = ?", (email,)
+        ).fetchone()
+        if exists:
+            continue
+        con.execute(
+            """INSERT INTO leads_queue (company_name, contact_email, website, industry, phone)
+               VALUES (?, ?, ?, ?, ?)""",
+            (
+                lead.get("company_name", ""),
+                email,
+                lead.get("website", ""),
+                lead.get("industry", ""),
+                lead.get("phone", ""),
+            ),
+        )
+        inserted += 1
+    con.commit()
+    con.close()
+    return inserted
+
+
+def fetch_pending_leads(limit: int = BATCH_SIZE) -> List[dict]:
+    con = sqlite3.connect(DB_PATH)
+    rows = con.execute(
+        """SELECT id, company_name, contact_email, website, industry, phone
+           FROM leads_queue WHERE status = 'pending' ORDER BY id ASC LIMIT ?""",
+        (limit,),
+    ).fetchall()
+    con.close()
+    return [
+        {"_queue_id": r[0], "company_name": r[1], "contact_email": r[2],
+         "website": r[3], "industry": r[4], "phone": r[5]}
+        for r in rows
+    ]
+
+
+def mark_lead(queue_id: int, status: str) -> None:
+    con = sqlite3.connect(DB_PATH)
+    con.execute(
+        "UPDATE leads_queue SET status=?, processed_at=CURRENT_TIMESTAMP WHERE id=?",
+        (status, queue_id),
+    )
+    con.commit()
+    con.close()
+
+
+def queue_stats() -> dict:
+    con = sqlite3.connect(DB_PATH)
+    stats = {}
+    for s in ("pending", "sent", "disqualified", "failed"):
+        stats[s] = con.execute(
+            "SELECT COUNT(*) FROM leads_queue WHERE status=?", (s,)
+        ).fetchone()[0]
+    con.close()
+    return stats
 
 
 def write_audit(
@@ -893,12 +977,55 @@ def resolve_skill(payload: dict) -> Optional[str]:
 # SECTION 5 — FASTAPI APPLICATION
 # ══════════════════════════════════════════════════════════════════════════════
 
+async def _process_lead_queue(batch_size: int = BATCH_SIZE) -> dict:
+    """Pull pending leads from SQLite and run invention-outreach on each."""
+    leads = fetch_pending_leads(batch_size)
+    if not leads:
+        log.info("[Scheduler] No pending leads.")
+        return {"processed": 0, "sent": 0, "disqualified": 0, "failed": 0}
+
+    sent, disq, failed = 0, 0, 0
+    for lead in leads:
+        qid = lead.pop("_queue_id")
+        try:
+            qualified, reason = _qualify_lead(lead["company_name"], lead.get("industry", ""))
+            if not qualified:
+                mark_lead(qid, "disqualified")
+                disq += 1
+                continue
+            await skill_invention_outreach(lead)
+            mark_lead(qid, "sent")
+            sent += 1
+        except Exception as exc:
+            log.error("[Scheduler] Lead %s failed: %s", lead.get("contact_email"), exc)
+            mark_lead(qid, "failed")
+            failed += 1
+        await asyncio.sleep(2)  # rate-limit between sends
+
+    log.info("[Scheduler] Batch done — sent=%d disq=%d failed=%d", sent, disq, failed)
+    return {"processed": len(leads), "sent": sent, "disqualified": disq, "failed": failed}
+
+
+async def _scheduler_loop():
+    """Background task: process lead queue every BATCH_INTERVAL_HOURS hours."""
+    log.info("[Scheduler] Starting — interval=%dh batch=%d", BATCH_INTERVAL_HOURS, BATCH_SIZE)
+    while True:
+        await asyncio.sleep(BATCH_INTERVAL_HOURS * 3600)
+        log.info("[Scheduler] Firing batch run")
+        try:
+            await _process_lead_queue()
+        except Exception as exc:
+            log.error("[Scheduler] Batch run error: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     REVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    log.info("[Orchestrator] Startup complete — %d skills registered", len(SKILL_MAP))
+    task = asyncio.create_task(_scheduler_loop())
+    log.info("[Orchestrator] Startup complete — %d skills registered, scheduler armed (%dh)", len(SKILL_MAP), BATCH_INTERVAL_HOURS)
     yield
+    task.cancel()
     log.info("[Orchestrator] Shutdown")
 
 
@@ -1156,3 +1283,37 @@ async def list_skills():
                 break
         out[name] = {"version": version, "playbook_loaded": bool(md)}
     return {"total": len(out), "skills": out}
+
+
+# ── SELF-TRIGGER ADMIN ROUTES ─────────────────────────────────────────────────
+
+@app.post("/admin/leads")
+async def import_leads(request: Request):
+    """Bulk-import leads into the queue. Body: list of lead objects or {leads: [...]}"""
+    body = await request.json()
+    leads = body if isinstance(body, list) else body.get("leads", [])
+    if not leads:
+        raise HTTPException(status_code=400, detail="Send a JSON array of leads or {leads: [...]}")
+    inserted = queue_leads(leads)
+    stats = queue_stats()
+    return {"imported": inserted, "skipped": len(leads) - inserted, "queue": stats}
+
+
+@app.post("/admin/run-now")
+async def run_now(request: Request):
+    """Immediately process the next batch of pending leads. Optional: {batch_size: N}"""
+    body = {}
+    try:
+        body = await request.json()
+    except Exception:
+        pass
+    size = int(body.get("batch_size", BATCH_SIZE))
+    result = await _process_lead_queue(size)
+    result["queue"] = queue_stats()
+    return result
+
+
+@app.get("/admin/status")
+async def queue_status():
+    """Return current lead queue stats."""
+    return {"queue": queue_stats(), "config": {"batch_size": BATCH_SIZE, "interval_hours": BATCH_INTERVAL_HOURS}}
