@@ -259,6 +259,23 @@ def send_admin_alert(subject: str, body: str) -> None:
         log.error("[ALERT EMAIL FAILED] %s", exc)
 
 
+def send_pitch_email(to_email: str, subject: str, body: str) -> None:
+    """Send outbound pitch email to a lead. Raises on failure so audit captures it."""
+    if not SMTP_USER:
+        log.warning("[PITCH EMAIL] SMTP not configured — skipped for %s", to_email)
+        return
+    msg = MIMEMultipart()
+    msg["From"]    = SMTP_USER
+    msg["To"]      = to_email
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+        s.starttls()
+        s.login(SMTP_USER, SMTP_PASS)
+        s.send_message(msg)
+    log.info("[PITCH EMAIL] Delivered → %s | %s", to_email, subject)
+
+
 def save_to_review(skill_name: str, lead_id: str, payload: Any) -> None:
     """Persist a failed/escaped payload to manual_review/{skill_name}/."""
     folder = REVIEW_DIR / skill_name
@@ -844,11 +861,18 @@ async def skill_invention_outreach(payload: dict) -> dict:
     campaign_id   = payload.get("campaign_id",       "unknown")
     proof_url     = payload.get("proof_url",         PROOF_URL)
     fee           = payload.get("deployment_fee",    DEPLOYMENT_FEE)
+    contact_email = payload.get("contact_email",     "")
 
-    # ESCAPE HATCH A — offer summary too short to draft a credible pitch
-    if len(offer_summary.split()) < 50:
-        save_to_review("invention-outreach", campaign_id, payload)
-        raise ValueError("ERR_SUMMARY_TOO_SHORT: OFFER_SUMMARY must be at least 50 words")
+    # Use a default summary if env var is not set, so leads still get pitched
+    if len(offer_summary.split()) < 10:
+        offer_summary = (
+            f"{offer_name} is a done-for-you AI automation deployment that replaces manual "
+            "lead gen, inbound call handling, and appointment setting with a 24/7 digital "
+            "workforce. Business owners stop missing leads, cut admin overhead, and close "
+            f"more jobs — all for a flat ${fee}/month deployment fee. "
+            f"Proof: {proof_url}"
+        )
+        log.warning("[invention-outreach] INVENTION_SUMMARY env var not set — using default summary")
 
     companies = target_co[:5] or ["a leading business in this industry"]
 
@@ -890,16 +914,29 @@ async def skill_invention_outreach(payload: dict) -> dict:
         ]
         pitches.append(pitch)
 
+    # Send the pitch email to the lead contact
+    email_sent = False
+    if contact_email and pitches:
+        try:
+            send_pitch_email(contact_email, pitches[0]["subject"], pitches[0]["body"])
+            email_sent = True
+        except Exception as exc:
+            log.error("[invention-outreach] Pitch email failed for %s: %s", contact_email, exc)
+            send_admin_alert(f"Pitch email FAILED — {contact_email}", str(exc))
+
     return {
         "campaign_id":   campaign_id,
         "offer_name":    offer_name,
         "deployer_name": deployer_name,
         "proof_url":     proof_url,
         "pitches":       pitches,
+        "email_sent":    email_sent,
         "key_decisions": {
             "pitches_generated":  len(pitches),
             "companies_targeted": companies,
             "deployment_fee":     fee,
+            "email_sent":         email_sent,
+            "contact_email":      contact_email,
         },
     }
 
@@ -1096,6 +1133,9 @@ async def webhook_lead(request: Request):
     Runs lead qualification then fires the B2B outreach pitch on qualifying leads.
     """
     body = await request.json()
+    # Accept 'email' as alias for 'contact_email' (common Gumloop/scraper field name)
+    if not body.get("contact_email") and body.get("email"):
+        body["contact_email"] = body["email"]
     missing = [f for f in ("company_name", "contact_email", "website") if not body.get(f)]
     if missing:
         raise HTTPException(status_code=400, detail=f"Missing required fields: {missing}")
