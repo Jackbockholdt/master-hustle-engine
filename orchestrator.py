@@ -46,14 +46,14 @@ REVIEW_DIR         = Path(__file__).parent / "manual_review"
 # ── B2B SALES ENGINE CONFIG (set once in Render; used by /skill/invention-outreach) ──
 DEPLOYER_NAME         = os.getenv("INVENTOR_NAME", "")
 DEPLOYER_EMAIL        = os.getenv("INVENTOR_EMAIL", "") or os.getenv("ADMIN_EMAIL", "")
-OFFER_NAME            = os.getenv("INVENTION_NAME", "Autonomous Business Infrastructure")
+OFFER_NAME            = os.getenv("INVENTION_NAME", "White-Label AI Infrastructure License")
 OFFER_SUMMARY         = os.getenv("INVENTION_SUMMARY", "")
 PROOF_URL             = os.getenv("PROOF_URL", "https://missedcallproject.com")
 DEPLOYMENT_FEE        = os.getenv("DEPLOYMENT_FEE", "1500")
 STRIPE_PAYMENT_LINK   = os.getenv("STRIPE_PAYMENT_LINK", "")
 QUALIFIED_INDUSTRIES  = [i.strip().lower() for i in os.getenv(
     "TARGET_INDUSTRIES",
-    "construction,industrial services,logistics,b2b consulting,hvac,plumbing,electrical,property management"
+    "digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency"
 ).split(",") if i.strip()]
 
 # ── LOGGING ───────────────────────────────────────────────────────────────────
@@ -866,29 +866,31 @@ async def skill_invention_outreach(payload: dict) -> dict:
     # Use a default summary if env var is not set, so leads still get pitched
     if len(offer_summary.split()) < 10:
         offer_summary = (
-            f"{offer_name} is a done-for-you AI automation deployment that replaces manual "
-            "lead gen, inbound call handling, and appointment setting with a 24/7 digital "
-            "workforce. Business owners stop missing leads, cut admin overhead, and close "
-            f"more jobs — all for a flat ${fee}/month deployment fee. "
-            f"Proof: {proof_url}"
+            f"{offer_name} is a complete, production-ready 9-skill AI infrastructure backend "
+            "(call catching, voice agent, web page creation, lead sorting, email handling, and more) "
+            "that agencies white-label under their own brand and resell to local business clients. "
+            f"Agencies license it for a flat ${fee}/month and resell access to 3-5 clients at "
+            "$500-$1,000/month each — break-even from month one, pure margin after. No dev team, "
+            f"no build time, no maintenance. Proof: {proof_url}"
         )
         log.warning("[invention-outreach] INVENTION_SUMMARY env var not set — using default summary")
 
-    companies = target_co[:5] or ["a leading business in this industry"]
+    companies = target_co[:5] or ["a leading agency in this space"]
 
     pitches = []
     for company in companies:
         system = (
-            "You are an elite B2B sales copywriter. Write a cold outreach email selling an AI automation "
-            "deployment service to a business owner. Return JSON only: "
+            "You are an elite B2B sales copywriter. Write a cold outreach email selling a white-label "
+            "AI infrastructure license to a marketing/lead-gen agency owner who will resell it to their "
+            "own local business clients. Return JSON only: "
             '{"subject":"string max 60 chars","body":"string max 220 words"}. '
             "Rules: "
             "1. The body MUST name the target company. "
-            "2. Frame this as a PARTNER OPPORTUNITY, not a product sale — the sender is selecting 3 partners this month. "
-            "3. Lead with the bottleneck the business owner lives with every day (missed calls, manual follow-up, admin cost). "
-            "4. Present the offer as deploying a 'Digital Workforce' — AI infrastructure that handles lead gen, inbound telephony, and appointment setting 24/7. "
-            "5. Include exactly 3 value bullets: (a) never miss a lead again, (b) admin replaced by AI, (c) ROI math at the deployment fee. "
-            f"6. End CTA: request a 15-min call. Close with proof link: {proof_url}"
+            "2. Frame this as a REVENUE LINE for their agency, not a tech purchase — they resell it under their own brand. "
+            "3. Lead with the math: resell to 3-5 clients at $500-$1,000/month each covers the license; everything after is pure margin. "
+            "4. Present the offer as a complete 9-skill AI infrastructure backend (call catching, voice agent, lead sorting, web pages, email handling) they can resell tonight — no dev team, no build time. "
+            "5. Include exactly 3 value bullets: (a) the resell math/break-even, (b) zero dev/maintenance burden, (c) sticky recurring revenue — clients don't churn off infrastructure embedded in their operations. "
+            f"6. End CTA: request a 15-min screen-share demo. Close with proof link: {proof_url}"
             + (f" and payment/booking link: {STRIPE_PAYMENT_LINK}" if STRIPE_PAYMENT_LINK else "")
             + f" and contact email {{{{DEPLOYER_EMAIL}}}}. "
             "7. No buzzwords, no hype, no mockups. Direct, peer-to-peer, confident tone."
