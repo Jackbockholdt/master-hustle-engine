@@ -904,8 +904,11 @@ async def skill_invention_outreach(payload: dict) -> dict:
             f"Summary: {offer_summary}. Monthly fee: ${fee}. "
             f"Target company: {company}."
         )
-        raw   = await call_gemini(prompt, system, json_mode=True)
-        pitch = json.loads(_clean_json(raw))
+        raw = await call_gemini(prompt, system, json_mode=True)
+        try:
+            pitch = json.loads(_clean_json(raw))
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"ERR_GEMINI_JSON_PARSE: {exc} — raw[:300]={raw[:300]!r}") from exc
 
         # GUARDRAIL — reject generic non-personalized draft
         if company.lower() not in pitch.get("body", "").lower():
