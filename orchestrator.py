@@ -204,7 +204,7 @@ def write_audit(
 # SECTION 2 — SHARED HELPERS
 # ══════════════════════════════════════════════════════════════════════════════
 
-async def call_gemini(prompt: str, system: str = "", timeout: float = 30.0) -> str:
+async def call_gemini(prompt: str, system: str = "", timeout: float = 30.0, json_mode: bool = False) -> str:
     """Call Gemini REST API. Raises on non-2xx or timeout."""
     if not GEMINI_API_KEY:
         raise RuntimeError("GEMINI_API_KEY not configured")
@@ -212,9 +212,12 @@ async def call_gemini(prompt: str, system: str = "", timeout: float = 30.0) -> s
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
     )
+    generation_config = {"temperature": 0.4, "maxOutputTokens": 2048}
+    if json_mode:
+        generation_config["responseMimeType"] = "application/json"
     body: dict = {
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"temperature": 0.4, "maxOutputTokens": 2048},
+        "generationConfig": generation_config,
     }
     if system:
         body["systemInstruction"] = {"parts": [{"text": system}]}
@@ -352,7 +355,7 @@ async def skill_call_catcher(payload: dict) -> dict:
             "Analyze the voicemail transcript and return JSON only: "
             '{"urgency":"HIGH|MEDIUM|LOW","primary_need":"string max 15 words","confidence":0.0}'
         )
-        raw    = await call_gemini(transcript or "No voicemail left.", system, timeout=10)
+        raw    = await call_gemini(transcript or "No voicemail left.", system, timeout=10, json_mode=True)
         parsed = json.loads(_clean_json(raw))
         if float(parsed.get("confidence", 0)) >= 0.65:
             urgency      = parsed.get("urgency", "UNKNOWN")
@@ -407,7 +410,7 @@ async def skill_vintage_appraiser(payload: dict) -> dict:
         '"value_low":"string","value_mid":"string","value_high":"string",'
         '"confidence":"HIGH|MEDIUM|LOW","seller_recommendations":"string"}'
     )
-    raw    = await call_gemini(description, system)
+    raw    = await call_gemini(description, system, json_mode=True)
     report = json.loads(_clean_json(raw))
 
     # ESCAPE HATCH C — low confidence labeling
@@ -444,7 +447,7 @@ async def skill_file_mixup_catcher(payload: dict) -> dict:
         "Fields with no clear match → mark as UNMAPPED."
     )
     prompt = f"Target schema: {json.dumps(target_schema)}\n\nRaw data:\n{raw_data[:4000]}"
-    raw    = await call_gemini(prompt, system)
+    raw    = await call_gemini(prompt, system, json_mode=True)
     result = json.loads(_clean_json(raw))
 
     result["job_id"]        = job_id
@@ -490,7 +493,7 @@ async def skill_web_page_creator(payload: dict) -> dict:
         f"Target audience: {target_audience}. Services: {', '.join(primary_services)}. "
         "Tone: professional, urgent, benefit-driven. No placeholder text."
     )
-    raw  = await call_gemini(prompt, system)
+    raw  = await call_gemini(prompt, system, json_mode=True)
     copy = json.loads(_clean_json(raw))
 
     # GUARDRAIL — block placeholder copy
@@ -602,7 +605,7 @@ async def skill_kdp_publisher(payload: dict) -> dict:
         f"Book: '{book_title}' by {author_name}. Genre: {genre}. "
         f"Audience: {target_audience}.\n\nExcerpt:\n{manuscript[:1500]}"
     )
-    raw      = await call_gemini(prompt, system)
+    raw      = await call_gemini(prompt, system, json_mode=True)
     metadata = json.loads(_clean_json(raw))
 
     keywords = metadata.get("backend_keywords", [])
@@ -668,7 +671,7 @@ async def skill_email_handler(payload: dict) -> dict:
         '{"category":"SUPPORT|SALES|COMPLAINT|BILLING|SPAM|ESCALATE",'
         '"confidence":0.0,"urgency":"HIGH|MEDIUM|LOW","summary":"string max 20 words"}'
     )
-    raw = await call_gemini(f"Subject: {subject}\n\n{body_text[:600]}", system)
+    raw = await call_gemini(f"Subject: {subject}\n\n{body_text[:600]}", system, json_mode=True)
     cls = json.loads(_clean_json(raw))
 
     # GUARDRAIL — low confidence → always escalate
@@ -741,7 +744,7 @@ async def skill_vapi_voice_agent(payload: dict) -> dict:
         '"call_outcome":"BOOKED|CALLBACK_REQUESTED|NOT_INTERESTED|WRONG_NUMBER|NO_ANSWER",'
         '"action_items":["string"]}'
     )
-    raw    = await call_gemini(transcript[:3000], system)
+    raw    = await call_gemini(transcript[:3000], system, json_mode=True)
     result = json.loads(_clean_json(raw))
     outcome = result.get("call_outcome", "CALLBACK_REQUESTED")
 
@@ -824,6 +827,7 @@ async def skill_hemp_review_generator(payload: dict) -> dict:
         f"Product: {strain_name} by {vendor_name}. "
         f"Effects: {', '.join(reported_effects) or 'relaxing, enjoyable'}.",
         script_sys,
+        json_mode=True,
     )
     script_data = json.loads(_clean_json(raw_script))
     if "video_script" in script_data:
@@ -900,7 +904,7 @@ async def skill_invention_outreach(payload: dict) -> dict:
             f"Summary: {offer_summary}. Monthly fee: ${fee}. "
             f"Target company: {company}."
         )
-        raw   = await call_gemini(prompt, system)
+        raw   = await call_gemini(prompt, system, json_mode=True)
         pitch = json.loads(_clean_json(raw))
 
         # GUARDRAIL — reject generic non-personalized draft
