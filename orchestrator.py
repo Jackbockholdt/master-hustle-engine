@@ -212,7 +212,11 @@ async def call_gemini(prompt: str, system: str = "", timeout: float = 30.0, json
         f"https://generativelanguage.googleapis.com/v1beta/models/"
         f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
     )
-    generation_config = {"temperature": 0.4, "maxOutputTokens": 2048}
+    generation_config = {
+        "temperature": 0.4,
+        "maxOutputTokens": 4096,
+        "thinkingConfig": {"thinkingBudget": 0},
+    }
     if json_mode:
         generation_config["responseMimeType"] = "application/json"
     body: dict = {
