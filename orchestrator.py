@@ -258,7 +258,7 @@ def send_admin_alert(subject: str, body: str) -> None:
         msg["To"]      = ADMIN_EMAIL
         msg["Subject"] = f"[Orchestrator ALERT] {subject}"
         msg.attach(MIMEText(body, "plain"))
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
             s.starttls()
             s.login(SMTP_USER, SMTP_PASS)
             s.send_message(msg)
@@ -276,7 +276,7 @@ def send_pitch_email(to_email: str, subject: str, body: str) -> None:
     msg["To"]      = to_email
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as s:
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
         s.starttls()
         s.login(SMTP_USER, SMTP_PASS)
         s.send_message(msg)
