@@ -39,6 +39,8 @@ SMTP_HOST      = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT      = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER      = os.getenv("SMTP_USER", "")
 SMTP_PASS      = os.getenv("SMTP_PASS", "")
+GMAIL_HTTP_URL = os.getenv("GMAIL_HTTP_URL", "")
+GMAIL_HTTP_KEY = os.getenv("GMAIL_HTTP_KEY", "")
 DB_PATH            = os.getenv("DB_PATH", "orchestrator_audit.sqlite")
 SKILLS_DIR         = Path(__file__).parent / "skills"
 REVIEW_DIR         = Path(__file__).parent / "manual_review"
@@ -311,29 +313,23 @@ async def send_sms(to: str, body: str) -> None:
         raise RuntimeError(f"OpenPhone {r.status_code}: {r.text[:200]}")
 
 
-def send_admin_alert(subject: str, body: str) -> None:
-    """Synchronous SMTP alert to ADMIN_EMAIL. Never raises — logs on failure."""
-    if not SMTP_USER or not ADMIN_EMAIL:
-        log.warning("[ALERT] SMTP not configured — alert dropped: %s", subject)
+def _send_email(to_email: str, subject: str, body: str) -> None:
+    """Send email via the Gmail HTTPS relay (Apps Script) if configured, else raw SMTP.
+    Render blocks outbound SMTP, so the HTTP relay is the path that actually works there.
+    The relay always returns HTTP 200 with {"success": bool, ...} — check the body, not the status."""
+    if GMAIL_HTTP_URL:
+        r = httpx.post(
+            GMAIL_HTTP_URL,
+            json={"key": GMAIL_HTTP_KEY, "to": to_email, "subject": subject, "body": body},
+            timeout=15,
+        )
+        r.raise_for_status()
+        data = r.json()
+        if not data.get("success"):
+            raise RuntimeError(f"Gmail relay error: {data.get('error', 'unknown')}")
         return
-    try:
-        msg = MIMEMultipart()
-        msg["From"]    = SMTP_USER
-        msg["To"]      = ADMIN_EMAIL
-        msg["Subject"] = f"[Orchestrator ALERT] {subject}"
-        msg.attach(MIMEText(body, "plain"))
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
-            s.starttls()
-            s.login(SMTP_USER, SMTP_PASS)
-            s.send_message(msg)
-    except Exception as exc:
-        log.error("[ALERT EMAIL FAILED] %s", exc)
-
-
-def send_pitch_email(to_email: str, subject: str, body: str) -> None:
-    """Send outbound pitch email to a lead. Raises on failure so audit captures it."""
     if not SMTP_USER:
-        log.warning("[PITCH EMAIL] SMTP not configured — skipped for %s", to_email)
+        log.warning("[EMAIL] No relay or SMTP configured — skipped for %s", to_email)
         return
     msg = MIMEMultipart()
     msg["From"]    = SMTP_USER
@@ -344,6 +340,23 @@ def send_pitch_email(to_email: str, subject: str, body: str) -> None:
         s.starttls()
         s.login(SMTP_USER, SMTP_PASS)
         s.send_message(msg)
+
+
+def send_admin_alert(subject: str, body: str) -> None:
+    """Alert to ADMIN_EMAIL via the Gmail relay or SMTP. Never raises — logs on failure."""
+    if not ADMIN_EMAIL:
+        log.warning("[ALERT] No ADMIN_EMAIL configured — alert dropped: %s", subject)
+        return
+    try:
+        _send_email(ADMIN_EMAIL, f"[Orchestrator ALERT] {subject}", body)
+    except Exception as exc:
+        log.error("[ALERT EMAIL FAILED] %s", exc)
+
+
+def send_pitch_email(to_email: str, subject: str, body: str) -> None:
+    """Send outbound pitch email to a lead. Raises on failure so audit captures it."""
+    _send_email(to_email, subject, body)
+    log.info("[PITCH EMAIL] Delivered → %s | %s", to_email, subject)
     log.info("[PITCH EMAIL] Delivered → %s | %s", to_email, subject)
 
 
