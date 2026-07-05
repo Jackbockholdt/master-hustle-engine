@@ -322,6 +322,7 @@ def _send_email(to_email: str, subject: str, body: str) -> None:
             GMAIL_HTTP_URL,
             json={"key": GMAIL_HTTP_KEY, "to": to_email, "subject": subject, "body": body},
             timeout=15,
+            follow_redirects=True,
         )
         r.raise_for_status()
         data = r.json()
