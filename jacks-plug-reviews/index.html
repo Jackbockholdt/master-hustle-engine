@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jacks Plug Reviews | Premium Cannabis Content</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --bg-deep: #0a0a09;
+            --bg-card: #141412;
+            --bg-card-hover: #1c1c19;
+            --primary-gold: #ffcc00;
+            --accent-red: #cc3333;
+            --text-main: #f5f5f3;
+            --text-muted: #9f9f9b;
+            --gold-gradient: linear-gradient(135deg, #ffe066 0%, #ffcc00 50%, #cc9900 100%);
+        }
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            line-height: 1.5;
+            padding: 0 15px;
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; padding: 30px 0; }
+        
+        header {
+            text-align: center;
+            padding: 40px 15px;
+            background: linear-gradient(180deg, #161614 0%, #0a0a09 100%);
+            border-radius: 24px;
+            border: 1px solid #22221f;
+            margin-bottom: 35px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+        }
+        header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+            background: var(--gold-gradient); border-radius: 24px 24px 0 0;
+        }
+
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .main-avatar {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 3px solid var(--primary-gold);
+            object-fit: cover;
+            box-shadow: 0 0 25px rgba(255, 204, 0, 0.3);
+        }
+        .dog-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-red);
+            object-fit: cover;
+            margin-top: 20px;
+            box-shadow: 0 0 20px rgba(204, 51, 51, 0.3);
+        }
+
+        h1 {
+            font-family: 'Georgia', serif;
+            font-size: 2.6rem;
+            margin-bottom: 8px;
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+        header p { color: var(--text-muted); font-size: 1.1rem; margin-bottom: 20px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gold-gradient);
+            color: #000;
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+        }
+
+        h2 {
+            font-family: 'Georgia', serif;
+            font-size: 1.8rem;
+            margin: 40px 0 20px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #22221f;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h2 i { color: var(--primary-gold); font-size: 1.4rem; }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        @media (max-width: 600px) {
+            .media-grid { grid-template-columns: 1fr; }
+        }
+
+        .media-card {
+            background: var(--bg-card);
+            border: 1px solid #22221f;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .media-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary-gold);
+        }
+        .media-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            background: #1a1a18;
+            display: block;
+        }
+        .media-info { padding: 15px; }
+        .media-info h4 { font-size: 1.15rem; margin-bottom: 4px; color: var(--text-main); }
+        .media-info p { color: var(--text-muted); font-size: 0.9rem; }
+
+        .strain-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 768px) { .strain-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .strain-grid { grid-template-columns: 1fr; } }
+
+        .strain-card {
+            background: var(--bg-card);
+            border: 1px solid #1f1f1d;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        .strain-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            background: #1a1a18;
+            border-bottom: 2px solid var(--primary-gold);
+        }
+        .strain-name {
+            padding: 10px 10px 4px 10px;
+            font-weight: bold;
+            text-align: center;
+            background: #181816;
+            color: var(--text-main);
+        }
+        .strain-stats {
+            padding: 0 10px 10px 10px;
+            text-align: center;
+            background: #181816;
+            color: var(--primary-gold);
+            font-size: 0.78rem;
+            font-weight: bold;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border: 1px solid #22221f;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        .info-table th, .info-table td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid #22221f;
+        }
+        .info-table th {
+            background: #181816;
+            color: var(--primary-gold);
+            font-family: 'Georgia', serif;
+        }
+        .info-table tr:last-child td { border-bottom: none; }
+        .info-table td.effects { color: var(--text-muted); }
+        .callout {
+            background: var(--bg-card);
+            border: 1px solid #22221f;
+            border-left: 3px solid var(--primary-gold);
+            border-radius: 8px;
+            padding: 16px 18px;
+            margin-top: 16px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .callout strong { color: var(--text-main); }
+        .grow-badge {
+            display: inline-block;
+            background: var(--accent-red);
+            color: var(--text-main);
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        footer {
+            border-top: 1px solid #1a1a18;
+            padding: 40px 0 20px 0;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 60px;
+        }
+        footer a { color: var(--text-muted); text-decoration: none; margin: 0 8px; }
+        footer a:hover { color: var(--primary-gold); }
+        .disclaimer { margin-top: 20px; color: #5a5a56; font-size: 0.75rem; line-height: 1.4; text-align: justify; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="profile-container">
+                <img src="images/20250621/114356.jpg" onerror="this.src='images/00000.jpg';" class="main-avatar" alt="Jack">
+                <img src="images/20250621/114406.jpg" class="dog-avatar" alt="Lounge Companion">
+            </div>
+            <h1>Jacks Plug Reviews</h1>
+            <p>Independent, raw reviews on top-shelf strains, premium hardware setups, and custom extractions.</p>
+            <!-- TODO: swap "#" for your real affiliate link before uploading -->
+            <a href="#" class="btn">Shop Recommended Products <i class="fas fa-external-link-alt"></i></a>
+        </header>
+
+        <h2><i class="fas fa-box-open"></i> Latest Activity & Shipments</h2>
+        <div class="media-grid">
+            <div class="media-card">
+                <img src="images/20260506/231105.jpg" class="media-img" alt="Unboxing">
+                <div class="media-info">
+                    <h4>Dispo Shipment Unboxing</h4>
+                    <p>Breaking open the latest package drop directly from JP J&K Dispo.</p>
+                </div>
+            </div>
+
+            <div class="media-card">
+                <img src="images/20260506/231142.jpg" class="media-img" alt="Home Jar">
+                <div class="media-info">
+                    <h4>The Home Jar Cache</h4>
+                    <p>Current personal reserves locked down and ready for inspection.</p>
+                </div>
+            </div>
+
+            <div class="media-card">
+                <img src="images/20260506/233504.jpg" class="media-img" alt="CBD Coffee">
+                <div class="media-info">
+                    <h4>Infused Kitchen Mixes</h4>
+                    <p>Fresh batch review: Testing morning wake & bake profiles with custom CBD Coffee blends.</p>
+                </div>
+            </div>
+
+            <div class="media-card">
+                <img src="images/20250809/190737.jpg" class="media-img" alt="Wax Joint">
+                <div class="media-info">
+                    <h4>Custom Concentrates</h4>
+                    <p>Inspecting the burn rate and flavor retention on a freshly rolled custom heavy wax joint.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2><i class="fas fa-leaf"></i> Premium Strain Vault</h2>
+        <div class="strain-grid">
+            <div class="strain-card"><img src="images/20260520/142215.jpg" class="strain-img"><div class="strain-name">Jet Fuel Gelato</div><div class="strain-stats">26.49% THCA &bull; 9.3/10</div></div>
+            <div class="strain-card"><img src="images/20260520/142246.jpg" class="strain-img"><div class="strain-name">Gorilla Glue</div><div class="strain-stats">25.91% THCA &bull; 9.0/10</div></div>
+            <div class="strain-card"><img src="images/20260520/142311.jpg" class="strain-img"><div class="strain-name">Emerald Runtz</div><div class="strain-stats">36.943% THCA &bull; 9.8/10 &mdash; Jack's #1</div></div>
+            <div class="strain-card"><img src="images/20260520/142429.jpg" class="strain-img"><div class="strain-name">Kush Cake</div></div>
+            <div class="strain-card"><img src="images/20260520/142504.jpg" class="strain-img"><div class="strain-name">Sangria #10</div><div class="strain-stats">26.79% THCA &bull; 9.1/10</div></div>
+            <div class="strain-card"><img src="images/20260520/142539.jpg" class="strain-img"><div class="strain-name">Sour Tangie</div><div class="strain-stats">26.51% THCA &bull; 8.5/10</div></div>
+            <div class="strain-card"><img src="images/20260520/14265.jpg" class="strain-img"><div class="strain-name">Double OG Sour</div><div class="strain-stats">28.13% THCA &bull; 9.2/10</div></div>
+            <div class="strain-card"><img src="images/20260520/142719.jpg" class="strain-img"><div class="strain-name">Creme de la Creme</div></div>
+            <div class="strain-card"><img src="images/20260520/142832.jpg" class="strain-img"><div class="strain-name">LA Pop Rocks</div><div class="strain-stats">20.97% THCA &bull; 8.7/10</div></div>
+            <div class="strain-card"><img src="images/20260520/142927.jpg" class="strain-img"><div class="strain-name">Kush Mints</div><div class="strain-stats">AAA Exotic Indoor</div></div>
+            <div class="strain-card"><img src="images/20260520/143005.jpg" class="strain-img"><div class="strain-name">Wedding Cake</div></div>
+            <div class="strain-card"><img src="images/20260520/143038.jpg" class="strain-img"><div class="strain-name">Grape Gas</div></div>
+            <div class="strain-card"><img src="images/20260520/143115.jpg" class="strain-img"><div class="strain-name">Durban Poison</div></div>
+            <div class="strain-card"><img src="images/20260520/143233.jpg" class="strain-img"><div class="strain-name">Lemon Bean</div></div>
+            <div class="strain-card"><img src="images/20260520/143317.jpg" class="strain-img"><div class="strain-name">Cali Pink Certz</div></div>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 10px;">Lab %/ratings shown are from Jack's own COA records. Strains without a number yet are still being logged &mdash; no data is invented.</p>
+
+        <h2><i class="fas fa-seedling"></i> Genetics & Hardware Vault</h2>
+        <div class="media-grid">
+            <div class="media-card">
+                <img src="images/100015229.jpg" class="media-img" alt="Seeds">
+                <div class="media-info">
+                    <h4>Cali Root Seeds</h4>
+                    <p>Tracking high-grade underground seed batches, viability metrics, and raw genetic heritage profiles.</p>
+                </div>
+            </div>
+            <div class="media-card">
+                <img src="images/100015255.jpg" class="media-img" alt="Vapes">
+                <div class="media-info">
+                    <h4>Vape Device Hub</h4>
+                    <p>Hardware deep dives checking chamber temps, coil lifespans, and thick vapor output ratings.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2><i class="fas fa-flask"></i> Cannabinoid & Terpene Breakdown</h2>
+        <table class="info-table">
+            <tr><th>Cannabinoid</th><th>Psychoactive?</th><th>Commonly Reported Effects</th></tr>
+            <tr><td>CBD</td><td>No</td><td class="effects">Relaxed, clear-headed, calming. No high.</td></tr>
+            <tr><td>CBG</td><td>Minimal at typical doses</td><td class="effects">Mellow focus, mood lift. The "mother cannabinoid" other cannabinoids are made from.</td></tr>
+            <tr><td>CBN</td><td>Mildly</td><td class="effects">Sedating, sleepy &mdash; forms as THC ages/degrades.</td></tr>
+            <tr><td>Delta-9 THC</td><td>Yes</td><td class="effects">The classic "high" &mdash; euphoria, body relaxation.</td></tr>
+            <tr><td>THCV</td><td>Yes, at higher doses</td><td class="effects">Clear-headed, energetic, often described as uplifting/giggly rather than heavy.</td></tr>
+            <tr><td>THCP</td><td>Yes &mdash; strong</td><td class="effects">Binds much harder to CB1 in lab studies than Delta-9; reports describe a more intense, longer-lasting high. Human research is still thin, so go slow.</td></tr>
+        </table>
+        <div class="callout">
+            <strong>The "laughing feeling like mushrooms" question, straight up:</strong> mushrooms work through a completely different pathway (serotonin receptors) than anything in cannabis (which works through CB1/CB2 receptors) &mdash; so no cannabinoid is chemically the same thing. What people call the giggly, laughing high in weed is usually a <strong>terpene + cannabinoid combo</strong>: sativa-leaning strains high in limonene and pinene, paired with THCV, tend to get reported as more energetic and giggly instead of a heavy couch-lock body high. Durban Poison (already in the Strain Vault above) is a classic example people describe that way.
+        </div>
+
+        <h2><i class="fas fa-seedling"></i> Home Grow Diary</h2>
+        <div class="media-grid">
+            <div class="media-card">
+                <img src="images/homegrow/cotton-candy-bubble-gum.jpg" class="media-img" alt="Cotton Candy Bubble Gum">
+                <div class="media-info">
+                    <h4>Cotton Candy Bubble Gum <span class="grow-badge">HOMEGROWN</span></h4>
+                    <p>9.0/10 &mdash; grown start to finish, not a dispo pickup.</p>
+                </div>
+            </div>
+            <div class="media-card">
+                <img src="images/homegrow/banana-punch-x-raspberry-ak47.jpg" class="media-img" alt="Banana Punch x Raspberry AK47">
+                <div class="media-info">
+                    <h4>Banana Punch x Raspberry AK47 <span class="grow-badge">GROWING NOW</span></h4>
+                    <p>Cali Rooted Seeds genetics, currently in the tent. Updates as it flowers.</p>
+                </div>
+            </div>
+        </div>
+
+        <h2><i class="fas fa-mortar-pestle"></i> Cannabutter & Edibles</h2>
+        <div class="callout">
+            Homemade cannabutter, made start to finish and used in Jack's own edibles. Full batch writeup, dosing notes, and process photos coming here.
+        </div>
+
+        <footer>
+            <p style="margin-bottom: 12px;">
+                <a href="index.html">Home</a> |
+                <a href="mailto:contact@jacksplugreviews.com">Contact Reviewer</a> |
+                <a href="#">Privacy Policy</a>
+            </p>
+            <p class="disclaimer"><strong>Affiliate Disclaimer:</strong> This website contains affiliate links. When you click on links and make a purchase, we may receive compensation at zero added cost to you. We exclusively present products that have undergone rigorous physical inspection and testing.</p>
+            <p style="margin-top: 15px; font-size: 0.75rem;">&copy; 2026 Jacks Plug Reviews. All rights reserved.</p>
+        </footer>
+    </div>
+
+</body>
+</html>
