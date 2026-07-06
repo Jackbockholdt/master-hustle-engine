@@ -1041,10 +1041,14 @@ async function sendSms(to, body) {
   }
 }
 
-// Send plain-text pitch email — routes through Gmail HTTPS relay first (bypasses Render's SMTP block),
-// falls back to direct SMTP only if relay is not configured.
+// Send plain-text pitch email to a B2B lead via SMTP
 async function sendPitchEmail(toEmail, subject, body) {
-  await sendEmailViaRelayOrSmtp(toEmail, subject, body);
+  await transporter.sendMail({
+    from: `"${B2B_DEPLOYER_NAME || 'Antigravity Engine'}" <${process.env.SMTP_USER}>`,
+    to: toEmail,
+    subject,
+    text: body,
+  });
   console.log(`[Pitch Email] Sent → ${toEmail} | ${subject}`);
 }
 
