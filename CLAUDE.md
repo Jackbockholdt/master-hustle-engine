@@ -1,9 +1,13 @@
 # Antigravity 2.0 — Current State
 
 ## What This Is
-A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch emails for Jack Bockholdt's **White-Label AI Infrastructure License** ($1,500/month) — sold to digital marketing / lead-gen agency owners, who white-label the 9-skill engine and resell it to their own local business clients.
+A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch emails for Jack Bockholdt's **White-Label AI Infrastructure License** ($1,500/month). Buyers white-label the 9-skill engine and resell it to their own clients.
 
-**This supersedes the old contractor/missed-call offer.** Do not pitch plumbers, HVAC, or other end-business owners directly — the buyer is the agency, not the end client. Full playbook: `marketing/GTM-BLUEPRINT.md` (cold call script + scraper targeting) and `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` (3-email follow-up).
+**Two qualified buyer types (both live as of 2026-07-06):**
+1. Digital marketing / lead-gen agency owners — resell to their local business clients
+2. Tech startups / SaaS / software / digital service companies — resell to their own customers
+
+**This supersedes the old contractor/missed-call offer.** Do not pitch plumbers, HVAC, or other end-business owners directly — the buyer white-labels and resells, they are never the end client. Full playbook: `marketing/GTM-BLUEPRINT.md` (cold call script + scraper targeting) and `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` (3-email follow-up).
 
 ## Live URLs
 - **Orchestrator:** https://antigravity-orchestrator-kz94.onrender.com
@@ -13,14 +17,15 @@ A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch 
 ## Everything That Is Already Working — DO NOT TOUCH
 - `orchestrator.py` — FastAPI server, 9 skills, deployed on Render
 - All Render env vars set (Gemini, OpenPhone, SMTP, Stripe, payment link)
+- **Email delivery runs through a Gmail Apps Script HTTPS relay** (`GMAIL_HTTP_URL`/`GMAIL_HTTP_KEY` env vars), not raw SMTP — Render blocks outbound SMTP entirely (`ENETUNREACH` on port 587), confirmed in production. Both `orchestrator.py` and `server.js` route through the relay now, with SMTP kept only as inert fallback code. **Do not "fix" this by touching SMTP creds — it will not work on Render regardless of password validity.**
 - Stripe webhook live at master-hustle-engine.onrender.com/api/stripe-webhook
 - Lead intake endpoint: POST /webhook/lead (tested and working, accepts `email` or `contact_email`)
 - OpenPhone webhook: POST /webhook/openphone
 - Vapi webhook: POST /webhook/vapi
-- `/skill/invention-outreach` pitch copy now targets agency owners (see `orchestrator.py` `skill_invention_outreach`)
+- `/skill/invention-outreach` pitch copy targets both agency owners and tech/SaaS founders (see `orchestrator.py` `skill_invention_outreach`)
 
 ## The ONE Thing Left To Do
-Re-point the Gumloop scraper from contractor leads to **agency owner leads** using the targeting params in `marketing/GTM-BLUEPRINT.md` (job titles, company keywords, size, geographies), then connect it to the lead intake endpoint.
+**Turn the Gumloop scraper on** — the orchestrator side is fully built, tested, and waiting. Nothing will happen until Gumloop actually starts pushing leads to the endpoint below.
 
 **Gumloop HTTP node config:**
 - URL: https://antigravity-orchestrator-kz94.onrender.com/webhook/lead
@@ -36,11 +41,24 @@ Re-point the Gumloop scraper from contractor leads to **agency owner leads** usi
 }
 ```
 
+**Scraper targeting — job titles (any of):** Founder, Co-Founder, CEO, Owner, Managing Director, Head of Growth, Agency Owner
+
+**Scraper targeting — industry keywords (any of, case-insensitive substring match):**
+```
+digital marketing agency, lead generation agency, marketing agency, seo agency,
+ppc agency, social media agency, growth agency, advertising agency,
+startup, saas, software company, tech startup, online startup,
+digital services, digital agency, web development agency, software agency, tech company
+```
+This exact list lives in the `TARGET_INDUSTRIES` env var on the orchestrator Render service — anything outside it gets auto-disqualified with no email sent. To add more categories, update that env var, then **trigger a fresh deploy** (env var changes alone do not restart the running process on this account's Render config — confirmed by testing, not just theory).
+
+- Company size: 1–50 employees
+- Must have: real contact email (not `info@`/`hello@`), working website
+
 ## Offer Details
 - Product: White-Label AI Infrastructure License
 - Price: $1,500/month license fee
-- Buyer: Digital marketing / lead-gen agency owners (5–50 employees) who resell to their own clients
-- Targets (industry keywords for scraper): Digital Marketing Agency, Lead Generation Agency, SEO Agency, PPC Agency, Social Media Agency, Growth Agency, Advertising Agency
+- Buyer: Agency owners OR tech/SaaS/digital-service founders (1–50 employees) who resell to their own customers
 - Proof URL: https://missedcallproject.com
 - Payment link: https://buy.stripe.com/3cI14m9hOcPh6Gbcx10000D
 - Pitch tone: Peer-to-peer, math-driven ("resell to 3 clients at $500/mo and you're already break-even")
@@ -52,10 +70,25 @@ Re-point the Gumloop scraper from contractor leads to **agency owner leads** usi
 
 ## Test The Engine
 ```bash
+# Agency lead
 curl -X POST https://antigravity-orchestrator-kz94.onrender.com/webhook/lead \
   -H "Content-Type: application/json" \
   -d '{"company_name":"Test Agency","contact_email":"jackbockholdt88@gmail.com","website":"https://test.com","industry":"digital marketing agency"}'
+
+# Tech/SaaS lead
+curl -X POST https://antigravity-orchestrator-kz94.onrender.com/webhook/lead \
+  -H "Content-Type: application/json" \
+  -d '{"company_name":"Test SaaS Co","contact_email":"jackbockholdt88@gmail.com","website":"https://test.com","industry":"saas startup"}'
+```
+Both confirmed working end-to-end (qualified → pitch generated → email sent) as of 2026-07-06.
+
+## Check Queue / Follow-Up Status
+```bash
+curl https://antigravity-orchestrator-kz94.onrender.com/admin/status
 ```
 
 ## Check Logs
 https://antigravity-orchestrator-kz94.onrender.com/logs
+
+## Unrelated Project — Do Not Confuse With This One
+There is a **separate, local** repo `C:\Users\jack\missed-call-agent` (Vapi + OpenPhone/Quo backend, its own `CLAUDE.md`) with one outstanding task: a `GOOGLE_PLACES_API_KEY` for Google Cloud project `491932772151`. That work is not part of this repo and has no bearing on the orchestrator or Gumloop setup described above.
