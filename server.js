@@ -56,7 +56,8 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
   }
 });
 
-// Setup Nodemailer SMTP Transporter
+// Setup Nodemailer SMTP Transporter (fallback only — Render blocks outbound SMTP,
+// so GMAIL_HTTP_URL/GMAIL_HTTP_KEY below is the path that actually works there)
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: parseInt(process.env.SMTP_PORT || '587'),
@@ -66,6 +67,29 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
 });
+
+// Send email via the Gmail HTTPS relay (Apps Script) if configured, else raw SMTP.
+// The relay always returns HTTP 200 with {"success": bool, ...} — check the body, not the status.
+async function sendEmailViaRelayOrSmtp(to, subject, htmlOrText) {
+  const relayUrl = process.env.GMAIL_HTTP_URL;
+  if (relayUrl) {
+    const res = await fetch(relayUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: process.env.GMAIL_HTTP_KEY, to, subject, body: htmlOrText }),
+    });
+    if (!res.ok) throw new Error(`Gmail relay HTTP ${res.status}: ${await res.text()}`);
+    const data = await res.json();
+    if (!data.success) throw new Error(`Gmail relay error: ${data.error || 'unknown'}`);
+    return;
+  }
+  await transporter.sendMail({
+    from: `"Antigravity Master Engine" <${process.env.SMTP_USER}>`,
+    to,
+    subject,
+    html: htmlOrText,
+  });
+}
 
 // Reusable SQLite logging helper
 function logTransaction(email, productType, status, assets = '') {
@@ -78,23 +102,18 @@ function logTransaction(email, productType, status, assets = '') {
   );
 }
 
-// Reusable Helper: Send HTML email via SMTP
+// Reusable Helper: Send HTML email via the Gmail relay (or SMTP fallback)
 async function sendHtmlEmail(to, subject, htmlContent) {
   let attempts = 0;
   const maxAttempts = 3;
   while (attempts < maxAttempts) {
     attempts++;
     try {
-      await transporter.sendMail({
-        from: `"Antigravity Master Engine" <${process.env.SMTP_USER}>`,
-        to,
-        subject,
-        html: htmlContent,
-      });
-      console.log(`[SMTP] Email sent successfully to ${to} (Attempt ${attempts})`);
+      await sendEmailViaRelayOrSmtp(to, subject, htmlContent);
+      console.log(`[Email] Sent successfully to ${to} (Attempt ${attempts})`);
       return true;
     } catch (err) {
-      console.warn(`[SMTP] Attempt ${attempts} failed to send email to ${to}:`, err.message);
+      console.warn(`[Email] Attempt ${attempts} failed to send email to ${to}:`, err.message);
       if (attempts === maxAttempts) throw err;
       await new Promise(r => setTimeout(r, 1000));
     }
@@ -110,11 +129,10 @@ async function sendAdminAlert(context, errorStack) {
   }
 
   try {
-    await transporter.sendMail({
-      from: `"Antigravity System Alert" <${process.env.SMTP_USER}>`,
-      to: adminEmail,
-      subject: `🚨 Antigravity Engine Failure: ${context}`,
-      html: `
+    await sendEmailViaRelayOrSmtp(
+      adminEmail,
+      `🚨 Antigravity Engine Failure: ${context}`,
+      `
         <div style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px; border: 1px solid #fda4af; background-color: #fff1f2; color: #9f1239; border-radius: 12px; max-width: 700px; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
           <h2 style="margin-top: 0; font-size: 20px; font-weight: 700; color: #e11d48; display: flex; align-items: center; gap: 8px;">🚨 System Processing Failure Alert</h2>
           <p style="font-size: 15px; margin: 10px 0;"><strong>Context:</strong> <span style="color: #4c0519;">${context}</span></p>
@@ -123,8 +141,8 @@ async function sendAdminAlert(context, errorStack) {
           <h3 style="margin-top: 0; font-size: 16px; font-weight: 600; color: #be123c;">Full Stack Trace:</h3>
           <pre style="background: #ffe4e6; padding: 15px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 13px; white-space: pre-wrap; overflow-x: auto; border: 1px solid #fecdd3; color: #881337; line-height: 1.5;">${errorStack}</pre>
         </div>
-      `,
-    });
+      `
+    );
     console.log('[Alert] Admin failure email sent successfully.');
   } catch (alertErr) {
     console.error('[Alert] Failed to send admin alert email:', alertErr.message);
