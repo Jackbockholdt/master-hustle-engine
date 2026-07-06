@@ -19,7 +19,7 @@ import smtplib
 import sqlite3
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -39,6 +39,8 @@ SMTP_HOST      = os.getenv("SMTP_HOST", "smtp.gmail.com")
 SMTP_PORT      = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER      = os.getenv("SMTP_USER", "")
 SMTP_PASS      = os.getenv("SMTP_PASS", "")
+GMAIL_HTTP_URL = os.getenv("GMAIL_HTTP_URL", "")
+GMAIL_HTTP_KEY = os.getenv("GMAIL_HTTP_KEY", "")
 DB_PATH            = os.getenv("DB_PATH", "orchestrator_audit.sqlite")
 SKILLS_DIR         = Path(__file__).parent / "skills"
 REVIEW_DIR         = Path(__file__).parent / "manual_review"
@@ -99,6 +101,21 @@ def init_db() -> None:
             status        TEXT    NOT NULL DEFAULT 'pending',
             added_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
             processed_at  DATETIME
+        )
+    """)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS follow_ups (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            campaign_id   TEXT    NOT NULL,
+            company_name  TEXT    NOT NULL,
+            contact_email TEXT    NOT NULL,
+            step          INTEGER NOT NULL,
+            subject       TEXT    NOT NULL,
+            body          TEXT    NOT NULL,
+            due_at        TEXT    NOT NULL,
+            status        TEXT    NOT NULL DEFAULT 'pending',
+            created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+            sent_at       DATETIME
         )
     """)
     con.commit()
@@ -167,6 +184,55 @@ def queue_stats() -> dict:
     for s in ("pending", "sent", "disqualified", "failed"):
         stats[s] = con.execute(
             "SELECT COUNT(*) FROM leads_queue WHERE status=?", (s,)
+        ).fetchone()[0]
+    con.close()
+    return stats
+
+
+def queue_follow_up(campaign_id: str, company_name: str, contact_email: str,
+                     step: int, subject: str, body: str, due_at: datetime) -> None:
+    con = sqlite3.connect(DB_PATH)
+    con.execute(
+        """INSERT INTO follow_ups (campaign_id, company_name, contact_email, step, subject, body, due_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (campaign_id, company_name, contact_email, step, subject, body, due_at.isoformat()),
+    )
+    con.commit()
+    con.close()
+
+
+def fetch_due_follow_ups(limit: int = 25) -> List[dict]:
+    con = sqlite3.connect(DB_PATH)
+    now = datetime.now(timezone.utc).isoformat()
+    rows = con.execute(
+        """SELECT id, campaign_id, company_name, contact_email, step, subject, body
+           FROM follow_ups WHERE status = 'pending' AND due_at <= ? ORDER BY due_at ASC LIMIT ?""",
+        (now, limit),
+    ).fetchall()
+    con.close()
+    return [
+        {"id": r[0], "campaign_id": r[1], "company_name": r[2], "contact_email": r[3],
+         "step": r[4], "subject": r[5], "body": r[6]}
+        for r in rows
+    ]
+
+
+def mark_follow_up(follow_up_id: int, status: str) -> None:
+    con = sqlite3.connect(DB_PATH)
+    con.execute(
+        "UPDATE follow_ups SET status=?, sent_at=CURRENT_TIMESTAMP WHERE id=?",
+        (status, follow_up_id),
+    )
+    con.commit()
+    con.close()
+
+
+def follow_up_stats() -> dict:
+    con = sqlite3.connect(DB_PATH)
+    stats = {}
+    for s in ("pending", "sent", "failed"):
+        stats[s] = con.execute(
+            "SELECT COUNT(*) FROM follow_ups WHERE status=?", (s,)
         ).fetchone()[0]
     con.close()
     return stats
@@ -247,29 +313,24 @@ async def send_sms(to: str, body: str) -> None:
         raise RuntimeError(f"OpenPhone {r.status_code}: {r.text[:200]}")
 
 
-def send_admin_alert(subject: str, body: str) -> None:
-    """Synchronous SMTP alert to ADMIN_EMAIL. Never raises — logs on failure."""
-    if not SMTP_USER or not ADMIN_EMAIL:
-        log.warning("[ALERT] SMTP not configured — alert dropped: %s", subject)
+def _send_email(to_email: str, subject: str, body: str) -> None:
+    """Send email via the Gmail HTTPS relay (Apps Script) if configured, else raw SMTP.
+    Render blocks outbound SMTP, so the HTTP relay is the path that actually works there.
+    The relay always returns HTTP 200 with {"success": bool, ...} — check the body, not the status."""
+    if GMAIL_HTTP_URL:
+        r = httpx.post(
+            GMAIL_HTTP_URL,
+            json={"key": GMAIL_HTTP_KEY, "to": to_email, "subject": subject, "body": body},
+            timeout=15,
+            follow_redirects=True,
+        )
+        r.raise_for_status()
+        data = r.json()
+        if not data.get("success"):
+            raise RuntimeError(f"Gmail relay error: {data.get('error', 'unknown')}")
         return
-    try:
-        msg = MIMEMultipart()
-        msg["From"]    = SMTP_USER
-        msg["To"]      = ADMIN_EMAIL
-        msg["Subject"] = f"[Orchestrator ALERT] {subject}"
-        msg.attach(MIMEText(body, "plain"))
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
-            s.starttls()
-            s.login(SMTP_USER, SMTP_PASS)
-            s.send_message(msg)
-    except Exception as exc:
-        log.error("[ALERT EMAIL FAILED] %s", exc)
-
-
-def send_pitch_email(to_email: str, subject: str, body: str) -> None:
-    """Send outbound pitch email to a lead. Raises on failure so audit captures it."""
     if not SMTP_USER:
-        log.warning("[PITCH EMAIL] SMTP not configured — skipped for %s", to_email)
+        log.warning("[EMAIL] No relay or SMTP configured — skipped for %s", to_email)
         return
     msg = MIMEMultipart()
     msg["From"]    = SMTP_USER
@@ -280,6 +341,23 @@ def send_pitch_email(to_email: str, subject: str, body: str) -> None:
         s.starttls()
         s.login(SMTP_USER, SMTP_PASS)
         s.send_message(msg)
+
+
+def send_admin_alert(subject: str, body: str) -> None:
+    """Alert to ADMIN_EMAIL via the Gmail relay or SMTP. Never raises — logs on failure."""
+    if not ADMIN_EMAIL:
+        log.warning("[ALERT] No ADMIN_EMAIL configured — alert dropped: %s", subject)
+        return
+    try:
+        _send_email(ADMIN_EMAIL, f"[Orchestrator ALERT] {subject}", body)
+    except Exception as exc:
+        log.error("[ALERT EMAIL FAILED] %s", exc)
+
+
+def send_pitch_email(to_email: str, subject: str, body: str) -> None:
+    """Send outbound pitch email to a lead. Raises on failure so audit captures it."""
+    _send_email(to_email, subject, body)
+    log.info("[PITCH EMAIL] Delivered → %s | %s", to_email, subject)
     log.info("[PITCH EMAIL] Delivered → %s | %s", to_email, subject)
 
 
@@ -928,14 +1006,30 @@ async def skill_invention_outreach(payload: dict) -> dict:
         pitches.append(pitch)
 
     # Send the pitch email to the lead contact
-    email_sent = False
+    email_sent  = False
+    email_error = ""
     if contact_email and pitches:
         try:
             send_pitch_email(contact_email, pitches[0]["subject"], pitches[0]["body"])
             email_sent = True
         except Exception as exc:
+            email_error = str(exc)
             log.error("[invention-outreach] Pitch email failed for %s: %s", contact_email, exc)
             send_admin_alert(f"Pitch email FAILED — {contact_email}", str(exc))
+
+    # Queue the day-5 / day-10 follow-ups so the sequence actually fires later
+    if email_sent and contact_email:
+        try:
+            company = pitches[0]["company"]
+            now = datetime.now(timezone.utc)
+            for step, days in ((2, 5), (3, 10)):
+                subject, body = await _generate_followup_copy(
+                    step, company, deployer_name, deployer_email, proof_url, fee, offer_name, offer_summary,
+                )
+                queue_follow_up(campaign_id, company, contact_email, step, subject, body,
+                                 now + timedelta(days=days))
+        except Exception as exc:
+            log.error("[invention-outreach] Follow-up queue failed for %s: %s", contact_email, exc)
 
     return {
         "campaign_id":   campaign_id,
@@ -949,9 +1043,41 @@ async def skill_invention_outreach(payload: dict) -> dict:
             "companies_targeted": companies,
             "deployment_fee":     fee,
             "email_sent":         email_sent,
+            "email_error":        email_error,
             "contact_email":      contact_email,
         },
     }
+
+
+async def _generate_followup_copy(
+    step: int, company: str, deployer_name: str, deployer_email: str,
+    proof_url: str, fee: str, offer_name: str, offer_summary: str,
+) -> tuple[str, str]:
+    """Generate day-5 (step 2) or day-10 (step 3) follow-up copy for a lead who hasn't replied."""
+    angle = {
+        2: "Social proof follow-up. Share a believable, concrete example of another agency reselling "
+           "this to local business clients and hitting break-even fast. Slightly stronger CTA than a first touch.",
+        3: "Final follow-up. Give them permission to walk away, note this is the last email, and add light "
+           "urgency about being first in their market. Include a line offering to stop future emails on reply.",
+    }[step]
+    system = (
+        "You are an elite B2B sales copywriter writing follow-up email "
+        f"#{step} in a 3-email cold outreach sequence — the prospect has not replied yet. "
+        "Return JSON only: {\"subject\":\"string max 60 chars\",\"body\":\"string max 180 words\"}. "
+        f"{angle} "
+        "The body MUST name the target company. Frame the offer as a white-label AI infrastructure "
+        "license the agency resells to its own local business clients as a new revenue line. "
+        f"Close with proof link: {proof_url}"
+        + (f" and payment/booking link: {STRIPE_PAYMENT_LINK}" if STRIPE_PAYMENT_LINK else "")
+        + f" and contact email {deployer_email}. No buzzwords, no hype. Direct, peer-to-peer tone."
+    )
+    prompt = (
+        f"Deployer: {deployer_name}. Offer: {offer_name}. Summary: {offer_summary}. "
+        f"Monthly fee: ${fee}. Target company: {company}."
+    )
+    raw = await call_gemini(prompt, system, json_mode=True)
+    pitch = json.loads(_clean_json(raw))
+    return pitch["subject"], pitch["body"]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1068,14 +1194,36 @@ async def _scheduler_loop():
             log.error("[Scheduler] Batch run error: %s", exc)
 
 
+async def _follow_up_loop():
+    """Background task: send any due day-5/day-10 follow-ups every hour."""
+    log.info("[FollowUps] Starting — checking hourly")
+    while True:
+        await asyncio.sleep(3600)
+        try:
+            due = fetch_due_follow_ups()
+            for fu in due:
+                try:
+                    send_pitch_email(fu["contact_email"], fu["subject"], fu["body"])
+                    mark_follow_up(fu["id"], "sent")
+                    log.info("[FollowUps] Sent step %d → %s", fu["step"], fu["contact_email"])
+                except Exception as exc:
+                    mark_follow_up(fu["id"], "failed")
+                    log.error("[FollowUps] Send failed for %s: %s", fu["contact_email"], exc)
+                await asyncio.sleep(2)  # rate-limit between sends
+        except Exception as exc:
+            log.error("[FollowUps] Batch error: %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
     REVIEW_DIR.mkdir(parents=True, exist_ok=True)
-    task = asyncio.create_task(_scheduler_loop())
+    lead_task = asyncio.create_task(_scheduler_loop())
+    follow_up_task = asyncio.create_task(_follow_up_loop())
     log.info("[Orchestrator] Startup complete — %d skills registered, scheduler armed (%dh)", len(SKILL_MAP), BATCH_INTERVAL_HOURS)
     yield
-    task.cancel()
+    lead_task.cancel()
+    follow_up_task.cancel()
     log.info("[Orchestrator] Shutdown")
 
 
@@ -1368,5 +1516,9 @@ async def run_now(request: Request):
 
 @app.get("/admin/status")
 async def queue_status():
-    """Return current lead queue stats."""
-    return {"queue": queue_stats(), "config": {"batch_size": BATCH_SIZE, "interval_hours": BATCH_INTERVAL_HOURS}}
+    """Return current lead queue and follow-up sequence stats."""
+    return {
+        "queue":      queue_stats(),
+        "follow_ups": follow_up_stats(),
+        "config":     {"batch_size": BATCH_SIZE, "interval_hours": BATCH_INTERVAL_HOURS},
+    }

@@ -56,8 +56,8 @@ GEMINI_API_KEY=your_google_gemini_key
 # SMTP Credentials
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=jackbockholdt88@gmail.com
-SMTP_PASS=ihanfrsctabnexfp
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password_here
 
 # Admin Email Alert Receiver
 ADMIN_EMAIL=jackbockholdt88@gmail.com
