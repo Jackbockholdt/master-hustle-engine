@@ -1313,6 +1313,75 @@ async function processLeadQueue(batchSize) {
 }
 
 // =============================================================================
+// EMAIL FINDER — scrape a company website for a real contact email
+// =============================================================================
+
+const GENERIC_EMAIL_PREFIXES = ['info', 'hello', 'contact', 'support', 'team', 'admin', 'sales', 'hi', 'help', 'office', 'mail'];
+
+function extractEmails(html, domain) {
+  const found = [];
+  const regex = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+  let m;
+  while ((m = regex.exec(html)) !== null) {
+    const e = m[0].toLowerCase();
+    if (!e.includes(domain.toLowerCase())) continue;
+    const prefix = e.split('@')[0];
+    if (GENERIC_EMAIL_PREFIXES.includes(prefix)) continue;
+    if (!found.includes(e)) found.push(e);
+  }
+  return found;
+}
+
+async function scrapePageForEmail(url, domain) {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    const resp = await fetch(url, {
+      signal: ctrl.signal,
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; research-bot/1.0)' },
+      redirect: 'follow',
+    });
+    clearTimeout(timer);
+    if (!resp.ok) return [];
+    const html = await resp.text();
+    return extractEmails(html, domain);
+  } catch {
+    return [];
+  }
+}
+
+function normalizeDomain(raw) {
+  try {
+    const url = raw.startsWith('http') ? raw : `https://${raw}`;
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return raw.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
+  }
+}
+
+function companyNameToDomain(name) {
+  const slug = name.toLowerCase()
+    .replace(/\b(agency|inc|llc|ltd|co|corp|group|digital|studio|media|marketing|solutions|services|the)\b/g, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+  return `${slug}.com`;
+}
+
+async function findEmailForCompany(companyName, website) {
+  const raw = website || companyNameToDomain(companyName);
+  const domain = normalizeDomain(raw);
+  const base = `https://${domain}`;
+  const pagesToTry = [base, `${base}/contact`, `${base}/about`, `${base}/team`, `${base}/contact-us`];
+  for (const page of pagesToTry) {
+    const emails = await scrapePageForEmail(page, domain);
+    if (emails.length) return { email: emails[0], domain };
+  }
+  // Fall back to generic contact email if nothing found
+  const generic = `contact@${domain}`;
+  return { email: null, domain, generic };
+}
+
+// =============================================================================
 // B2B ENDPOINTS
 // =============================================================================
 
@@ -1359,6 +1428,137 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
     campaign_id: campaignId,
   });
   res.json({ received: true, status: 'SUCCESS', result });
+}));
+
+// Admin form — paste company names, engine finds emails and sends pitches
+app.get('/admin/pitch', (req, res) => {
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <title>Antigravity — Send Pitches</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #0f0f0f; color: #eee; padding: 24px; }
+    h1 { font-size: 22px; margin-bottom: 6px; color: #fff; }
+    p { color: #aaa; font-size: 13px; margin-bottom: 20px; }
+    label { font-size: 13px; color: #ccc; display: block; margin-bottom: 6px; }
+    textarea, select, input[type=text] {
+      width: 100%; padding: 10px; background: #1a1a1a; border: 1px solid #333;
+      border-radius: 6px; color: #eee; font-size: 14px; margin-bottom: 16px;
+    }
+    textarea { height: 200px; resize: vertical; }
+    button {
+      background: #2563eb; color: #fff; border: none; padding: 12px 28px;
+      border-radius: 6px; font-size: 15px; cursor: pointer; width: 100%;
+    }
+    button:hover { background: #1d4ed8; }
+    #result { margin-top: 20px; background: #1a1a1a; border-radius: 6px; padding: 16px; font-size: 13px; white-space: pre-wrap; display: none; }
+  </style>
+</head>
+<body>
+  <h1>Antigravity — Bulk Pitch Sender</h1>
+  <p>Paste company names below (one per line). Add website after a comma if you have it. Engine finds emails and sends pitches automatically.</p>
+  <form id="form">
+    <label>Industry (used for qualification)</label>
+    <select id="industry">
+      <option value="digital marketing agency">Digital Marketing Agency</option>
+      <option value="lead generation agency">Lead Generation Agency</option>
+      <option value="seo agency">SEO Agency</option>
+      <option value="ppc agency">PPC Agency</option>
+      <option value="social media agency">Social Media Agency</option>
+      <option value="marketing agency">Marketing Agency</option>
+      <option value="saas">SaaS / Software Company</option>
+      <option value="tech startup">Tech Startup</option>
+      <option value="digital agency">Digital Agency</option>
+      <option value="growth agency">Growth Agency</option>
+    </select>
+    <label>Company Names (one per line — add website after comma if known)</label>
+    <textarea id="companies" placeholder="Acme Marketing Agency, acmemarketing.com&#10;Blue Ocean SEO&#10;Growth Lab Digital, growthlabdigital.com"></textarea>
+    <label>Override contact email (optional — leave blank to auto-find from website)</label>
+    <input type="text" id="override_email" placeholder="Leave blank to auto-find">
+    <button type="submit" id="btn">Send Pitches</button>
+  </form>
+  <div id="result"></div>
+  <script>
+    document.getElementById('form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn');
+      btn.disabled = true; btn.textContent = 'Working...';
+      const lines = document.getElementById('companies').value.trim().split('\\n').filter(Boolean);
+      const industry = document.getElementById('industry').value;
+      const override_email = document.getElementById('override_email').value.trim();
+      const companies = lines.map(l => {
+        const parts = l.split(',').map(s => s.trim());
+        return { name: parts[0], website: parts[1] || '', industry, override_email };
+      });
+      const res = await fetch('/admin/bulk-pitch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ companies })
+      });
+      const data = await res.json();
+      const el = document.getElementById('result');
+      el.style.display = 'block';
+      el.textContent = JSON.stringify(data, null, 2);
+      btn.disabled = false; btn.textContent = 'Send Pitches';
+    });
+  </script>
+</body>
+</html>`);
+});
+
+// Bulk pitch — takes company names, finds emails, fires pitches
+app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
+  const { companies = [] } = req.body;
+  if (!companies.length) return res.status(400).json({ error: 'No companies provided' });
+  const results = [];
+  for (const c of companies) {
+    const companyName = (c.name || c.company_name || '').trim();
+    if (!companyName) continue;
+    const industry = c.industry || 'digital marketing agency';
+    const { qualified, reason } = qualifyLead(companyName, industry);
+    if (!qualified) {
+      results.push({ company: companyName, status: 'disqualified', reason });
+      continue;
+    }
+    let email = c.override_email || c.contact_email || '';
+    let website = c.website || '';
+    let domain = '';
+    if (!email) {
+      const found = await findEmailForCompany(companyName, website);
+      domain = found.domain;
+      if (!website) website = `https://${domain}`;
+      email = found.email;
+      if (!email) {
+        results.push({ company: companyName, website, status: 'no_email_found', domain });
+        continue;
+      }
+    }
+    try {
+      const campaignId = `bulk-${companyName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
+      await runInventionOutreach({
+        target_companies: [companyName],
+        contact_email: email,
+        website: website || `https://${domain}`,
+        proof_url: B2B_PROOF_URL,
+        deployment_fee: B2B_DEPLOYMENT_FEE,
+        campaign_id: campaignId,
+      });
+      results.push({ company: companyName, email, website, status: 'pitched' });
+    } catch (err) {
+      results.push({ company: companyName, email, status: 'failed', error: err.message });
+    }
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  const summary = {
+    total: companies.length,
+    pitched: results.filter(r => r.status === 'pitched').length,
+    no_email: results.filter(r => r.status === 'no_email_found').length,
+    disqualified: results.filter(r => r.status === 'disqualified').length,
+    failed: results.filter(r => r.status === 'failed').length,
+  };
+  res.json({ summary, results });
 }));
 
 // Bulk import leads into the queue
