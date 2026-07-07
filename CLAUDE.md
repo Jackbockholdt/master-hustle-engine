@@ -10,25 +10,23 @@ A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch 
 **This supersedes the old contractor/missed-call offer.** Do not pitch plumbers, HVAC, or other end-business owners directly — the buyer white-labels and resells, they are never the end client. Full playbook: `marketing/GTM-BLUEPRINT.md` (cold call script + scraper targeting) and `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` (3-email follow-up).
 
 ## Live URLs
-- **Orchestrator:** https://antigravity-orchestrator-kz94.onrender.com
-- **Node.js frontend:** https://master-hustle-engine.onrender.com
+- **Unified backend:** https://master-hustle-engine.onrender.com (single service — Python orchestrator eliminated)
 - **GitHub:** Jackbockholdt/master-hustle-engine (main branch)
 
 ## Everything That Is Already Working — DO NOT TOUCH
-- `orchestrator.py` — FastAPI server, 9 skills, deployed on Render
-- All Render env vars set (Gemini, OpenPhone, SMTP, Stripe, payment link)
-- **Email delivery runs through a Gmail Apps Script HTTPS relay** (`GMAIL_HTTP_URL`/`GMAIL_HTTP_KEY` env vars), not raw SMTP — Render blocks outbound SMTP entirely (`ENETUNREACH` on port 587), confirmed in production. Both `orchestrator.py` and `server.js` route through the relay now, with SMTP kept only as inert fallback code. **Do not "fix" this by touching SMTP creds — it will not work on Render regardless of password validity.**
-- Stripe webhook live at master-hustle-engine.onrender.com/api/stripe-webhook
+- `server.js` — unified Node.js engine, all 9 skills + B2B outreach engine, deployed on Render
+- Stripe webhook live at master-hustle-engine.onrender.com/api/stripe-webhook (STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET set in Render)
 - Lead intake endpoint: POST /webhook/lead (tested and working, accepts `email` or `contact_email`)
+- Pitch emails route through Gmail HTTPS relay (GMAIL_HTTP_URL env var) — do not touch SMTP directly
 - OpenPhone webhook: POST /webhook/openphone
-- Vapi webhook: POST /webhook/vapi
-- `/skill/invention-outreach` pitch copy targets both agency owners and tech/SaaS founders (see `orchestrator.py` `skill_invention_outreach`)
+- Day 5 / Day 10 follow-up sequences: automatic, run hourly
+- B2B outreach batch: runs every 6 hours
 
 ## The ONE Thing Left To Do
-**Turn the Gumloop scraper on** — the orchestrator side is fully built, tested, and waiting. Nothing will happen until Gumloop actually starts pushing leads to the endpoint below.
+**Turn the Gumloop scraper on** — the engine is fully built, tested, and waiting. Nothing will happen until Gumloop actually starts pushing leads to the endpoint below.
 
 **Gumloop HTTP node config:**
-- URL: https://antigravity-orchestrator-kz94.onrender.com/webhook/lead
+- URL: https://master-hustle-engine.onrender.com/webhook/lead
 - Method: POST
 - Header: Content-Type: application/json
 - Body:

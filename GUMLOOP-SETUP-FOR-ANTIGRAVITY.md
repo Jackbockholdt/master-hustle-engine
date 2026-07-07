@@ -1,18 +1,17 @@
-# Gumloop Setup — Hand This To Antigravity
+# Gumloop Setup — Antigravity Master Hustle Engine
 
 ## Where We Are Right Now
 
-**Everything except Gumloop itself is done, deployed, and tested live.**
+**Everything is done, deployed, and live as a single unified service.**
 
-- Orchestrator backend (`https://antigravity-orchestrator-kz94.onrender.com`) — ✅ live, healthy
-- Frontend service — ✅ live, healthy, daily cron fixed (was failing 6 days straight on a dead SMTP path, now fixed via Gmail relay)
-- Lead intake endpoint (`/webhook/lead`) — ✅ tested live, confirmed working for BOTH:
-  - Marketing/lead-gen agency leads
-  - Tech/SaaS/startup leads
-- Pitch email generation (AI-personalized) — ✅ tested live, confirmed sending
-- Lead qualification filter — ✅ configured and live
+- Unified Node.js backend (`https://master-hustle-engine.onrender.com`) — ✅ live
+- Lead intake endpoint (`/webhook/lead`) — ✅ live, accepts agency + SaaS leads
+- Pitch email generation (AI-personalized) — ✅ live
+- Lead qualification filter — ✅ live
+- Stripe payment webhook — ✅ live
+- Day 5 / Day 10 follow-up sequences — ✅ live
 
-**The ONLY thing left:** Gumloop needs to actually be turned on and pointed at the endpoint below. Nothing happens — zero leads, zero emails — until this is done. This is not a code problem, it's a "log into Gumloop and configure it" problem, which is why I can't do it myself (no Gumloop access from here).
+**The ONLY thing left:** Turn Gumloop on and point it at the endpoint below.
 
 ---
 
@@ -21,7 +20,7 @@
 In Gumloop, add/edit the HTTP request node that fires after a lead is scraped:
 
 ```
-URL: https://antigravity-orchestrator-kz94.onrender.com/webhook/lead
+URL: https://master-hustle-engine.onrender.com/webhook/lead
 Method: POST
 Header: Content-Type: application/json
 
@@ -72,13 +71,13 @@ Once the HTTP node and targeting are set, activate/run the Gumloop workflow. Lea
 After Gumloop sends its first few leads, check:
 
 ```bash
-curl https://antigravity-orchestrator-kz94.onrender.com/admin/status
+curl https://master-hustle-engine.onrender.com/admin/status
 ```
 
 This shows queue/follow-up counts. Or check the audit log directly:
 
 ```bash
-curl https://antigravity-orchestrator-kz94.onrender.com/logs
+curl https://master-hustle-engine.onrender.com/logs
 ```
 
 If a lead doesn't match the industry keywords above, it gets silently disqualified (no email sent, no error) — that's expected behavior, not a bug.
