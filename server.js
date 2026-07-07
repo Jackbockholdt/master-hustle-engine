@@ -1433,6 +1433,45 @@ setInterval(async () => {
 }, 60 * 60 * 1000);
 console.log('[Follow-up Scheduler] Armed — checks every 1h');
 
+// Background: trigger Gumloop lead scraper every 6 hours if configured
+const GUMLOOP_API_KEY    = process.env.GUMLOOP_API_KEY;
+const GUMLOOP_USER_ID    = process.env.GUMLOOP_USER_ID;
+const GUMLOOP_ITEM_ID    = process.env.GUMLOOP_SAVED_ITEM_ID;
+const GUMLOOP_INTERVAL_H = parseInt(process.env.GUMLOOP_INTERVAL_HOURS || '6');
+
+async function triggerGumloopScraper() {
+  if (!GUMLOOP_API_KEY || !GUMLOOP_USER_ID || !GUMLOOP_ITEM_ID) return;
+  try {
+    const resp = await fetch('https://api.gumloop.com/api/v1/start_pipeline', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GUMLOOP_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: GUMLOOP_USER_ID,
+        saved_item_id: GUMLOOP_ITEM_ID,
+        pipeline_inputs: [],
+      }),
+    });
+    const data = await resp.json();
+    if (data.run_id) {
+      console.log(`[Gumloop] Pipeline triggered — run_id=${data.run_id}`);
+    } else {
+      console.error('[Gumloop] Trigger failed:', JSON.stringify(data));
+    }
+  } catch (err) {
+    console.error('[Gumloop] Trigger error:', err.message);
+  }
+}
+
+if (GUMLOOP_API_KEY && GUMLOOP_USER_ID && GUMLOOP_ITEM_ID) {
+  setInterval(triggerGumloopScraper, GUMLOOP_INTERVAL_H * 60 * 60 * 1000);
+  console.log(`[Gumloop] Scraper auto-trigger armed — fires every ${GUMLOOP_INTERVAL_H}h`);
+  // Fire once on startup after a short delay (let server fully init)
+  setTimeout(triggerGumloopScraper, 30 * 1000);
+}
+
 // Start Server
 app.listen(PORT, () => {
   console.log(`[Server] Antigravity Master Engine running on port ${PORT}`);
