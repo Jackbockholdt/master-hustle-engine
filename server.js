@@ -211,6 +211,9 @@ const EXPECTED_KEYS = {
   'contractor-proposal': ['polished_title', 'executive_summary', 'detailed_bill_of_materials_milestones', 'professional_closing_pitch']
 };
 
+// 3-Tier Intelligent Router — auto-loaded, used by callGemini for 429 fallback
+const { routePrompt } = require('./agent.skills/intelligent-router');
+
 // Reusable Helper: Call Gemini API with Retries and JSON parsing validation
 async function callGemini(prompt, systemInstruction, nicheKey) {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -257,6 +260,21 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
     } catch (err) {
       console.warn(`[Gemini] Attempt ${attempts} failed:`, err.message);
       lastError = err;
+      // On 429 rate limit, try the router fallback pool immediately
+      const is429 = err.status === 429 || /rate.?limit|quota|too many/i.test(err.message);
+      if (is429) {
+        console.warn('[Gemini] 429 hit — delegating to intelligent router fallback');
+        try {
+          const fullPrompt = systemInstruction ? `${systemInstruction}\n\n${prompt}` : prompt;
+          const routerText = await routePrompt(fullPrompt);
+          const json = JSON.parse(routerText.replace(/```json|```/g, '').trim());
+          parsedResponse = json;
+          console.log('[Router] Fallback succeeded');
+          break;
+        } catch (routerErr) {
+          console.error('[Router] Fallback also failed:', routerErr.message);
+        }
+      }
       if (attempts < maxAttempts) {
         await new Promise(r => setTimeout(r, 1500));
       }

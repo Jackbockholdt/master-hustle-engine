@@ -13,3 +13,4 @@ orchestrator_audit.sqlite
 
 # Manual review queue — contains client PII
 manual_review/
+node_modules/
