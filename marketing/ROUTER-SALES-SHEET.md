@@ -56,14 +56,13 @@ That's a sentence that closes deals.
 
 ## How to Get It
 
-The AI Failover Router is included in the **White-Label AI Infrastructure License** — along with the full 9-skill AI engine (lead qualification, pitch generation, follow-up sequences, payment tracking, and more).
+The AI Failover Router is a **standalone product** — its own hosted service, its own deployment, sold separately.
 
-- **Price:** $1,500/month — full white-label rights
-- **The math:** Resell to your clients at $500–$1,000/month each. At 3 clients you've covered the license. Everything after is pure profit.
-- **Proof it works:** [missedcallproject.com](https://missedcallproject.com)
+- **What you get:** hosted failover API endpoint (or drop-in source for your own infrastructure), configured for your keys, with email/SMS tools included
+- **Proof it works:** it's the same router keeping a live production sales engine running 24/7 — [missedcallproject.com](https://missedcallproject.com)
 
-**Start today:** [buy.stripe.com/3cI14m9hOcPh6Gbcx10000D](https://buy.stripe.com/3cI14m9hOcPh6Gbcx10000D)
+**Get access:** email [jackbockholdt88@gmail.com](mailto:jackbockholdt88@gmail.com) for pricing and setup.
 
 ---
 
-*Questions? Reply to the email that brought you here — it was written, sent, and followed up by the same engine you'd be licensing.*
+*This product is sold and deployed independently. It is not bundled with any other offer.*
