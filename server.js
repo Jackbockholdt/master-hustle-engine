@@ -233,7 +233,7 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
       console.log(`[Gemini] Attempting content generation (Try ${attempts}/${maxAttempts})...`);
       
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-flash-latest',
         contents: prompt,
         config: {
           systemInstruction,

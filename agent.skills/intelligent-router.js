@@ -64,7 +64,7 @@ async function callProvider({ provider, apiKey }, prompt) {
   if (provider === 'gemini') {
     const ai = new GoogleGenAI({ apiKey });
     const result = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-flash-latest',
       contents: prompt,
     });
     return result.text;
