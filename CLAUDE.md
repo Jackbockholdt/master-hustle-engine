@@ -48,7 +48,7 @@ ppc agency, social media agency, growth agency, advertising agency,
 startup, saas, software company, tech startup, online startup,
 digital services, digital agency, web development agency, software agency, tech company
 ```
-This exact list lives in the `TARGET_INDUSTRIES` env var on the orchestrator Render service — anything outside it gets auto-disqualified with no email sent. To add more categories, update that env var, then **trigger a fresh deploy** (env var changes alone do not restart the running process on this account's Render config — confirmed by testing, not just theory).
+This exact list lives in the `TARGET_INDUSTRIES` env var on the `master-hustle-engine` Render service — anything outside it gets auto-disqualified with no email sent. To add more categories, update that env var, then **trigger a fresh deploy** (env var changes alone do not restart the running process on this account's Render config — confirmed by testing, not just theory).
 
 - Company size: 1–50 employees
 - Must have: real contact email (not `info@`/`hello@`), working website
@@ -63,30 +63,30 @@ This exact list lives in the `TARGET_INDUSTRIES` env var on the orchestrator Ren
 - NEVER mention: SHOVL, shovel, invention, patent licensing
 
 ## Render Service IDs
-- antigravity-orchestrator: srv-d910i40k1i2s73822a5g
-- master-hustle-engine (Node.js): srv-d8thrho0697c73clcvtg
+- master-hustle-engine (Node.js, the live unified service): srv-d8thrho0697c73clcvtg
+- antigravity-orchestrator (Python, srv-d910i40k1i2s73822a5g): **legacy, redundant, still running and costing money.** Its functionality was fully ported into `server.js` above. Not suspended yet as of 2026-07-13 — worth shutting down to stop paying for duplicate infrastructure, pending an explicit go-ahead.
 
 ## Test The Engine
 ```bash
 # Agency lead
-curl -X POST https://antigravity-orchestrator-kz94.onrender.com/webhook/lead \
+curl -X POST https://master-hustle-engine.onrender.com/webhook/lead \
   -H "Content-Type: application/json" \
   -d '{"company_name":"Test Agency","contact_email":"jackbockholdt88@gmail.com","website":"https://test.com","industry":"digital marketing agency"}'
 
 # Tech/SaaS lead
-curl -X POST https://antigravity-orchestrator-kz94.onrender.com/webhook/lead \
+curl -X POST https://master-hustle-engine.onrender.com/webhook/lead \
   -H "Content-Type: application/json" \
   -d '{"company_name":"Test SaaS Co","contact_email":"jackbockholdt88@gmail.com","website":"https://test.com","industry":"saas startup"}'
 ```
-Both confirmed working end-to-end (qualified → pitch generated → email sent) as of 2026-07-06.
+Both confirmed working end-to-end (qualified → pitch generated → email sent) as of 2026-07-13, on the unified `master-hustle-engine` service, after fixing a deprecated Gemini model reference (`gemini-2.5-flash` → `gemini-flash-latest`). Gemini's `gemini-flash-latest` is currently intermittently returning `503 high demand` errors — a temporary, Google-side capacity issue tied to a recent model launch, not a bug here.
 
 ## Check Queue / Follow-Up Status
 ```bash
-curl https://antigravity-orchestrator-kz94.onrender.com/admin/status
+curl https://master-hustle-engine.onrender.com/admin/status
 ```
 
 ## Check Logs
-https://antigravity-orchestrator-kz94.onrender.com/logs
+https://master-hustle-engine.onrender.com/logs
 
 ## Unrelated Project — Do Not Confuse With This One
 There is a **separate, local** repo `C:\Users\jack\missed-call-agent` (Vapi + OpenPhone/Quo backend, its own `CLAUDE.md`) with one outstanding task: a `GOOGLE_PLACES_API_KEY` for Google Cloud project `491932772151`. That work is not part of this repo and has no bearing on the orchestrator or Gumloop setup described above.
