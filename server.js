@@ -227,13 +227,18 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
   const maxAttempts = 2; // Strict try + 1 retry
   let lastError = null;
 
+  const primaryModel  = process.env.GEMINI_MODEL || 'gemini-flash-latest';
+  // Retry on the flash-lite tier — when flash is congested (503 high demand),
+  // retrying the same model just fails again; lite runs on separate capacity.
+  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || 'gemini-flash-lite-latest';
+
   while (attempts < maxAttempts && !parsedResponse) {
     attempts++;
     try {
       console.log(`[Gemini] Attempting content generation (Try ${attempts}/${maxAttempts})...`);
-      
+
       const response = await ai.models.generateContent({
-        model: 'gemini-flash-latest',
+        model: attempts === 1 ? primaryModel : fallbackModel,
         contents: prompt,
         config: {
           systemInstruction,

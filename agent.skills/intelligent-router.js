@@ -63,8 +63,10 @@ function make_phone_call() {
 async function callProvider({ provider, apiKey }, prompt) {
   if (provider === 'gemini') {
     const ai = new GoogleGenAI({ apiKey });
+    // Default to the flash-lite tier: the router only runs after the primary
+    // flash model already failed, and retrying the same congested model is useless.
     const result = await ai.models.generateContent({
-      model: 'gemini-flash-latest',
+      model: process.env.GEMINI_ROUTER_MODEL || 'gemini-flash-lite-latest',
       contents: prompt,
     });
     return result.text;
