@@ -137,13 +137,14 @@ async function routePrompt(prompt) {
       console.log(`[Router] Success with provider: ${entry.provider}`);
       return result;
     } catch (err) {
-      const is429 = err.status === 429 || /rate.?limit|quota|too many/i.test(err.message);
-      if (is429) {
-        console.warn(`[Router] 429 rate limit on ${entry.provider} — trying next provider`);
+      const isTransient = err.status === 429 || err.status === 503 ||
+        /rate.?limit|quota|too many|high demand|unavailable/i.test(err.message);
+      if (isTransient) {
+        console.warn(`[Router] Transient error on ${entry.provider} — trying next provider`);
         lastError = err;
         continue;
       }
-      throw err; // Non-429 errors bubble up immediately
+      throw err; // Non-transient errors bubble up immediately
     }
   }
 

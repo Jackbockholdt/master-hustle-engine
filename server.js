@@ -260,10 +260,11 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
     } catch (err) {
       console.warn(`[Gemini] Attempt ${attempts} failed:`, err.message);
       lastError = err;
-      // On 429 rate limit, try the router fallback pool immediately
-      const is429 = err.status === 429 || /rate.?limit|quota|too many/i.test(err.message);
-      if (is429) {
-        console.warn('[Gemini] 429 hit — delegating to intelligent router fallback');
+      // On rate limit or transient unavailability, try the router fallback pool immediately
+      const isTransient = err.status === 429 || err.status === 503 ||
+        /rate.?limit|quota|too many|high demand|unavailable/i.test(err.message);
+      if (isTransient) {
+        console.warn('[Gemini] Transient error hit — delegating to intelligent router fallback');
         try {
           const fullPrompt = systemInstruction ? `${systemInstruction}\n\n${prompt}` : prompt;
           const routerText = await routePrompt(fullPrompt);
