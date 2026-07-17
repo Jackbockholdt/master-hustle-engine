@@ -53,6 +53,17 @@ This exact list lives in the `TARGET_INDUSTRIES` env var on the `master-hustle-e
 - Company size: 1–50 employees
 - Must have: real contact email (not `info@`/`hello@`), working website
 
+## Second Campaign — `antigravity-saas` (fixed templates, no AI copy)
+A template-based 3-email sequence pitching the **Antigravity AI Engine pilot** (honest capability pitch, no invented track record): initial send → day-3 follow-up → day-7 breakup. Templates live in `TEMPLATE_CAMPAIGNS` in `server.js`; merge fields `{{first_name}}` (falls back to "there") and `{{company_name}}`. Uses the same qualification filter and the same hourly follow-up scheduler as the main campaign.
+
+**To route a lead into it,** add two fields to the `/webhook/lead` Gumloop body:
+```json
+{ "campaign": "antigravity-saas", "first_name": "{{first_name}}" }
+```
+Leads without a `campaign` field keep getting the AI-personalized white-label pitch as before.
+
+**Shared daily send cap:** `DAILY_SEND_CAP` env var (default 50) caps total outbound pitch + follow-up emails per UTC day **across all campaigns combined** — adding this campaign does not double volume. Leads over the cap are queued (`status: QUEUED`) and go out on later batch runs; due follow-ups stay pending until the next hourly run. Current count visible at `/admin/status` under `sends`.
+
 ## Offer Details
 - Product: White-Label AI Infrastructure License
 - Price: $1,500/month license fee
