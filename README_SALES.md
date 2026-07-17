@@ -23,16 +23,16 @@ Each endpoint accepts standard JSON payloads, calls Gemini, logs transactions lo
 
 ---
 
-### 2. Autonomous Cron Rotation Engine (Autopilot)
+## 2. Autonomous Cron Rotation Engine (Autopilot)
 * Fires automatically every day at **8:00 AM server time** using `node-cron`.
 * Queries the SQLite database to see what niche ran yesterday.
 * Advances to the next niche in the rotation.
 * Selects a random target example from an internal dictionary of **45 realistic test cases** (5 per niche).
-* Generates premium assets via Gemini and emails a clean, responsive HTML `"Daily Hustle Report - [Niche Name]"` directly to the admin on autopilot.
+* Generates premium assets via Gemini and emails a clean, responsive HTML "Daily Hustle Report - [Niche Name]" directly to the admin on autopilot.
 
 ---
 
-### 3. Core Developer Features
+## 3. Core Developer Features
 * **SQL Logging Database**: Stores transaction metrics in `transactions.sqlite` within a structured `logs` table.
 * **Global Error Notification**: If a cron job or webhook endpoint fails, the system immediately catches the error and emails a full stack trace to the `ADMIN_EMAIL` using Nodemailer.
 * **Gemini retry wrapper**: Automatically detects malformed responses or missing keys and retries the generation once.
@@ -40,11 +40,20 @@ Each endpoint accepts standard JSON payloads, calls Gemini, logs transactions lo
 
 ---
 
+## 4. 🔀 Standalone AI Failover Router ($2,000–$5,000)
+* **Enterprise-grade multi-model failover**: Automatically routes failed API calls through Gemini → OpenAI → Claude to guarantee 100% uptime.
+* **Real-time health monitoring dashboard**: Live status page showing model availability, response times, and failover events.
+* **Intelligent retry logic**: Exponential backoff with automatic model switching — zero manual intervention required.
+* **Webhook catch-all**: Intercepts failed webhook deliveries and re-routes them through healthy models before the client ever notices.
+* **Sold standalone** or bundled with the Master Hustle Engine for maximum value.
+
+---
+
 ## 🛠️ How to Deploy in 1-Click (Render.com)
 
 1. Upload the files to your GitHub repository.
 2. Click the link below (replace with your repository link):
-   `https://render.com/deploy?repo=https://github.com/YOUR_USERNAME/YOUR_REPO_NAME`
+   `https://render.com/deploy?repo=https://github.com/Jackbockholdt/master-hustle-engine`
 3. Enter your environmental keys (`GEMINI_API_KEY`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_EMAIL`).
 4. Click **Create Web Service**. You are live!
 

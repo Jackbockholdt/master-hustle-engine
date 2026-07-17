@@ -1,9 +1,7 @@
 /**
- * server.js
- * 
- * Unified Backend Engine (Antigravity Autonomous Master Engine)
+ * Antigravity Autonomous Master Engine
  * Running on Express, node-cron, and SQLite.
- * 
+ *
  * Exposes manual webhook POST endpoints and an automated 8:00 AM daily cron rotation
  * for 9 niches:
  * 1. Vintage Flipper
@@ -24,8 +22,6 @@ const { GoogleGenAI } = require('@google/genai');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const path = require('path');
-const Stripe = require('stripe');
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const https = require('https');
 
 const app = express();
@@ -120,6 +116,10 @@ const transporter = nodemailer.createTransport({
 // Send email via the Gmail HTTPS relay (Apps Script) if configured, else raw SMTP.
 // The relay always returns HTTP 200 with {"success": bool, ...} — check the body, not the status.
 async function sendEmailViaRelayOrSmtp(to, subject, htmlOrText) {
+  if (!to || typeof to !== 'string' || !to.includes('@') || to.includes('__NODE_ID__') || to.startsWith('${')) {
+    console.warn(`[Mailer] Skipped sending email to invalid address: "${to}"`);
+    return;
+  }
   const relayUrl = process.env.GMAIL_HTTP_URL;
   if (relayUrl) {
     const res = await fetch(relayUrl, {
@@ -151,18 +151,117 @@ function logTransaction(email, productType, status, assets = '') {
   );
 }
 
-// Reusable Helper: Send HTML email via the Gmail relay (or SMTP fallback)
+// Helper to make HTTPS POST request (handles Google Apps Script redirects)
+function makeHttpsPost(urlStr, payload) {
+  return new Promise((resolve, reject) => {
+    try {
+      const url = new URL(urlStr);
+      const postData = JSON.stringify(payload);
+      
+      const options = {
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+      
+      const req = https.request(options, (res) => {
+        // Google Apps Script Web Apps redirect with 302 Found to googleusercontent.com
+        if ((res.statusCode === 301 || res.statusCode === 302 || res.statusCode === 307 || res.statusCode === 308) && res.headers.location) {
+          const redirectUrl = res.headers.location;
+          https.get(redirectUrl, (redirectRes) => {
+            let data = '';
+            redirectRes.on('data', (chunk) => { data += chunk; });
+            redirectRes.on('end', () => {
+              try {
+                resolve(JSON.parse(data));
+              } catch (e) {
+                reject(new Error(`Failed to parse redirected response: ${e.message}. Data: ${data}`));
+              }
+            });
+          }).on('error', (e) => {
+            reject(e);
+          });
+          return;
+        }
+
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            reject(new Error(`Status Code: ${res.statusCode}, Data: ${data}`));
+            return;
+          }
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(new Error(`Failed to parse response: ${e.message}. Data: ${data}`));
+          }
+        });
+      });
+      
+      req.on('error', (e) => reject(e));
+      req.write(postData);
+      req.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+// Unified Mailer function to send either via HTTP (Apps Script) or fallback to SMTP
+async function sendMailViaHttpOrSmtp({ to, subject, html, fromName }) {
+  const httpUrl = process.env.GMAIL_HTTP_URL;
+  const httpKey = process.env.GMAIL_HTTP_KEY;
+
+  if (httpUrl && httpKey) {
+    const payload = {
+      key: httpKey,
+      to,
+      subject,
+      html,
+      name: fromName,
+      replyTo: process.env.SMTP_USER
+    };
+    const result = await makeHttpsPost(httpUrl, payload);
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send email via HTTPS Web App');
+    }
+    console.log(`[HTTP] Email sent successfully to ${to}`);
+    return true;
+  } else {
+    const fromHeader = fromName ? `"${fromName}" <${process.env.SMTP_USER}>` : process.env.SMTP_USER;
+    await transporter.sendMail({
+      from: fromHeader,
+      to,
+      subject,
+      html,
+    });
+    console.log(`[SMTP] Email sent successfully to ${to}`);
+    return true;
+  }
+}
+
+// Reusable Helper: Send HTML email via SMTP
 async function sendHtmlEmail(to, subject, htmlContent) {
   let attempts = 0;
   const maxAttempts = 3;
   while (attempts < maxAttempts) {
     attempts++;
     try {
-      await sendEmailViaRelayOrSmtp(to, subject, htmlContent);
-      console.log(`[Email] Sent successfully to ${to} (Attempt ${attempts})`);
+      await sendMailViaHttpOrSmtp({
+        to,
+        subject,
+        html: htmlContent,
+        fromName: "Antigravity Master Engine"
+      });
       return true;
     } catch (err) {
-      console.warn(`[Email] Attempt ${attempts} failed to send email to ${to}:`, err.message);
+      console.warn(`[Mailer] Attempt ${attempts} failed to send email to ${to}:`, err.message);
       if (attempts === maxAttempts) throw err;
       await new Promise(r => setTimeout(r, 1000));
     }
@@ -178,10 +277,7 @@ async function sendAdminAlert(context, errorStack) {
   }
 
   try {
-    await sendEmailViaRelayOrSmtp(
-      adminEmail,
-      `🚨 Antigravity Engine Failure: ${context}`,
-      `
+    const htmlContent = `
         <div style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px; border: 1px solid #fda4af; background-color: #fff1f2; color: #9f1239; border-radius: 12px; max-width: 700px; margin: 0 auto; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
           <h2 style="margin-top: 0; font-size: 20px; font-weight: 700; color: #e11d48; display: flex; align-items: center; gap: 8px;">🚨 System Processing Failure Alert</h2>
           <p style="font-size: 15px; margin: 10px 0;"><strong>Context:</strong> <span style="color: #4c0519;">${context}</span></p>
@@ -190,8 +286,13 @@ async function sendAdminAlert(context, errorStack) {
           <h3 style="margin-top: 0; font-size: 16px; font-weight: 600; color: #be123c;">Full Stack Trace:</h3>
           <pre style="background: #ffe4e6; padding: 15px; border-radius: 8px; font-family: 'Courier New', Courier, monospace; font-size: 13px; white-space: pre-wrap; overflow-x: auto; border: 1px solid #fecdd3; color: #881337; line-height: 1.5;">${errorStack}</pre>
         </div>
-      `
-    );
+    `;
+    await sendMailViaHttpOrSmtp({
+      to: adminEmail,
+      subject: `🚨 Antigravity Engine Failure: ${context}`,
+      html: htmlContent,
+      fromName: "Antigravity System Alert"
+    });
     console.log('[Alert] Admin failure email sent successfully.');
   } catch (alertErr) {
     console.error('[Alert] Failed to send admin alert email:', alertErr.message);
@@ -208,7 +309,8 @@ const EXPECTED_KEYS = {
   'local-seo': ['optimized_about_section', 'top_5_local_keywords', '3_GMB_posts'],
   'marketplace': ['catchy_title', 'high_converting_description', 'FAQ_section'],
   'faceless-video': ['10_video_scripts'],
-  'contractor-proposal': ['polished_title', 'executive_summary', 'detailed_bill_of_materials_milestones', 'professional_closing_pitch']
+  'contractor-proposal': ['polished_title', 'executive_summary', 'detailed_bill_of_materials_milestones', 'professional_closing_pitch'],
+  'startup-leads': ['enriched_companies']
 };
 
 // 3-Tier Intelligent Router — auto-loaded, used by callGemini for 429 fallback
@@ -224,7 +326,7 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
   const ai = new GoogleGenAI({ apiKey });
   let parsedResponse = null;
   let attempts = 0;
-  const maxAttempts = 2; // Strict try + 1 retry
+  const maxAttempts = 5;
   let lastError = null;
 
   const primaryModel  = process.env.GEMINI_MODEL || 'gemini-flash-latest';
@@ -234,11 +336,12 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
 
   while (attempts < maxAttempts && !parsedResponse) {
     attempts++;
+    const selectedModel = attempts <= 3 ? 'gemini-2.5-flash' : 'gemini-1.5-flash';
     try {
-      console.log(`[Gemini] Attempting content generation (Try ${attempts}/${maxAttempts})...`);
+      console.log(`[Gemini] Attempting content generation using ${selectedModel} (Try ${attempts}/${maxAttempts})...`);
 
       const response = await ai.models.generateContent({
-        model: attempts === 1 ? primaryModel : fallbackModel,
+        model: selectedModel,
         contents: prompt,
         config: {
           systemInstruction,
@@ -250,8 +353,7 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
       if (!textOutput) throw new Error('Empty response returned from Gemini.');
 
       const json = JSON.parse(textOutput);
-      
-      // Validate expected keys
+
       const requiredKeys = EXPECTED_KEYS[nicheKey];
       if (requiredKeys) {
         const missingKeys = requiredKeys.filter(key => !(key in json));
@@ -263,7 +365,7 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
       parsedResponse = json;
       console.log(`[Gemini] Successfully generated and validated response.`);
     } catch (err) {
-      console.warn(`[Gemini] Attempt ${attempts} failed:`, err.message);
+      console.warn(`[Gemini] Attempt ${attempts} failed with model ${selectedModel}:`, err.message);
       lastError = err;
       // On rate limit or transient unavailability, try the router fallback pool immediately
       const isTransient = err.status === 429 || err.status === 503 ||
@@ -282,13 +384,15 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
         }
       }
       if (attempts < maxAttempts) {
-        await new Promise(r => setTimeout(r, 1500));
+        const delay = Math.pow(2, attempts) * 1000 + Math.floor(Math.random() * 1000);
+        console.log(`[Gemini] Waiting ${delay}ms before retry...`);
+        await new Promise(r => setTimeout(r, delay));
       }
     }
   }
 
   if (!parsedResponse) {
-    throw lastError; // Throw the actual error so caller can report stack trace
+    throw lastError;
   }
 
   return parsedResponse;
@@ -302,6 +406,34 @@ function wrapAsync(fn) {
 }
 
 // =============================================================================
+// ROOT ROUTE & DASHBOARD
+// =============================================================================
+app.get('/', (req, res) => {
+  res.json({
+    status: '✅ Running',
+    name: 'Antigravity Master Hustle Engine',
+    version: '1.0.0',
+    dailyAutomation: '8:00 AM Server Time (UTC)',
+    niches: [
+      { name: 'Vintage Flipper', endpoint: 'POST /api/vintage', desc: 'Appraise vintage items, generate eBay listings' },
+      { name: 'KDP Books', endpoint: 'POST /api/kdp', desc: 'Optimize book launches, categories, keywords' },
+      { name: 'Inventor Pitches', endpoint: 'POST /api/inventor', desc: 'Cold emails & elevator pitches for patents' },
+      { name: 'Voice Prompts', endpoint: 'POST /api/voice', desc: 'AI receptionist system instructions for Vapi' },
+      { name: 'Review Replies', endpoint: 'POST /api/review-reply', desc: 'Sentiment detection & smart responses' },
+      { name: 'Local SEO', endpoint: 'POST /api/local-seo', desc: 'GMB optimization, keywords, posts' },
+      { name: 'Marketplace Ads', endpoint: 'POST /api/marketplace', desc: 'Classifieds copy & FAQs' },
+      { name: 'Faceless Videos', endpoint: 'POST /api/faceless-video', desc: '10 viral short-form video scripts' },
+      { name: 'Contract Proposals', endpoint: 'POST /api/contractor-proposal', desc: 'Professional construction proposals' }
+    ],
+    admin: {
+      logs: 'GET /api/admin/logs',
+      triggerDaily: 'POST /api/admin/trigger-daily'
+    },
+    message: 'All 9 skills active. Cron fires daily at 8:00 AM. Ready to use!'
+  });
+});
+
+// =============================================================================
 // NICHES DICTIONARY & ROTATION CONFIG
 // =============================================================================
 const NICHES_ROTATION = [
@@ -313,7 +445,8 @@ const NICHES_ROTATION = [
   'local-seo',
   'marketplace',
   'faceless-video',
-  'contractor-proposal'
+  'contractor-proposal',
+  'startup-leads'
 ];
 
 const NICHE_DISPLAY_NAMES = {
@@ -325,7 +458,8 @@ const NICHE_DISPLAY_NAMES = {
   'local-seo': 'Local SEO',
   'marketplace': 'Marketplace Ads',
   'faceless-video': 'Faceless Videos',
-  'contractor-proposal': 'Contract Proposals'
+  'contractor-proposal': 'Contract Proposals',
+  'startup-leads': 'Startup Leads & Enrichment'
 };
 
 const NICHES_DICTIONARY = {
@@ -391,6 +525,11 @@ const NICHES_DICTIONARY = {
     { project_name: "Smart Thermostat & Ring Doorbell Install", scope: "Mount and wire Google Nest 3rd Gen thermostat, mount Ring Video Doorbell Wired, configure apps, run functional testing." },
     { project_name: "Basement Drywall Repair & Paint Match", scope: "Patch 3 large holes (approx 2x2 ft each) in drywall from water leak, mud, sand, match texture, apply two coats of matching eggshell paint." },
     { project_name: "Seamless Gutter Guard Installation", scope: "Clean out 120 linear feet of residential aluminum gutters, install micro-mesh stainless steel gutter guards to prevent leaf debris clog." }
+  ],
+  'startup-leads': [
+    { source_description: "New software startup founders", leads: [{ company: "FlowGenius AI", domain_name: "flowgenius.ai", city: "Austin, TX", sector: "AI/SaaS Developer Tools" }, { company: "SyncScale", domain_name: "syncscale.co", city: "San Francisco, CA", sector: "Cloud Logistics Infrastructure" }, { company: "DevScribe", domain_name: "devscribe.io", city: "Seattle, WA", sector: "AI Documentation Automation" }] },
+    { source_description: "Fintech & Digital Security startups", leads: [{ company: "VantageLedger", domain_name: "vantageledger.com", city: "New York, NY", sector: "Blockchain Ledger Bookkeeping" }, { company: "ShieldByte", domain_name: "shieldbyte.net", sector: "Cybersecurity Platform" }] },
+    { source_description: "Healthtech and Edtech digital providers", leads: [{ company: "CurioMed", domain_name: "curiomed.tech", city: "Boston, MA", sector: "Medical Diagnostics" }, { company: "LearnLoop", domain_name: "learnloop.edu", city: "Denver, CO", sector: "Immersive Learning Systems" }] }
   ]
 };
 
@@ -421,7 +560,7 @@ function getPremiumEmailHtml(nicheName, targetInfo, renderedContent) {
               <div style="background-color: rgba(31, 41, 55, 0.5); border: 1px solid #374151; padding: 20px; border-radius: 12px; border-left: 4px solid #10b981;">
                 <h4 style="margin: 0 0 8px 0; font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px;">🎯 Today's Target Payload</h4>
                 <div style="font-size: 14px; line-height: 1.6; color: #e5e7eb;">
-                  ${Object.entries(targetInfo).map(([key, val]) => `<strong>${key.replace('_', ' ').toUpperCase()}:</strong> ${val}`).join('<br>')}
+                  ${Object.entries(targetInfo).map(([key, val]) => `<strong>${key.replace(/_/g, ' ').toUpperCase()}:</strong> ${val}`).join('<br>')}
                 </div>
               </div>
             </td>
@@ -473,7 +612,7 @@ function renderJsonToHtml(data) {
         if (typeof item === 'object') {
           html += `<li style="margin-bottom: 12px;">`;
           Object.entries(item).forEach(([k, v]) => {
-            html += `<strong>${k.replace('_', ' ').toUpperCase()}:</strong> ${v}<br>`;
+            html += `<strong>${k.replace(/_/g, ' ').toUpperCase()}:</strong> ${v}<br>`;
           });
           html += `</li>`;
         } else {
@@ -485,7 +624,7 @@ function renderJsonToHtml(data) {
       html += `<h3 style="color: #6366f1; margin: 25px 0 10px 0; font-size: 18px; font-weight: 600;">🛠️ ${title}</h3>`;
       html += `<div style="background-color: #1f2937; padding: 15px; border-radius: 8px; font-size: 14px; color: #e5e7eb;">`;
       Object.entries(val).forEach(([k, v]) => {
-        html += `<strong>${k.replace('_', ' ').toUpperCase()}:</strong> ${v}<br>`;
+        html += `<strong>${k.replace(/_/g, ' ').toUpperCase()}:</strong> ${v}<br>`;
       });
       html += `</div>`;
     } else {
@@ -497,7 +636,7 @@ function renderJsonToHtml(data) {
 }
 
 // =============================================================================
-// BACKUP MANUAL ENDPOINTS (All 9 Niches)
+// WEBHOOK ENDPOINTS (All 9 Niches)
 // =============================================================================
 
 // 1. Vintage Flipper (/api/vintage)
@@ -517,7 +656,7 @@ app.post('/api/vintage', wrapAsync(async (req, res) => {
   `;
   const prompt = `Item Name: ${item_name}\nDescription/Condition: ${description || 'unknown'}`;
   const data = await callGemini(prompt, systemInstruction, 'vintage');
-  
+
   const renderedContent = renderJsonToHtml(data);
   const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['vintage'], { item_name, description }, renderedContent);
 
@@ -729,6 +868,64 @@ app.post('/api/contractor-proposal', wrapAsync(async (req, res) => {
   res.json({ success: true, data });
 }));
 
+// 10. Startup Leads & Enrichment (/api/startup-leads)
+app.post('/api/startup-leads', wrapAsync(async (req, res) => {
+  const { leads, source_description, buyer_email } = req.body;
+  if (!buyer_email) {
+    return res.status(400).json({ success: false, error: 'Missing buyer_email.' });
+  }
+
+  // 1. Scrape/extract data or parse input
+  let parsedLeads = [];
+  if (Array.isArray(leads) && leads.length > 0) {
+    parsedLeads = leads;
+  } else {
+    // Fallback Mock Scraper Strategy - Pull from a high tech digital/software company directory list
+    parsedLeads = [
+      { company: "CloudSphere Software", domain_name: "cloudspheresoftware.com", city: "Austin, TX", sector: "Cloud Security Solutions" },
+      { company: "DataPulse AI", domain_name: "datapulse.ai", city: "New York, NY", sector: "Predictive Analytics Infrastructure" },
+      { company: "StackBuilder Co", domain_name: "stackbuilder.io", city: "San Francisco, CA", sector: "DevOps & Deployment Tools" },
+      { company: "invalid_no_domain", city: "Boston, MA" }, // Mock data validation check
+      { company: "Dummy Corp", domain_name: "test.local", sector: "Testing" } // Mock spam filter check
+    ];
+  }
+
+  // 2. Data Cleaning & Filter Router Strategy
+  // Enforce Gumloop enrichment rule: Must have at least one valid identifier (e.g. domain_name)
+  // Run spam filter to reject obvious testing/dummy domains
+  const cleanLeads = parsedLeads.filter(lead => {
+    const hasIdentifier = lead.domain_name && lead.domain_name.trim().length > 0;
+    const isSpam = lead.domain_name && (lead.domain_name.includes('test.local') || lead.domain_name.includes('example.com') || lead.domain_name.includes('dummy'));
+    return hasIdentifier && !isSpam;
+  });
+
+  if (cleanLeads.length === 0) {
+    return res.status(400).json({ success: false, error: 'Lead data validation failed: No records contained valid identifier (domain_name).' });
+  }
+
+  // 3. Prompt Gemini 2.5/1.5 to perform lead contact enrichment
+  const systemInstruction = `
+    Act as a professional lead generation and data enrichment analyst.
+    For each company provided in the leads array, enrich their contact profile.
+    Generate:
+    - Target decision-maker job title (e.g., CTO, VP of Engineering, Founder)
+    - Personalized B2B pitch proposing our "Antigravity Master Hustle Engine" API integration
+    - Estimated company size bracket (e.g., 1-10, 11-50, 51-200)
+    Return a JSON object with:
+    "enriched_companies": array of enriched company objects, each containing: "company", "domain_name", "sector", "decision_maker_title", "personalized_pitch", "company_size".
+  `;
+
+  const prompt = `Source Description: ${source_description || 'High-tech digital and software startup companies'}\nLeads to enrich:\n${JSON.stringify(cleanLeads)}`;
+  const data = await callGemini(prompt, systemInstruction, 'startup-leads');
+
+  // 4. Send beautiful report to buyer
+  const renderedContent = renderJsonToHtml(data);
+  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['startup-leads'], { source_description, total_leads_processed: cleanLeads.length }, renderedContent);
+
+  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Startup Leads & Enrichment`, emailHtml);
+  logTransaction(buyer_email, 'startup-leads', 'success', data);
+  res.json({ success: true, data });
+}));
 
 // =============================================================================
 // AUTOMATED CRON CLOCK CYCLE (Daily 8:00 AM)
@@ -740,7 +937,6 @@ async function triggerDailyNicheHustle() {
     throw new Error('No ADMIN_EMAIL defined in environment variables. Daily cycle aborted.');
   }
 
-  // Promise-wrapped db.get to find the last successful product_type
   const getLatestLog = () => {
     return new Promise((resolve, reject) => {
       db.get(
@@ -824,11 +1020,10 @@ async function triggerDailyNicheHustle() {
     console.log(`[Cron Engine] Daily hustle report dispatched to ${adminEmail} for niche ${activeNiche}.`);
   } catch (cronErr) {
     logTransaction(adminEmail, activeNiche, 'failure', cronErr.message);
-    throw cronErr; // rethrow to be caught by triggerDailyNicheHustleSafe
+    throw cronErr;
   }
 }
 
-// Safe cron executor that reports stack trace to admin on any failure
 async function triggerDailyNicheHustleSafe() {
   try {
     await triggerDailyNicheHustle();

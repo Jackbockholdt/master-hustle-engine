@@ -1,0 +1,39 @@
+=== Checkout ===
+fatal: a branch named 'fix-email-validation' already exists
+Already on 'fix-email-validation'
+M	DOUBLE-CLICK-TO-DEPLOY-FIX.bat
+=== Add ===
+warning: in the working copy of 'DOUBLE-CLICK-TO-DEPLOY-FIX.bat', LF will be replaced by CRLF the next time Git touches it
+=== Commit ===
+[fix-email-validation e4c25f6] fix: validate email format to prevent relay exceptions
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+ create mode 100644 git_log.txt
+=== Push ===
+remote: error: GH013: Repository rule violations found for refs/heads/fix-email-validation.        
+remote: 
+remote: - GITHUB PUSH PROTECTION        
+remote:   —————————————————————————————————————————        
+remote:     Resolve the following violations before pushing again        
+remote: 
+remote:     - Push cannot contain secrets        
+remote: 
+remote:             
+remote:      (?) Learn how to resolve a blocked push        
+remote:      https://docs.github.com/code-security/secret-scanning/working-with-secret-scanning-and-push-protection/working-with-push-protection-from-the-command-line#resolving-a-blocked-push        
+remote:             
+remote:             
+remote:       —— GCP API Key Bound to a Service Account ————————————        
+remote:        locations:        
+remote:          - commit: ca977c78f2ba9e1d1769cd5a02e84e4864731a2d        
+remote:            path: DEPLOY-EVERYTHING.bat:8        
+remote:          - commit: ca977c78f2ba9e1d1769cd5a02e84e4864731a2d        
+remote:            path: update_render_key.js:6        
+remote:             
+remote:        (?) To push, remove secret from commit(s) or follow this URL to allow the secret.        
+remote:        https://github.com/Jackbockholdt/master-hustle-engine/security/secret-scanning/unblock-secret/3Gcx4FgnO833CkzXwYlwfCNiBsZ        
+remote:             
+remote: 
+remote: 
+To https://github.com/Jackbockholdt/master-hustle-engine.git
+ ! [remote rejected] fix-email-validation -> fix-email-validation (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/Jackbockholdt/master-hustle-engine.git'

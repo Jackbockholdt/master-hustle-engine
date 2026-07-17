@@ -1,10 +1,6 @@
-# render.yaml
-# Render Blueprint Specification for One-Click Template Deployment
-# Learn more at https://render.com/docs/blueprints
-
 services:
   - type: web
-    name: master-hustle-engine
+    name: antigravity-hustle-engine
     env: node
     plan: free
     buildCommand: npm install
@@ -14,68 +10,19 @@ services:
         value: 10000
       - key: GEMINI_API_KEY
         sync: false
-        placeholder: "Your Google Gemini API Key"
-
-      # SMTP Email Configuration
+        placeholder: "Your Google Gemini API Key (get from https://aistudio.google.com/app/apikeys)"
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT
         value: 587
       - key: SMTP_USER
         sync: false
-        placeholder: "sender@gmail.com"
+        placeholder: "Your Gmail address (e.g., sender@gmail.com)"
       - key: SMTP_PASS
         sync: false
-        placeholder: "Gmail App Password"
-
-      # Admin Notification Email
+        placeholder: "Gmail App Password (NOT your regular password - generate at myaccount.google.com/apppasswords)"
       - key: ADMIN_EMAIL
         sync: false
-        placeholder: "admin@domain.com"
-
-      # Bottom Promo Link
+        placeholder: "Admin email to receive daily reports and error alerts"
       - key: PS_LINK
-        value: https://jacksplugreviews.com
-
-      # Stripe Payment Integration
-      - key: STRIPE_SECRET_KEY
-        sync: false
-        placeholder: "sk_live_..."
-      - key: STRIPE_WEBHOOK_SECRET
-        sync: false
-        placeholder: "whsec_..."
-
-      # OpenPhone — SMS text-back for missed calls
-      - key: OPENPHONE_API_KEY
-        sync: false
-        placeholder: "Your OpenPhone API Key"
-      - key: OPENPHONE_FROM_NUMBER
-        sync: false
-        placeholder: "+1XXXXXXXXXX"
-
-      # B2B Sales Engine — Invention Outreach
-      - key: INVENTOR_NAME
-        sync: false
-        placeholder: "Your Name"
-      - key: INVENTOR_EMAIL
-        sync: false
-        placeholder: "your@email.com"
-      - key: INVENTION_NAME
-        value: "White-Label AI Infrastructure License"
-      - key: INVENTION_SUMMARY
-        sync: false
-        placeholder: "One-paragraph description of what you are licensing"
-      - key: PROOF_URL
-        sync: false
-        placeholder: "https://yourdemosite.com"
-      - key: DEPLOYMENT_FEE
-        value: "1500"
-      - key: STRIPE_PAYMENT_LINK
-        sync: false
-        placeholder: "https://buy.stripe.com/..."
-      - key: TARGET_INDUSTRIES
-        value: "digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency"
-      - key: BATCH_INTERVAL_HOURS
-        value: "6"
-      - key: BATCH_SIZE
-        value: "10"
+        value: "https://jacksplugreviews.com"

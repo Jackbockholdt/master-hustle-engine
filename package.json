@@ -1,12 +1,23 @@
 {
-  "name": "unified-microsaas-backend",
+  "name": "antigravity-master-hustle-engine",
   "version": "1.0.0",
-  "description": "Unified backend service for three text-only micro-SaaS products",
+  "description": "9-in-1 AI-powered micro-SaaS backend engine. Unified Node.js/Express server running vintage flipper, KDP books, inventor pitches, voice prompts, review replies, local SEO, marketplace ads, faceless videos, and contractor proposals.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
+  "keywords": [
+    "micro-saas",
+    "automation",
+    "gemini-api",
+    "nodejs",
+    "express",
+    "cron",
+    "sqlite"
+  ],
+  "author": "Jack",
+  "license": "MIT",
   "dependencies": {
     "@google/genai": "^2.8.0",
     "dotenv": "^16.4.5",
@@ -18,5 +29,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
