@@ -35,6 +35,24 @@ Body (JSON):
 
 Map `{{company_name}}`, `{{email}}`, `{{website}}`, `{{industry}}` to whatever field names Gumloop's scraper node actually outputs — these are placeholders, the exact variable names depend on how the scrape step is set up.
 
+### Variant — `antigravity-saas` template campaign
+
+For the SaaS/tech-company scrape flow (Antigravity AI Engine pilot pitch, fixed 3-email sequence: initial / day-3 / day-7), use the same endpoint with two extra fields:
+
+```
+Body (JSON):
+{
+  "company_name": "{{company_name}}",
+  "contact_email": "{{email}}",
+  "website": "{{website}}",
+  "industry": "{{industry}}",
+  "first_name": "{{first_name}}",
+  "campaign": "antigravity-saas"
+}
+```
+
+`first_name` is optional — the greeting falls back to "Hi there," when it's missing. Leads WITHOUT the `campaign` field get the original AI-personalized white-label pitch. Both campaigns share one daily send cap (`DAILY_SEND_CAP` env var, default 50/day); leads over the cap are queued and sent on later batch runs, never dropped.
+
 ---
 
 ## Step 2 — Scraper Targeting

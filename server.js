@@ -75,8 +75,15 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
       phone         TEXT,
       status        TEXT    NOT NULL DEFAULT 'pending',
       added_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
-      processed_at  DATETIME
-    )`);
+      processed_at  DATETIME,
+      campaign      TEXT    DEFAULT '',
+      first_name    TEXT    DEFAULT ''
+    )`, () => {
+      // Existing production DBs predate these columns — ALTER fails harmlessly when they exist.
+      // Chained in the CREATE callback because sqlite3 runs queued statements in parallel.
+      db.run(`ALTER TABLE leads_queue ADD COLUMN campaign TEXT DEFAULT ''`, () => {});
+      db.run(`ALTER TABLE leads_queue ADD COLUMN first_name TEXT DEFAULT ''`, () => {});
+    });
     db.run(`CREATE TABLE IF NOT EXISTS follow_ups (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
       campaign_id   TEXT    NOT NULL,
@@ -89,6 +96,12 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
       status        TEXT    NOT NULL DEFAULT 'pending',
       created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
       sent_at       DATETIME
+    )`);
+    db.run(`CREATE TABLE IF NOT EXISTS send_log (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      sent_to   TEXT    NOT NULL,
+      campaign  TEXT,
+      sent_at   DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
     db.run(`CREATE TABLE IF NOT EXISTS audit_log (
       id                  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1067,9 +1080,27 @@ async function sendSms(to, body) {
 
 // Send plain-text pitch email — routes through Gmail HTTPS relay first (bypasses Render's SMTP block),
 // falls back to direct SMTP only if relay is not configured.
-async function sendPitchEmail(toEmail, subject, body) {
+async function sendPitchEmail(toEmail, subject, body, campaignId = '') {
   await sendEmailViaRelayOrSmtp(toEmail, subject, body);
+  await dbRun('INSERT INTO send_log (sent_to, campaign) VALUES (?, ?)', [toEmail, campaignId])
+    .catch(err => console.warn('[Send Log] Failed to record send:', err.message));
   console.log(`[Pitch Email] Sent → ${toEmail} | ${subject}`);
+}
+
+// Shared daily outbound cap — counts every pitch/follow-up send across ALL campaigns,
+// so adding a campaign never doubles total volume. Follow-ups and queued leads that
+// hit the cap stay pending and go out on later runs.
+const DAILY_SEND_CAP = parseInt(process.env.DAILY_SEND_CAP || '50');
+
+async function sendsToday() {
+  const row = await dbGetOne(
+    "SELECT COUNT(*) AS c FROM send_log WHERE sent_at >= datetime('now', 'start of day')"
+  );
+  return row ? row.c : 0;
+}
+
+async function underDailyCap() {
+  return (await sendsToday()) < DAILY_SEND_CAP;
 }
 
 // Promise wrappers around SQLite callbacks
@@ -1106,8 +1137,8 @@ async function queueLeads(leads) {
     const exists = await dbGetOne('SELECT 1 FROM leads_queue WHERE contact_email = ?', [email]);
     if (exists) continue;
     await dbRun(
-      'INSERT INTO leads_queue (company_name, contact_email, website, industry, phone) VALUES (?, ?, ?, ?, ?)',
-      [lead.company_name || '', email, lead.website || '', lead.industry || '', lead.phone || '']
+      'INSERT INTO leads_queue (company_name, contact_email, website, industry, phone, campaign, first_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [lead.company_name || '', email, lead.website || '', lead.industry || '', lead.phone || '', lead.campaign || '', lead.first_name || '']
     );
     inserted++;
   }
@@ -1116,7 +1147,7 @@ async function queueLeads(leads) {
 
 async function fetchPendingLeads(limit) {
   return dbAll(
-    "SELECT id, company_name, contact_email, website, industry, phone FROM leads_queue WHERE status = 'pending' ORDER BY id ASC LIMIT ?",
+    "SELECT id, company_name, contact_email, website, industry, phone, campaign, first_name FROM leads_queue WHERE status = 'pending' ORDER BY id ASC LIMIT ?",
     [limit || B2B_BATCH_SIZE]
   );
 }
@@ -1272,6 +1303,79 @@ async function runInventionOutreach(payload) {
   return { campaign_id: campaignId, offer_name: offerName, deployer_name: deployerName, pitches, email_sent: emailSent, email_error: emailError };
 }
 
+// =============================================================================
+// TEMPLATE CAMPAIGNS — fixed-copy sequences (no AI generation), same follow-up
+// scheduler as the AI campaign: step 1 sends immediately, later steps are queued
+// into follow_ups and dispatched by the hourly scheduler.
+// =============================================================================
+
+const TEMPLATE_CAMPAIGNS = {
+  'antigravity-saas': {
+    steps: [
+      {
+        step: 1,
+        day: 0,
+        subject: 'Automating your outbound — 15 min?',
+        body:
+          'Hi {{first_name}},\n\n' +
+          'I build automated sales infrastructure for tech companies — lead scraping, cold outreach, and follow-ups that run daily without anyone touching them.\n\n' +
+          "I've packaged it as the Antigravity AI Engine: a deployable system your team runs internally instead of paying per-seat for tools like Apollo or Instantly forever.\n\n" +
+          "Pilot setup takes under a week. I'm offering the first pilots at reduced pricing to build case studies.\n\n" +
+          'Worth 15 minutes this week?\n\n' +
+          'Jack Bockholdt\nAntigravity AI',
+      },
+      {
+        step: 2,
+        day: 3,
+        subject: 'Re: Automating your outbound — 15 min?',
+        body:
+          'Hi {{first_name}},\n\n' +
+          'Quick follow-up. One question: how much time does your team spend each week on prospecting and follow-ups manually?\n\n' +
+          'The engine handles both on autopilot. Happy to show you the live system running.\n\n' +
+          'Jack Bockholdt',
+      },
+      {
+        step: 3,
+        day: 7,
+        subject: 'Closing the loop',
+        body:
+          'Hi {{first_name}},\n\n' +
+          "Last note from me. If automated outbound isn't a priority this quarter, no problem — I'll leave you with this: the pilot pricing goes away once the first slots fill.\n\n" +
+          'If timing changes, reply anytime.\n\n' +
+          'Jack Bockholdt',
+      },
+    ],
+  },
+};
+
+function renderTemplate(step, ctx) {
+  const fill = (s) => s
+    .replace(/\{\{first_name\}\}/g, ctx.first_name)
+    .replace(/\{\{company_name\}\}/g, ctx.company_name);
+  return { subject: fill(step.subject), body: fill(step.body) };
+}
+
+// Send step 1 now, queue the remaining steps into the existing follow_ups table
+async function runTemplateOutreach(campaignKey, lead) {
+  const campaign = TEMPLATE_CAMPAIGNS[campaignKey];
+  if (!campaign) throw new Error(`Unknown template campaign: ${campaignKey}`);
+  const ctx = {
+    first_name: (lead.first_name || '').trim() || 'there',
+    company_name: lead.company_name || '',
+  };
+  const [initial, ...followUps] = campaign.steps;
+  const rendered = renderTemplate(initial, ctx);
+  await sendPitchEmail(lead.contact_email, rendered.subject, rendered.body, campaignKey);
+  const now = Date.now();
+  for (const step of followUps) {
+    const r = renderTemplate(step, ctx);
+    const dueAt = new Date(now + step.day * 24 * 60 * 60 * 1000);
+    await queueFollowUp(campaignKey, lead.company_name || '', lead.contact_email, step.step, r.subject, r.body, dueAt);
+  }
+  console.log(`[Template Campaign] ${campaignKey} → ${lead.contact_email} | initial sent, ${followUps.length} follow-ups queued`);
+  return { campaign_id: campaignKey, email_sent: true, follow_ups_queued: followUps.length };
+}
+
 // Run call catcher: classify missed call intent → send SMS text-back via OpenPhone
 async function runCallCatcher(payload) {
   const rawPhone     = payload.caller_phone || payload.customer_phone || '';
@@ -1322,7 +1426,15 @@ async function processLeadQueue(batchSize) {
         console.log(`[Lead Queue] Disqualified ${company_name}: ${reason}`);
         continue;
       }
-      await runInventionOutreach({ ...lead, target_companies: [company_name], contact_email });
+      if (!(await underDailyCap())) {
+        console.log(`[Lead Queue] Daily send cap (${DAILY_SEND_CAP}) reached — leaving remaining leads pending`);
+        break;
+      }
+      if (lead.campaign && TEMPLATE_CAMPAIGNS[lead.campaign]) {
+        await runTemplateOutreach(lead.campaign, lead);
+      } else {
+        await runInventionOutreach({ ...lead, target_companies: [company_name], contact_email });
+      }
       await markLead(id, 'sent');
       sent++;
     } catch (err) {
@@ -1442,6 +1554,14 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
   if (missing.length) return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
   const { qualified, reason } = qualifyLead(body.company_name, body.industry || '');
   if (!qualified) return res.json({ received: true, status: 'DISQUALIFIED', reason });
+  if (!(await underDailyCap())) {
+    await queueLeads([body]);
+    return res.json({ received: true, status: 'QUEUED', reason: `daily send cap (${DAILY_SEND_CAP}) reached — lead queued for next batch` });
+  }
+  if (body.campaign && TEMPLATE_CAMPAIGNS[body.campaign]) {
+    const result = await runTemplateOutreach(body.campaign, body);
+    return res.json({ received: true, status: 'SUCCESS', result });
+  }
   const campaignId = body.campaign_id || `lead-${body.company_name.toLowerCase().replace(/\s+/g, '-')}`;
   const result = await runInventionOutreach({
     target_companies: [body.company_name],
@@ -1546,6 +1666,10 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
       results.push({ company: companyName, status: 'disqualified', reason });
       continue;
     }
+    if (!(await underDailyCap())) {
+      results.push({ company: companyName, status: 'capped', reason: `daily send cap (${DAILY_SEND_CAP}) reached` });
+      continue;
+    }
     let email = c.override_email || c.contact_email || '';
     let website = c.website || '';
     let domain = '';
@@ -1580,6 +1704,7 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
     pitched: results.filter(r => r.status === 'pitched').length,
     no_email: results.filter(r => r.status === 'no_email_found').length,
     disqualified: results.filter(r => r.status === 'disqualified').length,
+    capped: results.filter(r => r.status === 'capped').length,
     failed: results.filter(r => r.status === 'failed').length,
   };
   res.json({ summary, results });
@@ -1605,8 +1730,13 @@ app.post('/admin/run-now', wrapAsync(async (req, res) => {
 
 // Lead queue + follow-up status dashboard
 app.get('/admin/status', wrapAsync(async (req, res) => {
-  const [queue, follow_ups] = await Promise.all([queueStats(), followUpStats()]);
-  res.json({ queue, follow_ups, config: { batch_size: B2B_BATCH_SIZE, interval_hours: B2B_BATCH_HOURS } });
+  const [queue, follow_ups, sent_today] = await Promise.all([queueStats(), followUpStats(), sendsToday()]);
+  res.json({
+    queue,
+    follow_ups,
+    sends: { today: sent_today, daily_cap: DAILY_SEND_CAP },
+    config: { batch_size: B2B_BATCH_SIZE, interval_hours: B2B_BATCH_HOURS, campaigns: Object.keys(TEMPLATE_CAMPAIGNS) },
+  });
 }));
 
 // Global Express Error Handler Middleware to email stack trace on endpoint failure
@@ -1641,8 +1771,12 @@ setInterval(async () => {
   try {
     const due = await fetchDueFollowUps();
     for (const fu of due) {
+      if (!(await underDailyCap())) {
+        console.log(`[Follow-up Scheduler] Daily send cap (${DAILY_SEND_CAP}) reached — remaining follow-ups stay pending until next run`);
+        break;
+      }
       try {
-        await sendPitchEmail(fu.contact_email, fu.subject, fu.body);
+        await sendPitchEmail(fu.contact_email, fu.subject, fu.body, fu.campaign_id);
         await markFollowUp(fu.id, 'sent');
         console.log(`[Follow-up Scheduler] Sent step ${fu.step} → ${fu.contact_email}`);
       } catch (err) {
