@@ -78,6 +78,9 @@ curl -X DELETE https://master-hustle-engine.onrender.com/admin/do-not-contact \
 ```
 Suppressed sends show up as `status: 'suppressed'` in `leads_queue`/`follow_ups`; list size is in `/admin/status` under `do_not_contact`. Nothing automated adds entries — reading replies stays a human job.
 
+## Lead Payload Validation
+Every intake path (`/webhook/lead`, `/admin/leads`, `/admin/bulk-pitch`, batch runs) rejects leads whose `contact_email` isn't a syntactically valid address or whose fields contain unresolved template placeholders (`${...}` / `{{...}}` — e.g. a mis-wired Gumloop variable like `${Valid Emails__NODE_ID__:...}`). Webhook returns `400` with `status: INVALID` and the offending field named, so a broken Gumloop node shows up as a visible failure in Gumloop's run history instead of burning a Gemini call and an admin alert per lead.
+
 ## Offer Details
 - Product: White-Label AI Infrastructure License
 - Price: $1,500/month license fee

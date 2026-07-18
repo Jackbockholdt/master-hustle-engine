@@ -1172,6 +1172,11 @@ async function queueLeads(leads) {
   for (const lead of leads) {
     const email = (lead.contact_email || '').trim().toLowerCase();
     if (!email) continue;
+    const invalid = validateLeadFields({ ...lead, contact_email: email });
+    if (invalid) {
+      console.warn(`[Lead Queue] Rejected lead on import: ${invalid}`);
+      continue;
+    }
     const exists = await dbGetOne('SELECT 1 FROM leads_queue WHERE contact_email = ?', [email]);
     if (exists) continue;
     await dbRun(
@@ -1235,6 +1240,25 @@ function toE164(phone) {
   if (digits.length === 10) return `+1${digits}`;
   if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
   return phone;
+}
+
+// Payload validation — catches unresolved scraper merge variables (e.g. Gumloop's
+// "${Valid Emails__NODE_ID__:...}") and malformed addresses at the door, before
+// any Gemini call or send attempt.
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const PLACEHOLDER_RE = /\$\{[^}]*\}|\{\{[^}]*\}\}/;
+
+function validateLeadFields(lead) {
+  for (const field of ['company_name', 'contact_email', 'website', 'industry', 'first_name', 'phone']) {
+    const val = lead[field];
+    if (typeof val === 'string' && PLACEHOLDER_RE.test(val)) {
+      return `field '${field}' contains an unresolved template placeholder: ${val}`;
+    }
+  }
+  if (!EMAIL_RE.test((lead.contact_email || '').trim())) {
+    return `contact_email '${lead.contact_email}' is not a valid email address`;
+  }
+  return null;
 }
 
 // Filter leads by target industry list
@@ -1457,6 +1481,13 @@ async function processLeadQueue(batchSize) {
   for (const lead of leads) {
     const { id, company_name, contact_email, industry } = lead;
     try {
+      const invalidLead = validateLeadFields(lead);
+      if (invalidLead) {
+        await markLead(id, 'invalid');
+        failed++;
+        console.warn(`[Lead Queue] Marked lead ${id} invalid: ${invalidLead}`);
+        continue;
+      }
       const { qualified, reason } = qualifyLead(company_name, industry || '');
       if (!qualified) {
         await markLead(id, 'disqualified');
@@ -1596,6 +1627,11 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
   if (!body.contact_email && body.email) body.contact_email = body.email;
   const missing = ['company_name', 'contact_email', 'website'].filter(f => !body[f]);
   if (missing.length) return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
+  const invalid = validateLeadFields(body);
+  if (invalid) {
+    console.warn(`[Lead Intake] Rejected invalid payload: ${invalid}`);
+    return res.status(400).json({ received: false, status: 'INVALID', error: invalid });
+  }
   const { qualified, reason } = qualifyLead(body.company_name, body.industry || '');
   if (!qualified) return res.json({ received: true, status: 'DISQUALIFIED', reason });
   if (await isDoNotContact(body.contact_email)) {
@@ -1729,6 +1765,11 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
         results.push({ company: companyName, website, status: 'no_email_found', domain });
         continue;
       }
+    }
+    const invalidBulk = validateLeadFields({ company_name: companyName, contact_email: email, website });
+    if (invalidBulk) {
+      results.push({ company: companyName, email, status: 'invalid', reason: invalidBulk });
+      continue;
     }
     if (await isDoNotContact(email)) {
       results.push({ company: companyName, email, status: 'suppressed', reason: 'email is on the do-not-contact list' });
