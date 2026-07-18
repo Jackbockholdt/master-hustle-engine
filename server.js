@@ -1384,7 +1384,8 @@ const TEMPLATE_CAMPAIGNS = {
           "I've packaged it as the Antigravity AI Engine: a deployable system your team runs internally instead of paying per-seat for tools like Apollo or Instantly forever.\n\n" +
           "Pilot setup takes under a week. I'm offering the first pilots at reduced pricing to build case studies.\n\n" +
           'Worth 15 minutes this week?\n\n' +
-          'Jack Bockholdt\nAntigravity AI',
+          'Jack Bockholdt\nAntigravity AI\n\n' +
+          'P.S. Not interested? Reply "unsubscribe" and you won\'t hear from me again.',
       },
       {
         step: 2,
@@ -1394,7 +1395,8 @@ const TEMPLATE_CAMPAIGNS = {
           'Hi {{first_name}},\n\n' +
           'Quick follow-up. One question: how much time does your team spend each week on prospecting and follow-ups manually?\n\n' +
           'The engine handles both on autopilot. Happy to show you the live system running.\n\n' +
-          'Jack Bockholdt',
+          'Jack Bockholdt\n\n' +
+          'P.S. Reply "unsubscribe" to opt out of future emails.',
       },
       {
         step: 3,
@@ -1404,7 +1406,8 @@ const TEMPLATE_CAMPAIGNS = {
           'Hi {{first_name}},\n\n' +
           "Last note from me. If automated outbound isn't a priority this quarter, no problem — I'll leave you with this: the pilot pricing goes away once the first slots fill.\n\n" +
           'If timing changes, reply anytime.\n\n' +
-          'Jack Bockholdt',
+          'Jack Bockholdt\n\n' +
+          'P.S. Reply "unsubscribe" and I won\'t contact you again.',
       },
     ],
   },
