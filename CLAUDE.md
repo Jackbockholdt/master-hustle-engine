@@ -64,6 +64,23 @@ Leads without a `campaign` field keep getting the AI-personalized white-label pi
 
 **Shared daily send cap:** `DAILY_SEND_CAP` env var (default 50) caps total outbound pitch + follow-up emails per UTC day **across all campaigns combined** — adding this campaign does not double volume. Leads over the cap are queued (`status: QUEUED`) and go out on later batch runs; due follow-ups stay pending until the next hourly run. Current count visible at `/admin/status` under `sends`.
 
+## Do-Not-Contact List (opt-out suppression)
+When a prospect replies "stop"/"unsubscribe", add them here — enforced before **every** outbound pitch and follow-up send, on every campaign, and adding an email immediately cancels its pending follow-ups and queued leads (mid-sequence stop works). Emails are normalized to lowercase.
+```bash
+# Add (also accepts {"emails": [...]} for bulk; optional "reason")
+curl -X POST https://master-hustle-engine.onrender.com/admin/do-not-contact \
+  -H "Content-Type: application/json" -d '{"email":"prospect@example.com","reason":"replied stop"}'
+# List
+curl https://master-hustle-engine.onrender.com/admin/do-not-contact
+# Remove
+curl -X DELETE https://master-hustle-engine.onrender.com/admin/do-not-contact \
+  -H "Content-Type: application/json" -d '{"email":"prospect@example.com"}'
+```
+Suppressed sends show up as `status: 'suppressed'` in `leads_queue`/`follow_ups`; list size is in `/admin/status` under `do_not_contact`. Nothing automated adds entries — reading replies stays a human job.
+
+## Lead Payload Validation
+Every intake path (`/webhook/lead`, `/admin/leads`, `/admin/bulk-pitch`, batch runs) rejects leads whose `contact_email` isn't a syntactically valid address or whose fields contain unresolved template placeholders (`${...}` / `{{...}}` — e.g. a mis-wired Gumloop variable like `${Valid Emails__NODE_ID__:...}`). Webhook returns `400` with `status: INVALID` and the offending field named, so a broken Gumloop node shows up as a visible failure in Gumloop's run history instead of burning a Gemini call and an admin alert per lead.
+
 ## Offer Details
 - Product: White-Label AI Infrastructure License
 - Price: $1,500/month license fee
