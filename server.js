@@ -1665,6 +1665,32 @@ app.get('/version', (req, res) => {
   res.json({ build: 'optout-2026-07-18' });
 });
 
+// Root status page (ported from local main's "Fix root route" commit)
+app.get('/', (req, res) => {
+  res.json({
+    status: '✅ Running',
+    name: 'Antigravity Master Hustle Engine',
+    version: '1.0.0',
+    dailyAutomation: '8:00 AM Server Time (UTC)',
+    niches: [
+      { name: 'Vintage Flipper', endpoint: 'POST /api/vintage', desc: 'Appraise vintage items, generate eBay listings' },
+      { name: 'KDP Books', endpoint: 'POST /api/kdp', desc: 'Optimize book launches, categories, keywords' },
+      { name: 'Inventor Pitches', endpoint: 'POST /api/inventor', desc: 'Cold emails & elevator pitches for patents' },
+      { name: 'Voice Prompts', endpoint: 'POST /api/voice', desc: 'AI receptionist system instructions for Vapi' },
+      { name: 'Review Replies', endpoint: 'POST /api/review-reply', desc: 'Sentiment detection & smart responses' },
+      { name: 'Local SEO', endpoint: 'POST /api/local-seo', desc: 'GMB optimization, keywords, posts' },
+      { name: 'Marketplace Ads', endpoint: 'POST /api/marketplace', desc: 'Classifieds copy & FAQs' },
+      { name: 'Faceless Videos', endpoint: 'POST /api/faceless-video', desc: '10 viral short-form video scripts' },
+      { name: 'Contract Proposals', endpoint: 'POST /api/contractor-proposal', desc: 'Professional construction proposals' }
+    ],
+    admin: {
+      logs: 'GET /api/admin/logs',
+      triggerDaily: 'POST /api/admin/trigger-daily'
+    },
+    message: 'All 9 skills active. Cron fires daily at 8:00 AM. Ready to use!'
+  });
+});
+
 // Admin form — paste company names, engine finds emails and sends pitches
 app.get('/admin/pitch', (req, res) => {
   res.send(`<!DOCTYPE html>
