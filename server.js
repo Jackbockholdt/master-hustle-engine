@@ -103,6 +103,12 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
       campaign  TEXT,
       sent_at   DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+    db.run(`CREATE TABLE IF NOT EXISTS do_not_contact (
+      id       INTEGER PRIMARY KEY AUTOINCREMENT,
+      email    TEXT    NOT NULL UNIQUE,
+      reason   TEXT,
+      added_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
     db.run(`CREATE TABLE IF NOT EXISTS audit_log (
       id                  INTEGER PRIMARY KEY AUTOINCREMENT,
       execution_timestamp TEXT    NOT NULL,
@@ -1103,6 +1109,38 @@ async function underDailyCap() {
   return (await sendsToday()) < DAILY_SEND_CAP;
 }
 
+// Do-not-contact (suppression) list — checked before EVERY outbound pitch/follow-up
+// send, on every campaign. Adding an email also cancels its pending follow-ups and
+// queued leads immediately, so a "stop" reply mid-sequence halts steps 2/3.
+function normalizeEmail(email) {
+  return (email || '').trim().toLowerCase();
+}
+
+async function isDoNotContact(email) {
+  const row = await dbGetOne('SELECT 1 FROM do_not_contact WHERE email = ?', [normalizeEmail(email)]);
+  return !!row;
+}
+
+async function addDoNotContact(email, reason) {
+  const e = normalizeEmail(email);
+  if (!e || !e.includes('@')) return { email: e, added: false, error: 'invalid email' };
+  await dbRun('INSERT OR IGNORE INTO do_not_contact (email, reason) VALUES (?, ?)', [e, reason || '']);
+  const fu = await dbRun(
+    "UPDATE follow_ups SET status='suppressed', sent_at=CURRENT_TIMESTAMP WHERE contact_email = ? AND status='pending'", [e]
+  );
+  const lq = await dbRun(
+    "UPDATE leads_queue SET status='suppressed', processed_at=CURRENT_TIMESTAMP WHERE contact_email = ? AND status='pending'", [e]
+  );
+  console.log(`[DNC] Added ${e} — cancelled ${fu.changes} pending follow-ups, ${lq.changes} queued leads`);
+  return { email: e, added: true, follow_ups_cancelled: fu.changes, queued_leads_cancelled: lq.changes };
+}
+
+async function removeDoNotContact(email) {
+  const e = normalizeEmail(email);
+  const result = await dbRun('DELETE FROM do_not_contact WHERE email = ?', [e]);
+  return { email: e, removed: result.changes > 0 };
+}
+
 // Promise wrappers around SQLite callbacks
 function dbRun(sql, params = []) {
   return new Promise((resolve, reject) => {
@@ -1413,9 +1451,9 @@ async function processLeadQueue(batchSize) {
   const leads = await fetchPendingLeads(batchSize || B2B_BATCH_SIZE);
   if (!leads.length) {
     console.log('[Lead Queue] No pending leads.');
-    return { processed: 0, sent: 0, disqualified: 0, failed: 0 };
+    return { processed: 0, sent: 0, disqualified: 0, suppressed: 0, failed: 0 };
   }
-  let sent = 0, disq = 0, failed = 0;
+  let sent = 0, disq = 0, supp = 0, failed = 0;
   for (const lead of leads) {
     const { id, company_name, contact_email, industry } = lead;
     try {
@@ -1424,6 +1462,12 @@ async function processLeadQueue(batchSize) {
         await markLead(id, 'disqualified');
         disq++;
         console.log(`[Lead Queue] Disqualified ${company_name}: ${reason}`);
+        continue;
+      }
+      if (await isDoNotContact(contact_email)) {
+        await markLead(id, 'suppressed');
+        supp++;
+        console.log(`[Lead Queue] Suppressed ${contact_email} (do-not-contact list)`);
         continue;
       }
       if (!(await underDailyCap())) {
@@ -1444,8 +1488,8 @@ async function processLeadQueue(batchSize) {
     }
     await new Promise(r => setTimeout(r, 2000));
   }
-  console.log(`[Lead Queue] Batch done — sent=${sent} disq=${disq} failed=${failed}`);
-  return { processed: leads.length, sent, disqualified: disq, failed };
+  console.log(`[Lead Queue] Batch done — sent=${sent} disq=${disq} supp=${supp} failed=${failed}`);
+  return { processed: leads.length, sent, disqualified: disq, suppressed: supp, failed };
 }
 
 // =============================================================================
@@ -1554,6 +1598,9 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
   if (missing.length) return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
   const { qualified, reason } = qualifyLead(body.company_name, body.industry || '');
   if (!qualified) return res.json({ received: true, status: 'DISQUALIFIED', reason });
+  if (await isDoNotContact(body.contact_email)) {
+    return res.json({ received: true, status: 'SUPPRESSED', reason: 'email is on the do-not-contact list' });
+  }
   if (!(await underDailyCap())) {
     await queueLeads([body]);
     return res.json({ received: true, status: 'QUEUED', reason: `daily send cap (${DAILY_SEND_CAP}) reached — lead queued for next batch` });
@@ -1683,6 +1730,10 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
         continue;
       }
     }
+    if (await isDoNotContact(email)) {
+      results.push({ company: companyName, email, status: 'suppressed', reason: 'email is on the do-not-contact list' });
+      continue;
+    }
     try {
       const campaignId = `bulk-${companyName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
       await runInventionOutreach({
@@ -1705,6 +1756,7 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
     no_email: results.filter(r => r.status === 'no_email_found').length,
     disqualified: results.filter(r => r.status === 'disqualified').length,
     capped: results.filter(r => r.status === 'capped').length,
+    suppressed: results.filter(r => r.status === 'suppressed').length,
     failed: results.filter(r => r.status === 'failed').length,
   };
   res.json({ summary, results });
@@ -1730,13 +1782,41 @@ app.post('/admin/run-now', wrapAsync(async (req, res) => {
 
 // Lead queue + follow-up status dashboard
 app.get('/admin/status', wrapAsync(async (req, res) => {
-  const [queue, follow_ups, sent_today] = await Promise.all([queueStats(), followUpStats(), sendsToday()]);
+  const [queue, follow_ups, sent_today, dnc] = await Promise.all([
+    queueStats(), followUpStats(), sendsToday(),
+    dbGetOne('SELECT COUNT(*) AS c FROM do_not_contact'),
+  ]);
   res.json({
     queue,
     follow_ups,
     sends: { today: sent_today, daily_cap: DAILY_SEND_CAP },
+    do_not_contact: dnc ? dnc.c : 0,
     config: { batch_size: B2B_BATCH_SIZE, interval_hours: B2B_BATCH_HOURS, campaigns: Object.keys(TEMPLATE_CAMPAIGNS) },
   });
+}));
+
+// Do-not-contact list management
+app.get('/admin/do-not-contact', wrapAsync(async (req, res) => {
+  const rows = await dbAll('SELECT email, reason, added_at FROM do_not_contact ORDER BY added_at DESC');
+  res.json({ count: rows.length, entries: rows });
+}));
+
+// Add one email ({"email": "..."}) or several ({"emails": ["...", ...]}); optional "reason"
+app.post('/admin/do-not-contact', wrapAsync(async (req, res) => {
+  const body = req.body || {};
+  const emails = Array.isArray(body.emails) ? body.emails : (body.email ? [body.email] : []);
+  if (!emails.length) return res.status(400).json({ error: 'Send {"email": "..."} or {"emails": ["...", ...]}' });
+  const results = [];
+  for (const email of emails) {
+    results.push(await addDoNotContact(email, body.reason || ''));
+  }
+  res.json({ added: results.filter(r => r.added).length, results });
+}));
+
+app.delete('/admin/do-not-contact', wrapAsync(async (req, res) => {
+  const email = (req.body && req.body.email) || '';
+  if (!email) return res.status(400).json({ error: 'Send {"email": "..."}' });
+  res.json(await removeDoNotContact(email));
 }));
 
 // Global Express Error Handler Middleware to email stack trace on endpoint failure
@@ -1774,6 +1854,11 @@ setInterval(async () => {
       if (!(await underDailyCap())) {
         console.log(`[Follow-up Scheduler] Daily send cap (${DAILY_SEND_CAP}) reached — remaining follow-ups stay pending until next run`);
         break;
+      }
+      if (await isDoNotContact(fu.contact_email)) {
+        await markFollowUp(fu.id, 'suppressed');
+        console.log(`[Follow-up Scheduler] Suppressed step ${fu.step} → ${fu.contact_email} (do-not-contact list)`);
+        continue;
       }
       try {
         await sendPitchEmail(fu.contact_email, fu.subject, fu.body, fu.campaign_id);
