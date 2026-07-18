@@ -1660,6 +1660,11 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
   res.json({ received: true, status: 'SUCCESS', result });
 }));
 
+// Build marker so a deploy can be verified from outside
+app.get('/version', (req, res) => {
+  res.json({ build: 'optout-2026-07-18' });
+});
+
 // Admin form — paste company names, engine finds emails and sends pitches
 app.get('/admin/pitch', (req, res) => {
   res.send(`<!DOCTYPE html>
