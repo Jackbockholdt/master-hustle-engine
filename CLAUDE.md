@@ -22,10 +22,10 @@ A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch 
 - Day 5 / Day 10 follow-up sequences: automatic, run hourly
 - B2B outreach batch: runs every 6 hours
 
-## The ONE Thing Left To Do
-**Turn the Gumloop scraper on** — the engine is fully built, tested, and waiting. Nothing will happen until Gumloop actually starts pushing leads to the endpoint below.
+## Gumloop Scraper — LIVE as of 2026-07-18
+The scraper is ON and pushing leads to the endpoint below. Both campaigns are live: leads without a `campaign` field get the AI-personalized white-label pitch; leads with `"campaign": "antigravity-saas"` get the fixed template sequence. One known failure mode already hit and fixed: duplicating a Gumloop flow breaks its variable references (the HTTP node then sends literal `${...}` strings) — the engine now rejects those payloads with a 400 naming the field, so a broken flow shows up as failed requests in Gumloop's run history. If sends stop, check there first.
 
-**Gumloop HTTP node config:**
+**Gumloop HTTP node config (reference):**
 - URL: https://master-hustle-engine.onrender.com/webhook/lead
 - Method: POST
 - Header: Content-Type: application/json
@@ -92,7 +92,7 @@ Every intake path (`/webhook/lead`, `/admin/leads`, `/admin/bulk-pitch`, batch r
 
 ## Render Service IDs
 - master-hustle-engine (Node.js, the live unified service): srv-d8thrho0697c73clcvtg
-- antigravity-orchestrator (Python, srv-d910i40k1i2s73822a5g): **legacy, redundant, still running and costing money.** Its functionality was fully ported into `server.js` above. Not suspended yet as of 2026-07-13 — worth shutting down to stop paying for duplicate infrastructure, pending an explicit go-ahead.
+- antigravity-orchestrator (Python, srv-d910i40k1i2s73822a5g): **legacy — SUSPENDED as of 2026-07-18.** Its functionality was fully ported into `server.js` above. Do not resurrect it; the unified Node service is the only live backend.
 
 ## Test The Engine
 ```bash
