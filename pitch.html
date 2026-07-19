@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antigravity AI Engine — Pilot Spec Sheet</title>
+<style>
+  :root {
+    --paper: #FAFBFC;
+    --ink: #16202A;
+    --steel: #5A6B7C;
+    --line: #D5DCE3;
+    --panel: #F0F3F6;
+    --cobalt: #1E40AF;
+    --signal: #D95204;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0F1620;
+      --ink: #E8EDF2;
+      --steel: #8FA0B1;
+      --line: #263140;
+      --panel: #16202C;
+      --cobalt: #6D9BF5;
+      --signal: #F08A3C;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0F1620;
+    --ink: #E8EDF2;
+    --steel: #8FA0B1;
+    --line: #263140;
+    --panel: #16202C;
+    --cobalt: #6D9BF5;
+    --signal: #F08A3C;
+  }
+  :root[data-theme="light"] {
+    --paper: #FAFBFC;
+    --ink: #16202A;
+    --steel: #5A6B7C;
+    --line: #D5DCE3;
+    --panel: #F0F3F6;
+    --cobalt: #1E40AF;
+    --signal: #D95204;
+  }
+  html { background: var(--paper); }
+  body {
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 20px;
+  }
+  .sheet { max-width: 720px; margin: 0 auto; padding: 40px 0 80px; }
+  .disp, th, .tier h3, .cta a.buy, .step b {
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', 'Segoe UI', sans-serif;
+  }
+  .mono { font-family: Consolas, 'Courier New', monospace; font-variant-numeric: tabular-nums; }
+
+  /* Nameplate */
+  header {
+    border: 2px solid var(--ink);
+    padding: 22px 26px;
+    display: flex; flex-wrap: wrap; gap: 10px 24px;
+    justify-content: space-between; align-items: baseline;
+  }
+  header h1 {
+    margin: 0; font-size: 30px; letter-spacing: 0.5px;
+    text-transform: uppercase; text-wrap: balance;
+  }
+  header h1 span { color: var(--cobalt); }
+  .plate { font-size: 12px; color: var(--steel); letter-spacing: 1.5px; text-transform: uppercase; }
+  .tagline { margin: 14px 0 0; font-size: 15px; color: var(--steel); font-style: italic; width: 100%; }
+
+  section { margin-top: 44px; }
+  .eyebrow {
+    font-size: 12px; letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--cobalt); margin: 0 0 12px;
+  }
+  p { max-width: 62ch; margin: 0 0 14px; }
+  .lede { font-size: 19px; }
+
+  /* Spec table */
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--steel); font-weight: 600; }
+  td.val { white-space: nowrap; color: var(--cobalt); font-weight: bold; }
+
+  /* Tiers */
+  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .tier { border: 1px solid var(--line); background: var(--panel); padding: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .tier.hot { border: 2px solid var(--signal); }
+  .tier h3 { margin: 0; font-size: 14px; letter-spacing: 1.5px; text-transform: uppercase; }
+  .price { font-size: 30px; font-weight: bold; color: var(--signal); }
+  .price small { font-size: 13px; color: var(--steel); font-weight: normal; }
+  .tier p { font-size: 14px; margin: 0; color: var(--steel); }
+
+  /* Pilot week */
+  .step { display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .step .mono { color: var(--steel); min-width: 74px; font-size: 13px; padding-top: 3px; }
+  .step div p { margin: 0; font-size: 15px; }
+  .step b { display: block; font-size: 15px; letter-spacing: 0.3px; }
+
+  /* CTA */
+  .cta {
+    margin-top: 52px; border: 2px solid var(--ink); background: var(--panel);
+    padding: 26px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; justify-content: space-between;
+  }
+  .cta a.buy {
+    background: var(--signal); color: #fff; text-decoration: none;
+    padding: 14px 26px; font-size: 16px; letter-spacing: 1px; text-transform: uppercase;
+    display: inline-block;
+  }
+  .cta a.buy:hover, .cta a.buy:focus-visible { filter: brightness(1.12); outline: 2px solid var(--ink); outline-offset: 2px; }
+  .cta .alt { font-size: 14px; color: var(--steel); }
+  .cta .alt a { color: var(--cobalt); }
+
+  footer { margin-top: 36px; font-size: 12px; color: var(--steel); letter-spacing: 0.5px; }
+  @media (prefers-reduced-motion: no-preference) {
+    .tier.hot { transition: transform 160ms ease; }
+    .tier.hot:hover { transform: translateY(-2px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <header>
+    <div>
+      <p class="plate disp">Equipment spec — revenue automation</p>
+      <h1 class="disp">Antigravity <span>AI Engine</span></h1>
+    </div>
+    <p class="plate disp mono">Model AGE-9 · Rev 2026.07</p>
+    <p class="tagline">A machine that chases your leads so you don't have to.</p>
+  </header>
+
+  <section>
+    <p class="eyebrow disp">The problem it removes</p>
+    <p class="lede">Most small businesses lose deals in the follow-up, not the pitch. Somebody inquires, gets one reply, then everyone gets busy — and the deal quietly dies.</p>
+    <p>The Antigravity AI Engine is a deployed, always-on system that writes and sends your outreach, follows up on day 3 and day 7 automatically, stops the moment someone replies, and texts your phone when a real conversation starts. It runs in the cloud, around the clock, whether or not your laptop is open.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow disp">Operating specifications</p>
+    <div class="tablewrap">
+      <table>
+        <tr><th>Function</th><th>Spec</th></tr>
+        <tr><td>Outreach sequence</td><td class="val mono">Day 0 · Day 3 · Day 7</td></tr>
+        <tr><td>Reply handling</td><td class="val mono">Auto-stop + phone alert</td></tr>
+        <tr><td>Send volume governor</td><td class="val mono">Capped 50 / day</td></tr>
+        <tr><td>Opt-out compliance</td><td class="val mono">Built-in, every email</td></tr>
+        <tr><td>AI content skills</td><td class="val mono">9 modules</td></tr>
+        <tr><td>Uptime</td><td class="val mono">24/7 cloud-hosted</td></tr>
+        <tr><td>Your daily involvement</td><td class="val mono">Answer warm replies</td></tr>
+      </table>
+    </div>
+    <p style="margin-top:12px; font-size:14px; color: var(--steel);">The 9 modules cover the writing work a small business pays for piecemeal: cold outreach, review replies, local SEO content, marketplace listings, proposals, video scripts, and more — each callable on demand.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow disp">What it replaces</p>
+    <p>Per-seat outreach tools typically run $100–300 per month, forever, and still leave the follow-up work to you. A part-time assistant doing the same chasing costs more and clocks out at 5. This is a one-time setup you own — running on your accounts, with your voice.</p>
+  </section>
+
+  <section>
+    <p class="eyebrow disp">Pricing</p>
+    <div class="tiers">
+      <div class="tier hot">
+        <h3>Pilot setup</h3>
+        <p class="price mono">$1,500 <small>one-time</small></p>
+        <p>Engine deployed on your accounts in under a week. First campaign live, follow-ups armed, alerts to your phone.</p>
+      </div>
+      <div class="tier">
+        <h3>Full deployment</h3>
+        <p class="price mono">$5,000 <small>one-time</small></p>
+        <p>Everything in Pilot, plus lead sourcing wired in, all 9 modules configured for your niche, and your team trained.</p>
+      </div>
+      <div class="tier">
+        <h3>Ops retainer</h3>
+        <p class="price mono">$500 <small>/ month</small></p>
+        <p>We watch the dials: deliverability, copy refreshes, new campaigns, monthly numbers review.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow disp">The pilot week</p>
+    <div class="step"><span class="mono">Day 1–2</span><div><b class="disp">Deploy</b><p>Engine stood up on your email and phone number, connected to your lead source.</p></div></div>
+    <div class="step"><span class="mono">Day 3–4</span><div><b class="disp">Calibrate</b><p>Your pitch, your voice — we write the sequence with you and set the safety caps.</p></div></div>
+    <div class="step"><span class="mono">Day 5</span><div><b class="disp">First sends</b><p>Campaign goes live at controlled volume. You watch replies land on your phone.</p></div></div>
+    <div class="step" style="border-bottom:none;"><span class="mono">Ongoing</span><div><b class="disp">It runs</b><p>Follow-ups fire on schedule. You only step in when a human says yes.</p></div></div>
+  </section>
+
+  <div class="cta">
+    <div>
+      <p class="eyebrow disp" style="margin-bottom:6px;">Start the pilot</p>
+      <p class="alt">Or talk first: <a href="mailto:jackbockholdt88@gmail.com">jackbockholdt88@gmail.com</a> · text <span class="mono">(309) 487-2044</span></p>
+    </div>
+    <a class="buy disp" href="https://buy.stripe.com/7sY6oG8cW4iLfcHgNh0000F">Reserve pilot — $1,500</a>
+  </div>
+
+  <footer class="mono">ANTIGRAVITY AI · JACK BOCKHOLDT · BUILT & OPERATED IN ILLINOIS</footer>
+</div>
+</body>
+</html>

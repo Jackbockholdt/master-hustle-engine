@@ -1662,7 +1662,12 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
 
 // Build marker so a deploy can be verified from outside
 app.get('/version', (req, res) => {
-  res.json({ build: 'optout-2026-07-18' });
+  res.json({ build: 'pitch-2026-07-18' });
+});
+
+// Public sales one-pager — text this URL to prospects
+app.get('/pitch', (req, res) => {
+  res.sendFile(path.join(__dirname, 'pitch.html'));
 });
 
 // Root status page (ported from local main's "Fix root route" commit)
