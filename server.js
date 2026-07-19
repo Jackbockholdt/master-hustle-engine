@@ -1377,24 +1377,25 @@ const TEMPLATE_CAMPAIGNS = {
       {
         step: 1,
         day: 0,
-        subject: 'Automating your outbound — 15 min?',
+        subject: 'White-label AI services for {{company_name}}\'s clients?',
         body:
           'Hi {{first_name}},\n\n' +
-          'I build automated sales infrastructure for tech companies — lead scraping, cold outreach, and follow-ups that run daily without anyone touching them.\n\n' +
-          "I've packaged it as the Antigravity AI Engine: a deployable system your team runs internally instead of paying per-seat for tools like Apollo or Instantly forever.\n\n" +
-          "Pilot setup takes under a week. I'm offering the first pilots at reduced pricing to build case studies.\n\n" +
-          'Worth 15 minutes this week?\n\n' +
+          'I build an AI automation engine that agencies white-label and resell to their own clients under their own brand — document generation, content and media, and workflow automation.\n\n' +
+          "Your clients get the AI services they're already asking for. You keep the margin. Zero dev work on your side — I handle the build and the hosting.\n\n" +
+          'Agencies are charging clients around $500/mo for this and keeping most of it. Three clients and it pays for itself.\n\n' +
+          'Worth 15 minutes to see it running under your brand?\n\n' +
           'Jack Bockholdt\nAntigravity AI\n\n' +
           'P.S. Not interested? Reply "unsubscribe" and you won\'t hear from me again.',
       },
       {
         step: 2,
         day: 3,
-        subject: 'Re: Automating your outbound — 15 min?',
+        subject: 'Re: White-label AI services for {{company_name}}\'s clients?',
         body:
           'Hi {{first_name}},\n\n' +
-          'Quick follow-up. One question: how much time does your team spend each week on prospecting and follow-ups manually?\n\n' +
-          'The engine handles both on autopilot. Happy to show you the live system running.\n\n' +
+          'Quick follow-up. The model is simple: you license the engine once, rebrand it as your own AI service, and sell it to your client roster at a monthly rate. You keep the margin — you never touch code.\n\n' +
+          'For an agency whose clients are already asking about AI, that\'s new recurring revenue with no new headcount.\n\n' +
+          'Happy to show you the live system running under a white-label demo.\n\n' +
           'Jack Bockholdt\n\n' +
           'P.S. Reply "unsubscribe" to opt out of future emails.',
       },
@@ -1404,7 +1405,8 @@ const TEMPLATE_CAMPAIGNS = {
         subject: 'Closing the loop',
         body:
           'Hi {{first_name}},\n\n' +
-          "Last note from me. If automated outbound isn't a priority this quarter, no problem — I'll leave you with this: the pilot pricing goes away once the first slots fill.\n\n" +
+          "Last note from me. If reselling AI services to your clients isn't a priority this quarter, no problem.\n\n" +
+          "If it is: I'm onboarding a few agency partners now at pilot pricing to build case studies. Once those slots fill, pricing goes up.\n\n" +
           'If timing changes, reply anytime.\n\n' +
           'Jack Bockholdt\n\n' +
           'P.S. Reply "unsubscribe" and I won\'t contact you again.',
@@ -1662,7 +1664,7 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
 
 // Build marker so a deploy can be verified from outside
 app.get('/version', (req, res) => {
-  res.json({ build: 'pitch-2026-07-18' });
+  res.json({ build: 'whitelabel-2026-07-19' });
 });
 
 // Public sales one-pager — text this URL to prospects
