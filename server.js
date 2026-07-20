@@ -37,13 +37,25 @@ app.use(express.json({
 }));
 
 const PORT = process.env.PORT || 3000;
-// SQLite lives on the Render persistent disk (mounted at /var/data) so the
-// suppression list, queues, and send history survive deploys. Falls back to a
-// repo-local file when the disk isn't mounted (local dev, tests).
-const DATA_DIR = process.env.DATA_DIR || '/var/data';
+// SQLite lives on the Render persistent disk so the suppression list, queues,
+// and send history survive deploys. /data is the primary mount point; /var/data
+// is also detected in case the disk was mounted there. A candidate only wins if
+// it exists AND is writable, so a bad mount degrades to the next option instead
+// of crashing. Final fallback is a repo-local file (local dev; ephemeral).
+function pickDataDir() {
+  if (process.env.DATA_DIR) return process.env.DATA_DIR;
+  for (const dir of ['/data', '/var/data']) {
+    try {
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    } catch (_) { /* not mounted or not writable — try next */ }
+  }
+  return '';
+}
+const DATA_DIR = pickDataDir();
 const DB_PATH = process.env.DB_PATH ||
-  (fs.existsSync(DATA_DIR) ? path.join(DATA_DIR, 'my_database.db') : path.join(__dirname, 'transactions.sqlite'));
-console.log(`[SQLite] Database path: ${DB_PATH}`);
+  (DATA_DIR ? path.join(DATA_DIR, 'my_database.db') : path.join(__dirname, 'transactions.sqlite'));
+console.log(`[SQLite] Database path: ${DB_PATH}${DATA_DIR ? ' (persistent disk)' : ' (EPHEMERAL — no persistent disk found)'}`);
 
 // B2B Sales Engine Config
 const B2B_DEPLOYER_NAME  = process.env.INVENTOR_NAME || '';
