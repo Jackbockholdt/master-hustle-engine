@@ -7,7 +7,7 @@ A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch 
 1. Digital marketing / lead-gen agency owners — resell to their local business clients
 2. Tech startups / SaaS / software / digital service companies — resell to their own customers
 
-**This supersedes the old contractor/missed-call offer.** Do not pitch plumbers, HVAC, or other end-business owners directly — the buyer white-labels and resells, they are never the end client. Full playbook: `marketing/GTM-BLUEPRINT.md` (cold call script + scraper targeting) and `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` (3-email follow-up).
+**This supersedes all earlier offers.** Do not pitch plumbers, HVAC, or other end-business owners directly — the buyer white-labels and resells, they are never the end client. Full playbook: `marketing/GTM-BLUEPRINT.md` (cold call script + scraper targeting) and `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` (3-email follow-up).
 
 ## Live URLs
 - **Unified backend:** https://master-hustle-engine.onrender.com (single service — Python orchestrator eliminated)
@@ -78,13 +78,14 @@ curl -X DELETE https://master-hustle-engine.onrender.com/admin/do-not-contact \
 ```
 Suppressed sends show up as `status: 'suppressed'` in `leads_queue`/`follow_ups`; list size is in `/admin/status` under `do_not_contact`. Nothing automated adds entries — reading replies stays a human job.
 
-## Custom Sending Domain — missedcallproject.com (in progress 2026-07-20)
-Render blocks outbound SMTP, so all sends go through the Gmail Apps Script relay (`GMAIL_HTTP_URL`). To send as `jack@missedcallproject.com` (domain on Hostinger):
-1. **Hostinger:** create mailbox `jack@missedcallproject.com` (Emails → missedcallproject.com → create). Hostinger auto-sets MX/SPF/DKIM DNS when its email service is used. Note the mailbox password; SMTP is `smtp.hostinger.com:465`.
-2. **Gmail (jackbockholdt88@gmail.com):** Settings → See all settings → Accounts → "Send mail as" → Add. Enter the new address, UNCHECK "treat as alias" is fine either way, and on the SMTP step enter `smtp.hostinger.com`, port 465, the mailbox user/password. Verify with the emailed code. This routes alias sends through Hostinger, so SPF/DKIM align with the domain.
-3. **Apps Script relay:** where it calls `GmailApp.sendEmail(to, subject, body, opts)`, honor the new payload fields: `if (data.from) opts.from = data.from; if (data.fromName) opts.name = data.fromName;`
-4. **Render env:** set `FROM_EMAIL=jack@missedcallproject.com` and `FROM_NAME=Jack Bockholdt`, then Manual Deploy. If `FROM_EMAIL` is unset the engine behaves exactly as before.
-5. **Warm-up:** drop `DAILY_SEND_CAP` to ~15 for the first 2 weeks on the new address, then step back up. A fresh sender at full volume gets spam-foldered.
+## Persistent Database (added 2026-07-20)
+SQLite lives on the Render persistent disk: **`/data/my_database.db`** (disk `data_storage`; `/data` is the primary mount point, and `/var/data` is auto-detected as an alternate). A mount only wins if it exists and is writable, so a bad mount degrades to the repo-local `transactions.sqlite` fallback instead of crashing; the boot log prints the chosen path and whether it's persistent. The suppression list, lead queue, follow-ups, and send counts survive deploys. Overrides: `DB_PATH` (full file path) or `DATA_DIR` (mount dir) env vars. Before this, every deploy silently wiped the database — never move the DB back inside the repo directory.
+
+## Change Control — ALL changes go through GitHub PRs
+No direct pushes to `main`, no dashboard-only tweaks that code depends on. Every agent working this repo (there may be more than one) opens a PR, and coordinates with other agents via PR comments. Jack merges. This is what keeps two agents from breaking production on top of each other.
+
+## Custom Sender Identity (optional)
+`FROM_EMAIL` / `FROM_NAME` env vars: when set, the Gmail relay payload carries `from`/`fromName` (the Apps Script must pass them to `GmailApp.sendEmail`, and `FROM_EMAIL` must be a verified "Send mail as" alias on the relay account). Unset = sends from the relay account's own address, exactly as before.
 
 ## Lead Quality Screen (added 2026-07-20)
 Beyond syntax validation, every intake path runs `screenLeadQuality()` and disqualifies (with a named reason, `status: DISQUALIFIED`) leads that would waste a send:
@@ -103,7 +104,7 @@ Every intake path (`/webhook/lead`, `/admin/leads`, `/admin/bulk-pitch`, batch r
 - Product: White-Label AI Infrastructure License
 - Price: $1,500/month license fee
 - Buyer: Agency owners OR tech/SaaS/digital-service founders (1–50 employees) who resell to their own customers
-- Proof URL: https://missedcallproject.com
+- Proof URL: `PROOF_URL` env var (default: https://master-hustle-engine.onrender.com/pitch — the engine's own sales one-pager)
 - Payment link: https://buy.stripe.com/3cI14m9hOcPh6Gbcx10000D
 - Pitch tone: Peer-to-peer, math-driven ("resell to 3 clients at $500/mo and you're already break-even")
 - NEVER mention: SHOVL, shovel, invention, patent licensing
@@ -133,6 +134,3 @@ curl https://master-hustle-engine.onrender.com/admin/status
 
 ## Check Logs
 https://master-hustle-engine.onrender.com/logs
-
-## Unrelated Project — Do Not Confuse With This One
-There is a **separate, local** repo `C:\Users\jack\missed-call-agent` (Vapi + OpenPhone/Quo backend, its own `CLAUDE.md`) with one outstanding task: a `GOOGLE_PLACES_API_KEY` for Google Cloud project `491932772151`. That work is not part of this repo and has no bearing on the orchestrator or Gumloop setup described above.

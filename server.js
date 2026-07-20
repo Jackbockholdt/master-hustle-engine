@@ -24,6 +24,7 @@ const { GoogleGenAI } = require('@google/genai');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const path = require('path');
+const fs = require('fs');
 const Stripe = require('stripe');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const https = require('https');
@@ -36,14 +37,32 @@ app.use(express.json({
 }));
 
 const PORT = process.env.PORT || 3000;
-const DB_PATH = path.join(__dirname, 'transactions.sqlite');
+// SQLite lives on the Render persistent disk so the suppression list, queues,
+// and send history survive deploys. /data is the primary mount point; /var/data
+// is also detected in case the disk was mounted there. A candidate only wins if
+// it exists AND is writable, so a bad mount degrades to the next option instead
+// of crashing. Final fallback is a repo-local file (local dev; ephemeral).
+function pickDataDir() {
+  if (process.env.DATA_DIR) return process.env.DATA_DIR;
+  for (const dir of ['/data', '/var/data']) {
+    try {
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    } catch (_) { /* not mounted or not writable — try next */ }
+  }
+  return '';
+}
+const DATA_DIR = pickDataDir();
+const DB_PATH = process.env.DB_PATH ||
+  (DATA_DIR ? path.join(DATA_DIR, 'my_database.db') : path.join(__dirname, 'transactions.sqlite'));
+console.log(`[SQLite] Database path: ${DB_PATH}${DATA_DIR ? ' (persistent disk)' : ' (EPHEMERAL — no persistent disk found)'}`);
 
 // B2B Sales Engine Config
 const B2B_DEPLOYER_NAME  = process.env.INVENTOR_NAME || '';
 const B2B_DEPLOYER_EMAIL = process.env.INVENTOR_EMAIL || process.env.ADMIN_EMAIL || '';
 const B2B_OFFER_NAME     = process.env.INVENTION_NAME || 'White-Label AI Infrastructure License';
 const B2B_OFFER_SUMMARY  = process.env.INVENTION_SUMMARY || '';
-const B2B_PROOF_URL      = process.env.PROOF_URL || 'https://missedcallproject.com';
+const B2B_PROOF_URL      = process.env.PROOF_URL || 'https://master-hustle-engine.onrender.com/pitch';
 const B2B_DEPLOYMENT_FEE = process.env.DEPLOYMENT_FEE || '1500';
 const B2B_PAYMENT_LINK   = process.env.STRIPE_PAYMENT_LINK || '';
 const B2B_BATCH_HOURS    = parseInt(process.env.BATCH_INTERVAL_HOURS || '6');
@@ -136,7 +155,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Optional custom sender identity (e.g. jack@missedcallproject.com). The relay's
+// Optional custom sender identity (a verified alias address). The relay's
 // Apps Script must pass these through to GmailApp.sendEmail as {from, name}, and
 // FROM_EMAIL must be a verified "Send mail as" alias on the relay's Google account
 // — otherwise Gmail silently sends from the account's primary address.
@@ -1769,7 +1788,7 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
 
 // Build marker so a deploy can be verified from outside
 app.get('/version', (req, res) => {
-  res.json({ build: 'lead-quality-screen-template-page-2026-07-20' });
+  res.json({ build: 'lead-quality-screen-persistent-db-2026-07-20' });
 });
 
 // Public sales one-pager — text this URL to prospects
@@ -1777,10 +1796,6 @@ app.get('/pitch', (req, res) => {
   res.sendFile(path.join(__dirname, 'pitch.html'));
 });
 
-// Public template-sale landing page (Gumroad buy-the-code offer)
-app.get('/template', (req, res) => {
-  res.sendFile(path.join(__dirname, 'template.html'));
-});
 
 // Root status page (ported from local main's "Fix root route" commit)
 app.get('/', (req, res) => {
