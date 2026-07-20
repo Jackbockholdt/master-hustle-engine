@@ -18,16 +18,9 @@ jobs:
   ops:
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for lead-quality-screen deploy
-        run: |
-          for i in $(seq 1 30); do
-            V=$(curl -s --max-time 10 "$ENGINE/version" || true)
-            echo "attempt $i: $V"
-            echo "$V" | grep -q 'lead-quality-screen' && exit 0
-            sleep 20
-          done
-          echo "::warning::expected build marker not seen after 10 min — continuing with whatever is live"
-
+      # Suppression runs FIRST and unconditionally: it must succeed even when the
+      # expected build isn't live, and it must precede any smoke test so test
+      # addresses can never receive a real send from a stale build.
       - name: Add emails to do-not-contact list
         if: inputs.suppress_emails != ''
         env:
@@ -41,6 +34,20 @@ jobs:
 
       - name: Show do-not-contact list
         run: curl -sS "$ENGINE/admin/do-not-contact"
+
+      # Hard gate: smoke tests fire real webhook leads, so they must never run
+      # against a build without the lead quality screen — a stale build would
+      # qualify the test lead and actually send it a pitch email.
+      - name: Require lead-quality-screen deploy
+        run: |
+          for i in $(seq 1 30); do
+            V=$(curl -s --max-time 10 "$ENGINE/version" || true)
+            echo "attempt $i: $V"
+            echo "$V" | grep -q 'lead-quality-screen' && exit 0
+            sleep 20
+          done
+          echo "::error::lead-quality-screen build not live after 10 min — aborting before smoke tests. Trigger Manual Deploy in Render, then re-run."
+          exit 1
 
       - name: Filter smoke test — freemail lead must be DISQUALIFIED
         run: |
