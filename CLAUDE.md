@@ -78,6 +78,16 @@ curl -X DELETE https://master-hustle-engine.onrender.com/admin/do-not-contact \
 ```
 Suppressed sends show up as `status: 'suppressed'` in `leads_queue`/`follow_ups`; list size is in `/admin/status` under `do_not_contact`. Nothing automated adds entries — reading replies stays a human job.
 
+## Lead Quality Screen (added 2026-07-20)
+Beyond syntax validation, every intake path runs `screenLeadQuality()` and disqualifies (with a named reason, `status: DISQUALIFIED`) leads that would waste a send:
+- **Generic mailboxes** — `info@`, `hello@`, `sales@`, `noreply@`, etc. A real person's address is required.
+- **Free email providers** — gmail/yahoo/hotmail/outlook/etc. Set `ALLOW_FREEMAIL=true` env var to allow them.
+- **Wrong-company contacts** — if the email's domain and the lead's `website` domain are both corporate but don't match (e.g. a `92y.org` address pitched "for IRONPAPER"), the lead is rejected as a mis-scraped contact.
+- **Oversized companies** — if the payload includes `employee_count` or `company_size` (number or range like `"51-200"`; range uses the lower bound), anything over `MAX_EMPLOYEE_COUNT` (env, default 50) is rejected. Add these fields to the Gumloop body to enforce the 1–50 rule server-side.
+- **Blocked domains** — `BLOCKED_DOMAINS` env var (comma-separated, e.g. `edelman.com,jcdecaux.com`) hard-rejects known too-big-to-buy companies.
+
+`/admin/bulk-pitch` skips the screen when `override_email` is explicitly provided (deliberate human choice). Env var changes need a fresh deploy, same as `TARGET_INDUSTRIES`.
+
 ## Lead Payload Validation
 Every intake path (`/webhook/lead`, `/admin/leads`, `/admin/bulk-pitch`, batch runs) rejects leads whose `contact_email` isn't a syntactically valid address or whose fields contain unresolved template placeholders (`${...}` / `{{...}}` — e.g. a mis-wired Gumloop variable like `${Valid Emails__NODE_ID__:...}`). Webhook returns `400` with `status: INVALID` and the offending field named, so a broken Gumloop node shows up as a visible failure in Gumloop's run history instead of burning a Gemini call and an admin alert per lead.
 
