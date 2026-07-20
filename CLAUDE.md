@@ -78,6 +78,14 @@ curl -X DELETE https://master-hustle-engine.onrender.com/admin/do-not-contact \
 ```
 Suppressed sends show up as `status: 'suppressed'` in `leads_queue`/`follow_ups`; list size is in `/admin/status` under `do_not_contact`. Nothing automated adds entries — reading replies stays a human job.
 
+## Custom Sending Domain — missedcallproject.com (in progress 2026-07-20)
+Render blocks outbound SMTP, so all sends go through the Gmail Apps Script relay (`GMAIL_HTTP_URL`). To send as `jack@missedcallproject.com` (domain on Hostinger):
+1. **Hostinger:** create mailbox `jack@missedcallproject.com` (Emails → missedcallproject.com → create). Hostinger auto-sets MX/SPF/DKIM DNS when its email service is used. Note the mailbox password; SMTP is `smtp.hostinger.com:465`.
+2. **Gmail (jackbockholdt88@gmail.com):** Settings → See all settings → Accounts → "Send mail as" → Add. Enter the new address, UNCHECK "treat as alias" is fine either way, and on the SMTP step enter `smtp.hostinger.com`, port 465, the mailbox user/password. Verify with the emailed code. This routes alias sends through Hostinger, so SPF/DKIM align with the domain.
+3. **Apps Script relay:** where it calls `GmailApp.sendEmail(to, subject, body, opts)`, honor the new payload fields: `if (data.from) opts.from = data.from; if (data.fromName) opts.name = data.fromName;`
+4. **Render env:** set `FROM_EMAIL=jack@missedcallproject.com` and `FROM_NAME=Jack Bockholdt`, then Manual Deploy. If `FROM_EMAIL` is unset the engine behaves exactly as before.
+5. **Warm-up:** drop `DAILY_SEND_CAP` to ~15 for the first 2 weeks on the new address, then step back up. A fresh sender at full volume gets spam-foldered.
+
 ## Lead Quality Screen (added 2026-07-20)
 Beyond syntax validation, every intake path runs `screenLeadQuality()` and disqualifies (with a named reason, `status: DISQUALIFIED`) leads that would waste a send:
 - **Generic mailboxes** — `info@`, `hello@`, `sales@`, `noreply@`, etc. A real person's address is required.

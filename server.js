@@ -136,15 +136,24 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Optional custom sender identity (e.g. jack@missedcallproject.com). The relay's
+// Apps Script must pass these through to GmailApp.sendEmail as {from, name}, and
+// FROM_EMAIL must be a verified "Send mail as" alias on the relay's Google account
+// — otherwise Gmail silently sends from the account's primary address.
+const FROM_EMAIL = process.env.FROM_EMAIL || '';
+const FROM_NAME  = process.env.FROM_NAME  || 'Jack Bockholdt';
+
 // Send email via the Gmail HTTPS relay (Apps Script) if configured, else raw SMTP.
 // The relay always returns HTTP 200 with {"success": bool, ...} — check the body, not the status.
 async function sendEmailViaRelayOrSmtp(to, subject, htmlOrText) {
   const relayUrl = process.env.GMAIL_HTTP_URL;
   if (relayUrl) {
+    const payload = { key: process.env.GMAIL_HTTP_KEY, to, subject, body: htmlOrText };
+    if (FROM_EMAIL) { payload.from = FROM_EMAIL; payload.fromName = FROM_NAME; }
     const res = await fetch(relayUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: process.env.GMAIL_HTTP_KEY, to, subject, body: htmlOrText }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error(`Gmail relay HTTP ${res.status}: ${await res.text()}`);
     const data = await res.json();
@@ -152,7 +161,7 @@ async function sendEmailViaRelayOrSmtp(to, subject, htmlOrText) {
     return;
   }
   await transporter.sendMail({
-    from: `"Antigravity Master Engine" <${process.env.SMTP_USER}>`,
+    from: FROM_EMAIL ? `"${FROM_NAME}" <${FROM_EMAIL}>` : `"Antigravity Master Engine" <${process.env.SMTP_USER}>`,
     to,
     subject,
     html: htmlOrText,
