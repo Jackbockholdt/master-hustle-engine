@@ -1,0 +1,62 @@
+name: Engine Ops
+
+# Manually-dispatched operational tasks against the live engine.
+# GitHub runners can reach master-hustle-engine.onrender.com; used for
+# do-not-contact updates, deploy verification, and status snapshots.
+on:
+  workflow_dispatch:
+    inputs:
+      suppress_emails:
+        description: Comma-separated emails to add to the do-not-contact list
+        required: false
+        default: ''
+
+env:
+  ENGINE: https://master-hustle-engine.onrender.com
+
+jobs:
+  ops:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for lead-quality-screen deploy
+        run: |
+          for i in $(seq 1 30); do
+            V=$(curl -s --max-time 10 "$ENGINE/version" || true)
+            echo "attempt $i: $V"
+            echo "$V" | grep -q 'lead-quality-screen' && exit 0
+            sleep 20
+          done
+          echo "::warning::expected build marker not seen after 10 min — continuing with whatever is live"
+
+      - name: Add emails to do-not-contact list
+        if: inputs.suppress_emails != ''
+        env:
+          RAW_EMAILS: ${{ inputs.suppress_emails }}
+        run: |
+          EMAILS=$(printf '%s' "$RAW_EMAILS" | awk -v RS=, '{gsub(/^[ \n]+|[ \n]+$/,""); if (length($0)) printf "\"%s\",", $0}' | sed 's/,$//')
+          echo "Suppressing: [$EMAILS]"
+          curl -sS -X POST "$ENGINE/admin/do-not-contact" \
+            -H 'Content-Type: application/json' \
+            -d "{\"emails\":[$EMAILS],\"reason\":\"bounced 2026-07-19\"}"
+
+      - name: Show do-not-contact list
+        run: curl -sS "$ENGINE/admin/do-not-contact"
+
+      - name: Filter smoke test — freemail lead must be DISQUALIFIED
+        run: |
+          R=$(curl -sS -X POST "$ENGINE/webhook/lead" \
+            -H 'Content-Type: application/json' \
+            -d '{"company_name":"Filter Smoke Test","contact_email":"someone@gmail.com","website":"https://filtersmoketest.com","industry":"marketing agency"}')
+          echo "$R"
+          echo "$R" | grep -q DISQUALIFIED
+
+      - name: Filter smoke test — wrong-company contact must be DISQUALIFIED
+        run: |
+          R=$(curl -sS -X POST "$ENGINE/webhook/lead" \
+            -H 'Content-Type: application/json' \
+            -d '{"company_name":"Filter Smoke Test 2","contact_email":"person@unrelated-corp.com","website":"https://filtersmoketest.com","industry":"seo agency"}')
+          echo "$R"
+          echo "$R" | grep -q DISQUALIFIED
+
+      - name: Engine status snapshot
+        run: curl -sS "$ENGINE/admin/status"

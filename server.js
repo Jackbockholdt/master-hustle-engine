@@ -1177,6 +1177,11 @@ async function queueLeads(leads) {
       console.warn(`[Lead Queue] Rejected lead on import: ${invalid}`);
       continue;
     }
+    const lowQuality = screenLeadQuality({ ...lead, contact_email: email });
+    if (lowQuality) {
+      console.warn(`[Lead Queue] Rejected lead on import (${email}): ${lowQuality}`);
+      continue;
+    }
     const exists = await dbGetOne('SELECT 1 FROM leads_queue WHERE contact_email = ?', [email]);
     if (exists) continue;
     await dbRun(
@@ -1500,6 +1505,13 @@ async function processLeadQueue(batchSize) {
         console.log(`[Lead Queue] Disqualified ${company_name}: ${reason}`);
         continue;
       }
+      const lowQuality = screenLeadQuality(lead);
+      if (lowQuality) {
+        await markLead(id, 'disqualified');
+        disq++;
+        console.log(`[Lead Queue] Disqualified ${company_name}: ${lowQuality}`);
+        continue;
+      }
       if (await isDoNotContact(contact_email)) {
         await markLead(id, 'suppressed');
         supp++;
@@ -1533,6 +1545,85 @@ async function processLeadQueue(batchSize) {
 // =============================================================================
 
 const GENERIC_EMAIL_PREFIXES = ['info', 'hello', 'contact', 'support', 'team', 'admin', 'sales', 'hi', 'help', 'office', 'mail'];
+
+// =============================================================================
+// LEAD QUALITY SCREEN — keep the daily send cap pointed at real decision-makers
+// =============================================================================
+
+const ALLOW_FREEMAIL     = process.env.ALLOW_FREEMAIL === 'true';
+const MAX_EMPLOYEE_COUNT = parseInt(process.env.MAX_EMPLOYEE_COUNT || '50', 10);
+const BLOCKED_DOMAINS    = new Set((process.env.BLOCKED_DOMAINS || '')
+  .split(',').map(d => d.trim().toLowerCase()).filter(Boolean));
+
+const FREEMAIL_DOMAINS = new Set([
+  'gmail.com', 'yahoo.com', 'ymail.com', 'hotmail.com', 'outlook.com', 'live.com',
+  'msn.com', 'aol.com', 'icloud.com', 'me.com', 'mac.com', 'protonmail.com',
+  'proton.me', 'gmx.com', 'gmx.net', 'mail.com', 'zoho.com', 'yandex.com',
+  'comcast.net', 'att.net', 'verizon.net', 'sbcglobal.net', 'cox.net', 'bellsouth.net',
+]);
+
+const ROLE_MAILBOXES = new Set([
+  ...GENERIC_EMAIL_PREFIXES,
+  'noreply', 'no-reply', 'donotreply', 'webmaster', 'marketing', 'press',
+  'careers', 'jobs', 'hr', 'billing', 'accounts', 'accounting', 'legal', 'privacy',
+]);
+
+// Registrable domain, with common two-level public suffixes (co.uk, com.au, ...)
+const TWO_LEVEL_TLD_LABELS = new Set(['co', 'com', 'org', 'net', 'ac', 'gov', 'edu']);
+function rootDomain(host) {
+  const labels = (host || '').toLowerCase().split('.').filter(Boolean);
+  if (labels.length <= 2) return labels.join('.');
+  const take = (labels[labels.length - 1].length === 2 && TWO_LEVEL_TLD_LABELS.has(labels[labels.length - 2])) ? 3 : 2;
+  return labels.slice(-take).join('.');
+}
+
+// Accepts numbers or range strings ("51-200", "10,001+"); uses the range's lower bound
+function parseEmployeeCount(size) {
+  if (typeof size === 'number') return size;
+  const m = String(size).replace(/,/g, '').match(/\d+/);
+  return m ? parseInt(m[0], 10) : null;
+}
+
+// Returns null when the lead looks sendable, else a human-readable rejection reason.
+// Syntax problems are validateLeadFields' job — this screens for the WRONG lead:
+// generic mailboxes, personal freemail, contacts whose email belongs to a different
+// company than the one being pitched, and companies too big to buy the license.
+function screenLeadQuality(lead) {
+  const email = (lead.contact_email || '').trim().toLowerCase();
+  const at = email.lastIndexOf('@');
+  if (at < 0) return null;
+  const prefix = email.slice(0, at);
+  const domain = email.slice(at + 1);
+
+  if (ROLE_MAILBOXES.has(prefix)) {
+    return `generic mailbox '${prefix}@' — needs a real person's address`;
+  }
+  if (BLOCKED_DOMAINS.has(domain) || BLOCKED_DOMAINS.has(rootDomain(domain))) {
+    return `domain '${domain}' is on the blocked-domains list`;
+  }
+  if (!ALLOW_FREEMAIL && FREEMAIL_DOMAINS.has(domain)) {
+    return `free email provider '${domain}' — needs a company address (set ALLOW_FREEMAIL=true to allow)`;
+  }
+
+  const website = (lead.website || '').trim().toLowerCase();
+  if (website && !FREEMAIL_DOMAINS.has(domain)) {
+    const siteHost = website.replace(/^https?:\/\//, '').replace(/^www\./, '').split(/[/?#]/)[0];
+    const siteRoot = rootDomain(siteHost);
+    const emailRoot = rootDomain(domain);
+    if (siteRoot && emailRoot && siteRoot !== emailRoot) {
+      return `email domain '${emailRoot}' does not match company website '${siteRoot}' — likely the wrong contact`;
+    }
+  }
+
+  const size = (lead.employee_count != null && lead.employee_count !== '') ? lead.employee_count : lead.company_size;
+  if (size != null && size !== '') {
+    const n = parseEmployeeCount(size);
+    if (n != null && n > MAX_EMPLOYEE_COUNT) {
+      return `company size '${size}' is over the ${MAX_EMPLOYEE_COUNT}-employee ceiling`;
+    }
+  }
+  return null;
+}
 
 function extractEmails(html, domain) {
   const found = [];
@@ -1639,6 +1730,11 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
   }
   const { qualified, reason } = qualifyLead(body.company_name, body.industry || '');
   if (!qualified) return res.json({ received: true, status: 'DISQUALIFIED', reason });
+  const lowQuality = screenLeadQuality(body);
+  if (lowQuality) {
+    console.log(`[Lead Intake] Disqualified ${body.company_name}: ${lowQuality}`);
+    return res.json({ received: true, status: 'DISQUALIFIED', reason: lowQuality });
+  }
   if (await isDoNotContact(body.contact_email)) {
     return res.json({ received: true, status: 'SUPPRESSED', reason: 'email is on the do-not-contact list' });
   }
@@ -1664,7 +1760,7 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
 
 // Build marker so a deploy can be verified from outside
 app.get('/version', (req, res) => {
-  res.json({ build: 'whitelabel-2026-07-19' });
+  res.json({ build: 'lead-quality-screen-2026-07-20' });
 });
 
 // Public sales one-pager — text this URL to prospects
@@ -1811,6 +1907,14 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
     if (invalidBulk) {
       results.push({ company: companyName, email, status: 'invalid', reason: invalidBulk });
       continue;
+    }
+    // override_email is a deliberate human choice — skip the quality screen for it
+    if (!c.override_email) {
+      const lowQualityBulk = screenLeadQuality({ company_name: companyName, contact_email: email, website });
+      if (lowQualityBulk) {
+        results.push({ company: companyName, email, status: 'disqualified', reason: lowQualityBulk });
+        continue;
+      }
     }
     if (await isDoNotContact(email)) {
       results.push({ company: companyName, email, status: 'suppressed', reason: 'email is on the do-not-contact list' });
