@@ -1664,12 +1664,17 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
 
 // Build marker so a deploy can be verified from outside
 app.get('/version', (req, res) => {
-  res.json({ build: 'whitelabel-2026-07-19' });
+  res.json({ build: 'template-page-2026-07-20' });
 });
 
 // Public sales one-pager — text this URL to prospects
 app.get('/pitch', (req, res) => {
   res.sendFile(path.join(__dirname, 'pitch.html'));
+});
+
+// Public template-sale landing page (Gumroad buy-the-code offer)
+app.get('/template', (req, res) => {
+  res.sendFile(path.join(__dirname, 'template.html'));
 });
 
 // Root status page (ported from local main's "Fix root route" commit)
