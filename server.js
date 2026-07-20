@@ -1769,7 +1769,7 @@ app.post('/webhook/lead', wrapAsync(async (req, res) => {
 
 // Build marker so a deploy can be verified from outside
 app.get('/version', (req, res) => {
-  res.json({ build: 'template-page-2026-07-20b' });
+  res.json({ build: 'lead-quality-screen-template-page-2026-07-20' });
 });
 
 // Public sales one-pager — text this URL to prospects
