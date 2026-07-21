@@ -245,6 +245,56 @@ async function sendAdminAlert(context, errorStack) {
   }
 }
 
+// Reusable Helper: Notify admin of a completed White-Label License purchase
+// (the $1,500/mo flagship offer — sold via a Stripe Payment Link with no
+// "niche" metadata, so it doesn't run through processNicheForBuyer).
+async function notifyAdminOfLicensePurchase(session, buyerEmail) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) {
+    console.warn('[Alert] No ADMIN_EMAIL defined in environment variables. Purchase notification skipped.');
+    return;
+  }
+  const amount = session.amount_total != null ? (session.amount_total / 100).toFixed(2) : 'unknown';
+  const currency = (session.currency || 'usd').toUpperCase();
+  const buyerName = session.customer_details?.name || '(not provided)';
+
+  try {
+    await sendEmailViaRelayOrSmtp(
+      adminEmail,
+      `💰 New White-Label License Purchase — ${buyerEmail}`,
+      `
+        <div style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px; border: 1px solid #86efac; background-color: #f0fdf4; color: #14532d; border-radius: 12px; max-width: 700px; margin: 0 auto;">
+          <h2 style="margin-top: 0; font-size: 20px; font-weight: 700; color: #16a34a;">💰 New White-Label AI Infrastructure License Purchase</h2>
+          <p style="font-size: 15px; margin: 10px 0;"><strong>Buyer email:</strong> ${buyerEmail}</p>
+          <p style="font-size: 15px; margin: 10px 0;"><strong>Buyer name:</strong> ${buyerName}</p>
+          <p style="font-size: 15px; margin: 10px 0;"><strong>Amount:</strong> ${amount} ${currency}</p>
+          <p style="font-size: 15px; margin: 10px 0;"><strong>Stripe session:</strong> ${session.id}</p>
+          <p style="font-size: 15px; margin: 10px 0;"><strong>Time (Server):</strong> ${new Date().toISOString()}</p>
+          <hr style="border: 0; border-top: 1px solid #bbf7d0; margin: 20px 0;" />
+          <p style="font-size: 15px; margin: 10px 0;">Manual onboarding needed — reach out to the buyer to hand off white-label access.</p>
+        </div>
+      `
+    );
+    console.log('[Alert] Admin license-purchase notification sent successfully.');
+  } catch (alertErr) {
+    console.error('[Alert] Failed to send admin license-purchase notification:', alertErr.message);
+  }
+}
+
+// Reusable Helper: Confirm the purchase to the buyer and set onboarding expectations.
+async function sendLicenseWelcomeEmail(buyerEmail) {
+  const deployerEmail = B2B_DEPLOYER_EMAIL || process.env.ADMIN_EMAIL || '';
+  const emailHtml = `
+    <div style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 25px; border: 1px solid #e5e7eb; background-color: #ffffff; color: #111827; border-radius: 12px; max-width: 700px; margin: 0 auto;">
+      <h2 style="margin-top: 0; font-size: 20px; font-weight: 700; color: #111827;">You're in — welcome to the ${B2B_OFFER_NAME}</h2>
+      <p style="font-size: 15px; line-height: 1.6;">Thanks for signing up. Your subscription is active.</p>
+      <p style="font-size: 15px; line-height: 1.6;">Jack will personally reach out within 24 hours to hand off your white-label access and walk through onboarding. In the meantime, here's the proof page again for reference: <a href="${B2B_PROOF_URL}">${B2B_PROOF_URL}</a></p>
+      <p style="font-size: 15px; line-height: 1.6;">Questions in the meantime? Just reply to this email${deployerEmail ? ` or reach out directly at ${deployerEmail}` : ''}.</p>
+    </div>
+  `;
+  await sendHtmlEmail(buyerEmail, `Welcome to the ${B2B_OFFER_NAME}`, emailHtml);
+}
+
 // Expected Keys in JSON outputs for validation
 const EXPECTED_KEYS = {
   'vintage': ['estimated_value_range', 'ebay_optimized_title', 'compelling_listing_description', 'key_keywords_tags'],
@@ -1053,17 +1103,32 @@ app.post('/api/stripe-webhook', async (req, res) => {
       });
     }
 
-    console.log(`[Stripe Webhook] Purchase complete — niche: ${niche}, buyer: ${buyerEmail}`);
+    console.log(`[Stripe Webhook] Purchase complete — niche: ${niche || '(none — license purchase)'}, buyer: ${buyerEmail}`);
 
-    if (!niche || !buyerEmail) {
-      console.error('[Stripe Webhook] Missing niche or buyer email in session:', session.id);
+    if (!buyerEmail) {
+      console.error('[Stripe Webhook] Missing buyer email in session:', session.id);
       return res.json({ received: true });
     }
 
-    processNicheForBuyer(niche, fields, buyerEmail).catch(async (err) => {
-      console.error('[Stripe Webhook] Processing error:', err);
-      await sendAdminAlert(`Stripe purchase processing failed — niche: ${niche}, buyer: ${buyerEmail}`, err.stack || err.message);
-    });
+    if (niche) {
+      processNicheForBuyer(niche, fields, buyerEmail).catch(async (err) => {
+        console.error('[Stripe Webhook] Processing error:', err);
+        await sendAdminAlert(`Stripe purchase processing failed — niche: ${niche}, buyer: ${buyerEmail}`, err.stack || err.message);
+      });
+    } else {
+      // No "niche" metadata means this came through the flagship $1,500/mo
+      // White-Label AI Infrastructure License payment link, not one of the
+      // legacy one-off niche tools. Notify Jack for manual onboarding and
+      // confirm receipt to the buyer.
+      logTransaction(buyerEmail, 'white-label-license', 'success', JSON.stringify({ session: session.id, amount_total: session.amount_total }));
+      Promise.all([
+        notifyAdminOfLicensePurchase(session, buyerEmail),
+        sendLicenseWelcomeEmail(buyerEmail),
+      ]).catch(async (err) => {
+        console.error('[Stripe Webhook] License purchase notification error:', err);
+        await sendAdminAlert(`License purchase notification failed — buyer: ${buyerEmail}`, err.stack || err.message);
+      });
+    }
   }
 
   res.json({ received: true });
