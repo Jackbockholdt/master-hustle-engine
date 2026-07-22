@@ -140,6 +140,15 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
       duration_ms         INTEGER,
       created_at          DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+    // Records every time the primary Gemini model failed over to the intelligent
+    // router pool — outcome is 'succeeded' or 'failed'. Powers the daily status email
+    // so you can see whether the failover is actually firing (and earning its keep).
+    db.run(`CREATE TABLE IF NOT EXISTS router_events (
+      id        INTEGER PRIMARY KEY AUTOINCREMENT,
+      outcome   TEXT    NOT NULL,
+      detail    TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
   }
 });
 
@@ -373,9 +382,11 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
           const json = JSON.parse(routerText.replace(/```json|```/g, '').trim());
           parsedResponse = json;
           console.log('[Router] Fallback succeeded');
+          await logRouterEvent('succeeded', err.message);
           break;
         } catch (routerErr) {
           console.error('[Router] Fallback also failed:', routerErr.message);
+          await logRouterEvent('failed', routerErr.message);
         }
       }
       if (attempts < maxAttempts) {
@@ -1196,6 +1207,13 @@ async function sendsToday() {
     "SELECT COUNT(*) AS c FROM send_log WHERE sent_at >= datetime('now', 'start of day')"
   );
   return row ? row.c : 0;
+}
+
+// Records a router-fallback event (outcome 'succeeded' | 'failed'). Best-effort —
+// never let telemetry failure break a live generation.
+async function logRouterEvent(outcome, detail = '') {
+  await dbRun('INSERT INTO router_events (outcome, detail) VALUES (?, ?)', [outcome, detail])
+    .catch(err => console.warn('[Router Event] Failed to record:', err.message));
 }
 
 async function underDailyCap() {
@@ -2098,6 +2116,110 @@ app.delete('/admin/do-not-contact', wrapAsync(async (req, res) => {
   if (!email) return res.status(400).json({ error: 'Send {"email": "..."}' });
   res.json(await removeDoNotContact(email));
 }));
+
+// ─── Daily Engine Status Email ────────────────────────────────────────────────
+// A once-a-day health digest emailed to ADMIN_EMAIL so you can see the machine's
+// state without curling /admin/status: sends vs. cap, queue depth, follow-ups,
+// suppression-list size, router-fallback hits (is the failover earning its keep?),
+// and any failures logged in the last 24h.
+
+async function collectEngineStats() {
+  const [queue, follow_ups, sent_today, dncRow, routerRows, errRow] = await Promise.all([
+    queueStats(),
+    followUpStats(),
+    sendsToday(),
+    dbGetOne('SELECT COUNT(*) AS c FROM do_not_contact'),
+    dbAll("SELECT outcome, COUNT(*) AS c FROM router_events WHERE created_at >= datetime('now', 'start of day') GROUP BY outcome"),
+    dbGetOne("SELECT COUNT(*) AS c FROM logs WHERE status = 'failure' AND timestamp >= datetime('now', '-24 hours')"),
+  ]);
+  const router = { succeeded: 0, failed: 0 };
+  for (const r of routerRows) router[r.outcome] = r.c || 0;
+  return {
+    date: new Date().toISOString().slice(0, 10),
+    sends: { today: sent_today, daily_cap: DAILY_SEND_CAP, remaining: Math.max(0, DAILY_SEND_CAP - sent_today) },
+    queue,
+    follow_ups,
+    do_not_contact: dncRow ? dncRow.c : 0,
+    router_fallbacks_today: router,
+    failures_24h: errRow ? errRow.c : 0,
+  };
+}
+
+function renderStatusEmailHtml(s) {
+  const row = (label, value) =>
+    `<tr><td style="padding:8px 14px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;">${label}</td>
+     <td style="padding:8px 14px;border-bottom:1px solid #e5e7eb;color:#111827;font-size:14px;font-weight:600;text-align:right;">${value}</td></tr>`;
+  const routerLine = `${s.router_fallbacks_today.succeeded} recovered, ${s.router_fallbacks_today.failed} failed`;
+  const failColor = s.failures_24h > 0 ? '#dc2626' : '#16a34a';
+  return `
+    <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;padding:25px;border:1px solid #e5e7eb;background:#ffffff;color:#111827;border-radius:12px;max-width:640px;margin:0 auto;">
+      <h2 style="margin:0 0 4px;font-size:20px;font-weight:700;">📊 Antigravity Engine — Daily Status</h2>
+      <p style="margin:0 0 18px;color:#6b7280;font-size:13px;">${s.date} · master-hustle-engine.onrender.com</p>
+      <table style="width:100%;border-collapse:collapse;">
+        ${row('Emails sent today', `${s.sends.today} / ${s.sends.daily_cap} cap`)}
+        ${row('Send capacity remaining', s.sends.remaining)}
+        ${row('Leads queued (pending)', s.queue.pending || 0)}
+        ${row('Leads sent (all-time)', s.queue.sent || 0)}
+        ${row('Leads disqualified (all-time)', s.queue.disqualified || 0)}
+        ${row('Follow-ups pending', s.follow_ups.pending || 0)}
+        ${row('Follow-ups failed (all-time)', s.follow_ups.failed || 0)}
+        ${row('Do-not-contact list size', s.do_not_contact)}
+        ${row('Router fallbacks today', routerLine)}
+        <tr><td style="padding:8px 14px;color:#374151;font-size:14px;">Failures (last 24h)</td>
+         <td style="padding:8px 14px;color:${failColor};font-size:14px;font-weight:700;text-align:right;">${s.failures_24h}</td></tr>
+      </table>
+      <p style="margin:18px 0 0;color:#9ca3af;font-size:12px;line-height:1.5;">
+        "Router fallbacks" counts times the primary Gemini model failed over to the intelligent-router pool.
+        Zero here with steady send volume means the primary is healthy — not that the failover is broken.
+      </p>
+    </div>`;
+}
+
+async function sendEngineStatusEmail() {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) {
+    console.warn('[Status Email] No ADMIN_EMAIL set — daily status email skipped.');
+    return { sent: false, reason: 'no ADMIN_EMAIL' };
+  }
+  const stats = await collectEngineStats();
+  await sendEmailViaRelayOrSmtp(
+    adminEmail,
+    `📊 Antigravity Engine Daily Status — ${stats.date}`,
+    renderStatusEmailHtml(stats)
+  );
+  console.log('[Status Email] Daily status email sent to', adminEmail);
+  return { sent: true, to: adminEmail, stats };
+}
+
+// Manual trigger (also handy for testing) — sends the digest on demand.
+app.post('/admin/status-email', wrapAsync(async (req, res) => {
+  res.json(await sendEngineStatusEmail());
+}));
+
+// Raw stats as JSON, no email — a superset of /admin/status.
+app.get('/admin/status-report', wrapAsync(async (req, res) => {
+  res.json(await collectEngineStats());
+}));
+
+// Arm the daily status-email cron. Override the time with STATUS_EMAIL_CRON
+// (5-field cron, UTC); set STATUS_EMAIL_ENABLED=false to disable.
+const STATUS_EMAIL_CRON = process.env.STATUS_EMAIL_CRON || '0 7 * * *';
+const STATUS_EMAIL_ENABLED = (process.env.STATUS_EMAIL_ENABLED || 'true').toLowerCase() !== 'false';
+if (STATUS_EMAIL_ENABLED && cron.validate(STATUS_EMAIL_CRON)) {
+  cron.schedule(STATUS_EMAIL_CRON, async () => {
+    try {
+      await sendEngineStatusEmail();
+    } catch (err) {
+      console.error('[Status Email] Cron send failed:', err.message);
+      await sendAdminAlert('Daily Status Email', err.stack || err.message);
+    }
+  });
+  console.log(`[Status Email] Daily digest armed — cron '${STATUS_EMAIL_CRON}' (UTC)`);
+} else if (!STATUS_EMAIL_ENABLED) {
+  console.log('[Status Email] Disabled via STATUS_EMAIL_ENABLED=false');
+} else {
+  console.warn(`[Status Email] Invalid STATUS_EMAIL_CRON '${STATUS_EMAIL_CRON}' — daily digest not armed`);
+}
 
 // Global Express Error Handler Middleware to email stack trace on endpoint failure
 app.use(async (err, req, res, next) => {

@@ -132,5 +132,12 @@ Both confirmed working end-to-end (qualified → pitch generated → email sent)
 curl https://master-hustle-engine.onrender.com/admin/status
 ```
 
+## Daily Engine Status Email (added 2026-07-22)
+A once-a-day health digest emails `ADMIN_EMAIL` so you can see the machine's state without curling `/admin/status`: emails sent today vs. the daily cap, queued/sent/disqualified leads, pending follow-ups, do-not-contact list size, **router-fallback hits today** (how often the primary Gemini model failed over to the intelligent-router pool — a live signal of whether the failover is earning its keep), and failures logged in the last 24h. Uses the same Gmail relay as pitches. Fires on a UTC cron.
+- **Schedule:** `STATUS_EMAIL_CRON` env (5-field cron, UTC; default `0 7 * * *` = 07:00 UTC). Set `STATUS_EMAIL_ENABLED=false` to turn it off. Env changes need a fresh deploy, same as `TARGET_INDUSTRIES`.
+- **Send on demand / test:** `curl -X POST https://master-hustle-engine.onrender.com/admin/status-email`
+- **Raw JSON (no email):** `curl https://master-hustle-engine.onrender.com/admin/status-report`
+- Router-fallback events are recorded in a `router_events` table (durable across deploys via the persistent disk). Zero fallbacks with steady send volume means the primary model is healthy — not that the failover is broken.
+
 ## Check Logs
 https://master-hustle-engine.onrender.com/logs
