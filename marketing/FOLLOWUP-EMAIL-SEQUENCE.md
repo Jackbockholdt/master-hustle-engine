@@ -28,15 +28,15 @@ Hey [First Name],
 
 Just tried you on the phone — here's the short version of what I was calling about.
 
-We built a complete AI automation backend that agencies like yours can white-label and resell to local business clients. Nine skills, all production-ready:
+We built a complete AI automation backend that agencies like yours can white-label and resell to your own clients. Production-ready skills across the full outbound lifecycle:
 
-- **Call Catcher** — catches missed calls, texts the lead back instantly
-- **Voice Agent** — handles inbound calls, books appointments, logs outcomes
-- **Web Page Creator** — spins up client landing pages on demand
-- **Lead Sorter** — cleans and organizes messy client data automatically
-- **Email Handler** — screens, categorizes, and drafts replies to inbound inquiries
+- **Lead scraping & qualification** — pulls and screens leads automatically
+- **AI pitch copy** — generates a tailored pitch per lead
+- **Email delivery & follow-up** — sends and runs the follow-up sequence
+- **Opt-out & compliance** — do-not-contact enforcement built in
+- **Health digest & failover** — daily status + automatic model failover
 
-You put your agency's name on it. You set the price. Your clients pay you every month for AI that runs their business operations — and you never touch a line of code.
+You put your agency's name on it. You set the price. Your clients pay you every month for AI that runs their outreach — and you never touch a line of code.
 
 License is $1,500/month. Most agencies resell access to 3–5 clients at $500–$1,000 each and treat it as a pure revenue line from month one.
 
@@ -54,7 +54,7 @@ Antigravity AI
 ## EMAIL 2 — Day 3
 **Send:** 3 days after Email 1 if no reply.
 
-**Subject:** `The agency in [CITY] already using this`
+**Subject:** `the agency math on this`
 
 ---
 
@@ -62,15 +62,11 @@ Hey [First Name],
 
 Checking back in — didn't hear from you after the call and I know inboxes get buried.
 
-Wanted to share something concrete:
+Wanted to share the part that actually matters for an agency P&L:
 
-A two-person marketing agency in [SIMILAR CITY / your city] started reselling our AI infrastructure to HVAC and plumbing contractors in their market. They pitched it as an "AI Lead Recovery System" — missed call text-back, voice agent, monthly lead report.
+You license the engine once, put your brand on it, and resell access to your own clients as a recurring AI service. Say you land 4 clients at $750/month each — that's $3,000/month in new MRR on top of your existing retainers. The license runs $1,500/month, so the net margin on the AI service alone is $1,500/month recurring, with effectively zero fulfillment hours once it's set up.
 
-They signed 4 clients in the first 30 days at $750/month each.
-
-That's $3,000/month in new MRR on top of their existing retainers. Their license cost them $1,500. Net margin on the AI service alone: $1,500/month, recurring, with zero fulfillment hours.
-
-Here's what they did differently: they didn't try to explain the technology. They just showed the clients what happens when a missed call gets texted back in under 60 seconds. That demo closed every single one.
+The agencies that win with it don't try to explain the technology. They show the client the result — leads pulled, qualified, pitched, and followed up automatically — and let that close the deal.
 
 That's the 15 minutes I want to give you.
 

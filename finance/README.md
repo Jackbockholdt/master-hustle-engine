@@ -1,18 +1,19 @@
 # Finance — White-Label AI Infrastructure License
 
-Two assets for the $1,500/month White-Label AI Infrastructure License (the product this
-repo sells):
+Two assets for the White-Label AI Infrastructure License (the product this repo sells).
+**Pricing (updated 2026-07-23):** Option A — $2,500 setup + $1,500/month; Option B —
+$25,000 one-time codebase buyout.
 
 - **`ai_doc_financial_model.xlsx`** — the 3-year, fully formula-driven model (below).
-- **`antigravity_pitch_deck.pptx`** — a 9-slide investor/partner pitch deck built directly
-  on the model's numbers ($1,500/mo license, ~93% gross margin, $1.6M modeled Year-3 ARR,
-  $4.8M illustrative EV). Includes the same honest valuation disclaimer as the model:
-  the EV is a directional sanity check, not a price and not a strategic-acquirer outcome.
+- **`antigravity_pitch_deck.pptx`** — a 9-slide investor/partner pitch deck built on the
+  model's numbers (~93% gross margin, $1.6M modeled Year-3 ARR, $4.8M illustrative EV).
+  Includes the same honest valuation disclaimer as the model: the EV is a directional
+  sanity check, not a price and not a strategic-acquirer outcome.
 
 ## Financial model
 
 `ai_doc_financial_model.xlsx` — a 3-year, fully formula-driven SaaS model for the
-$1,500/month White-Label AI Infrastructure License.
+White-Label AI Infrastructure License.
 
 It replaces an earlier toy spreadsheet (four hardcoded rows, ambiguous units, and a
 "sell to Apple for millions" exit that the numbers never supported). This version is
@@ -33,6 +34,8 @@ built to survive scrutiny from an actual buyer or lender.
 | Lever | Value |
 |---|---|
 | License price | $1,500 / customer / month |
+| Setup fee (Option A) | $2,500 one-time per new customer |
+| Codebase buyout (Option B) | $25,000 one-time (reference; alternative to the recurring build) |
 | New customers / month | 2 (Y1) → 4 (Y2) → 6 (Y3) |
 | Monthly logo churn | 4% (~39% / yr) |
 | Variable COGS | $60 / customer / month |
@@ -40,19 +43,40 @@ built to survive scrutiny from an actual buyer or lender.
 | Founder / owner draw | $8,000 / month (real owner cost — set to 0 for pre-salary view) |
 | Exit multiple | 3.0× ending ARR (illustrative) |
 
-## Base-case output
+## Base-case output (recurring + setup fees)
 
 | | Year 1 | Year 2 | Year 3 |
 |---|---|---|---|
 | Ending customers | ~19 | ~51 | ~89 |
-| Ending ARR | $347k | $909k | $1.60M |
-| Revenue | $202k | $674k | $1.31M |
-| EBITDA (after founder draw) | $78k | $510k | $1.10M |
-| Ending cash | $83k | $593k | $1.69M |
+| Ending ARR (recurring) | $347k | $909k | $1.60M |
+| Total revenue | $262k | $794k | $1.49M |
+| EBITDA (after founder draw) | $136k | $626k | $1.27M |
+| Ending cash | $141k | $767k | $2.04M |
 
-Illustrative Year-3 enterprise value at 3.0× ARR ≈ **$4.8M**. This is a directional
-sanity check, **not** a price and **not** a strategic-acquirer outcome — see the
-disclaimer on the Annual Summary tab.
+Business turns EBITDA-positive in **month 2**. Illustrative Year-3 enterprise value at
+3.0× recurring ARR ≈ **$4.8M** (ARR is recurring-only; one-time setup fees are excluded
+from ARR by design). This is a directional sanity check, **not** a price and **not** a
+strategic-acquirer outcome — see the disclaimer on the Annual Summary tab.
+
+## Unit economics (per customer, base case)
+
+| Metric | Value |
+|---|---|
+| Avg customer lifetime | 25 months (1 ÷ 4% churn) |
+| Monthly recurring contribution | $1,395 |
+| Recurring LTV | $34,875 |
+| Setup-fee contribution (one-time) | $2,425 |
+| **Total LTV / customer** | **$37,300** |
+| CAC | $300 |
+| **LTV : CAC** | **~124×** |
+| CAC payback (recurring) | ~0.2 months (setup fee alone covers CAC on day one) |
+
+> The LTV:CAC ratio is very high because CAC is modeled at $300 — acquisition is
+> automated / founder-run, not a paid sales team. A paid outbound motion would raise CAC
+> and compress the ratio; treat $300 as the current-reality input, not a promise.
+
+**Buyer's resale break-even:** resell to 3 clients at $500/mo to cover the $1,500/mo
+license; the $2,500 setup is recovered in ~5 months from one additional client.
 
 ## Editing conventions
 
