@@ -1,57 +1,39 @@
-# 🚀 Autopilot Niche Engine Starter Kit
-## The 9-in-1 Micro-SaaS AI Boilerplate
+# White-Label AI Infrastructure License — Sales Sheet
 
-Stop spending weeks writing backend boilerplate. The **Autopilot Niche Engine** is a production-ready, highly optimized Node.js, Express, node-cron, and SQLite backend engine designed to run **nine text-processing micro-SaaS utilities** on a single server.
+> **Note:** This file previously described an older 9-niche boilerplate product. That offer
+> is superseded. The current product is the **White-Label AI Infrastructure License** —
+> the live agent engine in this repo, sold to agency owners and tech/SaaS founders who
+> white-label it and resell to their own clients.
 
-It is fully structured to deploy to Render.com in **one click** and includes local database transaction logging, Gemini 2.5 API integration with retry fail-safes, and beautiful custom SMTP email outputs.
+## The offer
 
----
+A live, deployed AI sales engine — scrapes leads, qualifies them, writes a tailored pitch,
+sends it, and runs the follow-up automatically. The buyer puts their brand on it and resells
+access to their own clients. No dev team, no build time, no maintenance on their side.
 
-## 💎 What's Included Out of the Box?
+## Pricing (two options)
 
-### 1. Nine High-Value Micro-SaaS Webhook Endpoints
-Each endpoint accepts standard JSON payloads, calls Gemini, logs transactions locally to SQLite, and emails the results directly to the buyer's inbox:
-* **Vintage Flipper (`/api/vintage`)**: Generates vintage appraisal values, eBay optimized titles, keyword tags, and item descriptions.
-* **KDP Books (`/api/kdp`)**: Recommends categories, optimized book titles/subtitles, and SEO-friendly HTML Amazon book descriptions.
-* **Inventor Pitches (`/api/inventor`)**: Writes elevator pitches, cold email subject lines, body copy, and licensing value propositions.
-* **Voice Prompts (`/api/voice`)**: Drafts extensive 800+ word system receptionist instructions for voice platforms like Vapi.co.
-* **Review Replies (`/api/review-reply`)**: Detects customer sentiment (positive/negative/neutral) and crafts polite under-80-word responses.
-* **Local SEO (`/api/local-seo`)**: Optimizes GMB business profiles with keyword-rich bios, target terms, and promotional posts.
-* **Marketplace Ads (`/api/marketplace`)**: Writes high-converting classified listing copy and anti-lowballer FAQs.
-* **Faceless Videos (`/api/faceless-video`)**: Generates vaults of 10 short-form video scripts (hooks, visual directions, spoken narration, and caption copies).
-* **Contract Proposals (`/api/contractor-proposal`)**: Polishes raw scopes of work into professional construction project proposals.
+- **Option A — Agency White-Label License:** $2,500 one-time setup + $1,500/month recurring.
+  Resell to your own clients under your brand.
+- **Option B — Full Codebase / IP Buyout:** $25,000 one-time. Own and operate the engine
+  yourself, no recurring fee.
 
----
+## The math that sells it
 
-### 2. Autonomous Cron Rotation Engine (Autopilot)
-* Fires automatically every day at **8:00 AM server time** using `node-cron`.
-* Queries the SQLite database to see what niche ran yesterday.
-* Advances to the next niche in the rotation.
-* Selects a random target example from an internal dictionary of **45 realistic test cases** (5 per niche).
-* Generates premium assets via Gemini and emails a clean, responsive HTML `"Daily Hustle Report - [Niche Name]"` directly to the admin on autopilot.
+Resell to **3 clients at $500/mo** and you cover the $1,500 monthly license — everything
+after that is margin. It's a revenue line, not an expense.
 
----
+## Buyer profile
 
-### 3. Core Developer Features
-* **SQL Logging Database**: Stores transaction metrics in `transactions.sqlite` within a structured `logs` table.
-* **Global Error Notification**: If a cron job or webhook endpoint fails, the system immediately catches the error and emails a full stack trace to the `ADMIN_EMAIL` using Nodemailer.
-* **Gemini retry wrapper**: Automatically detects malformed responses or missing keys and retries the generation once.
-* **Render Blueprint (`render.yaml`)**: One-click deployment file to configure all environment variables and database paths automatically.
+Digital marketing / lead-gen agency owners, or tech/SaaS/digital-service founders
+(1–50 employees) who resell to their own customers. Never pitch end-business owners
+directly — the buyer white-labels and resells.
 
----
+## Where the rest of the assets live
 
-## 🛠️ How to Deploy in 1-Click (Render.com)
-
-1. Upload the files to your GitHub repository.
-2. Click the link below (replace with your repository link):
-   `https://render.com/deploy?repo=https://github.com/YOUR_USERNAME/YOUR_REPO_NAME`
-3. Enter your environmental keys (`GEMINI_API_KEY`, `SMTP_USER`, `SMTP_PASS`, `ADMIN_EMAIL`).
-4. Click **Create Web Service**. You are live!
-
----
-
-## 💼 How to Monetize This Template
-
-* **As a Boilerplate Product**: Sell access to this private repository on Gumroad or Lemon Squeezy to developers wanting to speed up their SaaS builds.
-* **No-Code Backend Service**: Offer this API backend to no-coders connecting Framer, Webflow, or bubble.io forms to Make.com/Zapier.
-* **White-Label Agency Tool**: Deploy the engine for agencies looking to provide automated daily reports or SEO tools for their clients.
+- **Landing page:** `landing/index.html` (static, hosts anywhere)
+- **Outreach campaign:** `marketing/OUTREACH-CAMPAIGN.md` (LinkedIn DM + cold email)
+- **Cold call script + targeting:** `marketing/GTM-BLUEPRINT.md`
+- **Follow-up email sequence:** `marketing/FOLLOWUP-EMAIL-SEQUENCE.md`
+- **Financial model + pitch deck:** `finance/`
+- **Full playbook & product state:** `CLAUDE.md`

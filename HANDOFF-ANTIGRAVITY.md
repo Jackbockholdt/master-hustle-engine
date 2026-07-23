@@ -185,7 +185,7 @@ The system expects Gumloop to:
    - `website` — Company website
    - `industry` — Company type/description
 
-**Key:** Do NOT target plumbers, HVAC, contractors, or other end-business owners directly. The buyer is the **agency**, not the local business.
+**Key:** Do NOT target end-business owners directly. The buyer is the **agency** (or tech/SaaS founder) who white-labels and resells — not the local business.
 
 ---
 
