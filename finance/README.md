@@ -1,7 +1,18 @@
-# Financial Model — White-Label AI Infrastructure License
+# Finance — White-Label AI Infrastructure License
+
+Two assets for the $1,500/month White-Label AI Infrastructure License (the product this
+repo sells):
+
+- **`ai_doc_financial_model.xlsx`** — the 3-year, fully formula-driven model (below).
+- **`antigravity_pitch_deck.pptx`** — a 9-slide investor/partner pitch deck built directly
+  on the model's numbers ($1,500/mo license, ~93% gross margin, $1.6M modeled Year-3 ARR,
+  $4.8M illustrative EV). Includes the same honest valuation disclaimer as the model:
+  the EV is a directional sanity check, not a price and not a strategic-acquirer outcome.
+
+## Financial model
 
 `ai_doc_financial_model.xlsx` — a 3-year, fully formula-driven SaaS model for the
-$1,500/month White-Label AI Infrastructure License (the product this repo sells).
+$1,500/month White-Label AI Infrastructure License.
 
 It replaces an earlier toy spreadsheet (four hardcoded rows, ambiguous units, and a
 "sell to Apple for millions" exit that the numbers never supported). This version is
