@@ -1,13 +1,13 @@
 # Antigravity 2.0 — Current State
 
 ## What This Is
-A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch emails for Jack Bockholdt's **White-Label AI Infrastructure License** ($1,500/month). Buyers white-label the 9-skill engine and resell it to their own clients.
+A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch emails for Jack Bockholdt's **White-Label AI Infrastructure License** ($2,500 setup + $1,500/month, or a $25,000 one-time buyout). Buyers white-label the 9-skill engine and resell it to their own clients.
 
 **Two qualified buyer types (both live as of 2026-07-06):**
 1. Digital marketing / lead-gen agency owners — resell to their local business clients
 2. Tech startups / SaaS / software / digital service companies — resell to their own customers
 
-**This supersedes all earlier offers.** Do not pitch plumbers, HVAC, or other end-business owners directly — the buyer white-labels and resells, they are never the end client. Full playbook: `marketing/GTM-BLUEPRINT.md` (cold call script + scraper targeting) and `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` (3-email follow-up).
+**This supersedes all earlier offers.** Do not pitch end-business owners directly — the buyer white-labels and resells, they are never the end client. Pitch the agency/founder buyer on the resale opportunity itself, not on any specific end-client vertical. Full playbook: `marketing/GTM-BLUEPRINT.md` (cold call script + scraper targeting), `marketing/OUTREACH-CAMPAIGN.md` (consolidated LinkedIn DM + cold email campaign), and `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` (3-email follow-up).
 
 ## Live URLs
 - **Unified backend:** https://master-hustle-engine.onrender.com (single service — Python orchestrator eliminated)
@@ -102,11 +102,14 @@ Every intake path (`/webhook/lead`, `/admin/leads`, `/admin/bulk-pitch`, batch r
 
 ## Offer Details
 - Product: White-Label AI Infrastructure License
-- Price: $1,500/month license fee
+- **Pricing (updated 2026-07-23) — two options:**
+  - **Option A — Agency White-Label License:** $2,500 one-time setup + $1,500/month recurring. Buyer white-labels the 9-skill engine and resells access to their own clients.
+  - **Option B — Full Codebase / IP Buyout:** $25,000 one-time. Buyer takes the codebase outright (repo transfer / access), no recurring fee. For buyers who want to own and operate the engine themselves.
 - Buyer: Agency owners OR tech/SaaS/digital-service founders (1–50 employees) who resell to their own customers
 - Proof URL: `PROOF_URL` env var (default: https://master-hustle-engine.onrender.com/pitch — the engine's own sales one-pager)
-- Payment link: https://buy.stripe.com/3cI14m9hOcPh6Gbcx10000D
-- Pitch tone: Peer-to-peer, math-driven ("resell to 3 clients at $500/mo and you're already break-even")
+- Payment link: replace with the current payment link (Strike/Stripe). Legacy $1,500/mo-only Stripe link: https://buy.stripe.com/3cI14m9hOcPh6Gbcx10000D — update before sending under the new pricing.
+- Pitch tone: Peer-to-peer, math-driven ("resell to 3 clients at $500/mo and you're already break-even on the monthly")
+- Delivery: agency license access + onboarding handled manually via GitHub repo invite once the buyer pays (Gumloop scraper is currently down; outreach is manual — see `marketing/OUTREACH-CAMPAIGN.md`)
 - NEVER mention: SHOVL, shovel, invention, patent licensing
 
 ## Render Service IDs

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Antigravity — White-Label AI Infrastructure for Agencies</title>
+<meta name="description" content="License a production AI automation engine, put your brand on it, and resell it to your clients. $2,500 setup + $1,500/mo, or a $25,000 one-time buyout.">
+<style>
+  :root{
+    --bg:#0d1826; --bg2:#111f31; --card:#ffffff; --ink:#16233a; --mut:#5a6b82;
+    --line:#e2e8f0; --brand:#12b886; --brand-d:#0e9e75; --navy:#1e3a5f; --ice:#cadcfc;
+    --hero-ink:#ffffff; --hero-mut:#9fb3c8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:#f4f7fb;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 22px}
+  a{color:inherit}
+  .btn{display:inline-block;background:var(--brand);color:#06231a;font-weight:700;text-decoration:none;padding:15px 30px;border-radius:40px;font-size:17px;transition:transform .1s ease,background .15s ease;border:none;cursor:pointer}
+  .btn:hover{background:var(--brand-d);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--hero-ink);border:1.5px solid rgba(255,255,255,.3)}
+  .btn.ghost:hover{background:rgba(255,255,255,.08)}
+  .eyebrow{font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--brand)}
+
+  /* HERO */
+  header{background:linear-gradient(160deg,#0d1826 0%,#132540 100%);color:var(--hero-ink);padding:78px 0 90px;position:relative;overflow:hidden}
+  header .blob{position:absolute;top:-120px;right:-90px;width:460px;height:460px;background:radial-gradient(circle,rgba(18,184,134,.22),transparent 62%);border-radius:50%}
+  header .wrap{position:relative;z-index:1}
+  h1{font-size:clamp(34px,5.4vw,58px);line-height:1.08;font-weight:800;letter-spacing:-.5px;max-width:15ch;margin-bottom:22px}
+  .sub{font-size:clamp(17px,2.2vw,21px);color:var(--ice);max-width:44ch;margin-bottom:34px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .hero-note{margin-top:20px;font-size:13px;color:var(--hero-mut)}
+  .stats{display:flex;gap:38px;flex-wrap:wrap;margin-top:52px}
+  .stats .s b{display:block;font-size:30px;font-weight:800;color:var(--brand)}
+  .stats .s span{font-size:13px;color:var(--hero-mut)}
+
+  /* SECTIONS */
+  section{padding:70px 0}
+  .lead{max-width:60ch;margin-bottom:14px}
+  h2{font-size:clamp(26px,3.4vw,36px);font-weight:800;letter-spacing:-.3px;margin-bottom:14px}
+  .sec-intro{color:var(--mut);max-width:58ch;margin-bottom:40px;font-size:17px}
+
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px;box-shadow:0 8px 24px rgba(15,30,55,.05)}
+  .card h3{font-size:20px;margin-bottom:8px}
+  .card p{color:var(--mut);font-size:15px}
+  .num{display:inline-flex;width:44px;height:44px;border-radius:50%;background:var(--navy);color:#fff;font-weight:800;align-items:center;justify-content:center;margin-bottom:16px;font-size:19px}
+  .num.alt{background:var(--brand);color:#06231a}
+
+  /* skills */
+  .skills{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .skill{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-weight:600;font-size:15px}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--brand);flex:none}
+
+  /* math band */
+  .band{background:var(--bg);color:#fff;border-radius:18px;padding:46px;text-align:center}
+  .band .eq{font-size:clamp(22px,3.4vw,32px);font-weight:800;line-height:1.4}
+  .band .eq .g{color:var(--brand)}
+  .band p{color:var(--hero-mut);margin-top:14px;font-size:16px}
+
+  /* pricing */
+  .price-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;align-items:stretch}
+  .plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:34px;display:flex;flex-direction:column}
+  .plan.feature{border:2px solid var(--brand);box-shadow:0 14px 40px rgba(18,184,134,.14)}
+  .plan .tag{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand);margin-bottom:10px}
+  .plan h3{font-size:23px;margin-bottom:12px}
+  .plan .amt{font-size:38px;font-weight:800;letter-spacing:-1px}
+  .plan .amt small{font-size:16px;font-weight:600;color:var(--mut)}
+  .plan .amt2{font-size:15px;color:var(--mut);margin-top:2px}
+  .plan ul{list-style:none;margin:20px 0 26px}
+  .plan li{padding:7px 0 7px 26px;position:relative;color:var(--ink);font-size:15px}
+  .plan li:before{content:"✓";position:absolute;left:0;color:var(--brand);font-weight:800}
+  .plan .btn{margin-top:auto;text-align:center}
+  .plan.feature .btn{background:var(--brand)}
+  .plan.buy .btn{background:var(--navy);color:#fff}
+  .plan.buy .btn:hover{background:#16304e}
+
+  /* faq */
+  .faq details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-bottom:12px}
+  .faq summary{font-weight:700;cursor:pointer;font-size:16px;list-style:none}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary:after{content:"+";float:right;color:var(--brand);font-weight:800}
+  .faq details[open] summary:after{content:"–"}
+  .faq p{color:var(--mut);margin-top:12px;font-size:15px}
+
+  footer{background:var(--bg);color:var(--hero-mut);padding:44px 0;text-align:center;font-size:14px}
+  footer a{color:var(--ice);text-decoration:none}
+
+  @media(max-width:820px){
+    .grid3,.skills{grid-template-columns:1fr 1fr}
+    .price-grid,.grid2{grid-template-columns:1fr}
+  }
+  @media(max-width:540px){
+    .grid3,.skills{grid-template-columns:1fr}
+    .band{padding:32px 22px}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<header>
+  <div class="blob"></div>
+  <div class="wrap">
+    <p class="eyebrow">Antigravity · White-Label AI Infrastructure</p>
+    <h1>Add an AI revenue line to your agency — without building it.</h1>
+    <p class="sub">License a production AI automation engine, put your brand on it, and resell it to your own clients as a monthly service. No dev team. No build time. No maintenance.</p>
+    <div class="hero-cta">
+      <a class="btn" href="#pricing">See pricing</a>
+      <a class="btn ghost" href="#how">How it works</a>
+    </div>
+    <p class="hero-note">Live software, not a slide deck. Book a 15-minute screen share and see the real dashboard.</p>
+    <div class="stats">
+      <div class="s"><b>9</b><span>production AI skills</span></div>
+      <div class="s"><b>3 clients</b><span>to break even on the monthly</span></div>
+      <div class="s"><b>~93%</b><span>gross margin on resale</span></div>
+      <div class="s"><b>$0</b><span>code you have to write</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ WHAT IT IS ============ -->
+<section id="how">
+  <div class="wrap">
+    <p class="eyebrow" style="color:var(--brand-d)">How it works</p>
+    <h2>You license it. You brand it. You resell it.</h2>
+    <p class="sec-intro">Antigravity is a live, deployed engine that scrapes leads, qualifies them, writes a tailored pitch, sends it, and runs the follow-up — automatically. You white-label the whole thing and sell it to your clients under your own name.</p>
+    <div class="grid3">
+      <div class="card"><span class="num">1</span><h3>License the engine</h3><p>Get access to the full 9-skill AI infrastructure, hosted and maintained. Your brand goes on it.</p></div>
+      <div class="card"><span class="num">2</span><h3>Resell to your clients</h3><p>Offer it as a monthly AI service to the businesses you already work with. You set the price.</p></div>
+      <div class="card"><span class="num alt">3</span><h3>Keep the margin</h3><p>Three clients covers your license. Every client after that is recurring profit with near-zero fulfillment hours.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SKILLS ============ -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <h2>Nine skills, ready to resell</h2>
+    <p class="sec-intro">A complete agentic backend — built, hosted, and maintained for you.</p>
+    <div class="skills">
+      <div class="skill"><span class="dot"></span>Lead scraping</div>
+      <div class="skill"><span class="dot"></span>Lead qualification</div>
+      <div class="skill"><span class="dot"></span>AI pitch copy</div>
+      <div class="skill"><span class="dot"></span>Email delivery</div>
+      <div class="skill"><span class="dot"></span>Follow-up sequences</div>
+      <div class="skill"><span class="dot"></span>Opt-out / compliance</div>
+      <div class="skill"><span class="dot"></span>Daily health digest</div>
+      <div class="skill"><span class="dot"></span>Model failover</div>
+      <div class="skill"><span class="dot"></span>Persistent database</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE MATH ============ -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="band">
+      <p class="eyebrow">The math does the selling</p>
+      <div class="eq" style="margin-top:14px">Resell to <span class="g">3 clients</span> at <span class="g">$500/mo</span> &nbsp;=&nbsp; break-even on the monthly license.</div>
+      <p>Everything after that is margin. It's a revenue line, not an expense — which is exactly why it closes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PRICING ============ -->
+<section id="pricing">
+  <div class="wrap">
+    <p class="eyebrow" style="color:var(--brand-d)">Pricing</p>
+    <h2>Two ways to own it</h2>
+    <p class="sec-intro">License it and resell under your brand, or buy the codebase outright and run it yourself.</p>
+    <div class="price-grid">
+
+      <div class="plan feature">
+        <span class="tag">Option A · Most popular</span>
+        <h3>Agency White-Label License</h3>
+        <div class="amt">$2,500 <small>setup</small></div>
+        <div class="amt2">then $1,500 / month</div>
+        <ul>
+          <li>Full 9-skill engine, white-labeled</li>
+          <li>Hosted &amp; maintained for you</li>
+          <li>Resell to unlimited clients</li>
+          <li>Onboarding call included</li>
+          <li>Access delivered on purchase</li>
+        </ul>
+        <!-- TODO: replace href with your Strike/Stripe payment link -->
+        <a class="btn" href="[PAYMENT_LINK]">Start my license</a>
+      </div>
+
+      <div class="plan buy">
+        <span class="tag">Option B · Own it outright</span>
+        <h3>Full Codebase / IP Buyout</h3>
+        <div class="amt">$25,000 <small>one-time</small></div>
+        <div class="amt2">no recurring fee</div>
+        <ul>
+          <li>Complete codebase, transferred to you</li>
+          <li>Run and modify it yourself</li>
+          <li>No monthly license</li>
+          <li>Repo access &amp; handoff included</li>
+          <li>For operators who want to own the engine</li>
+        </ul>
+        <!-- TODO: replace href with your Strike/Stripe payment link (or "contact" link) -->
+        <a class="btn" href="[PAYMENT_LINK]">Buy the codebase</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="faq" style="padding-top:0">
+  <div class="wrap" style="max-width:760px">
+    <h2>Questions</h2>
+    <div style="height:22px"></div>
+    <details><summary>Do I need a developer to use this?</summary><p>No. The engine is built, hosted, and maintained. You license it, brand it, and resell it — you never touch a line of code. (The buyout option is for operators who <em>do</em> want to run it themselves.)</p></details>
+    <details><summary>How do my clients pay — and how do I make money?</summary><p>You set your own resale price and bill your clients directly. Resell to three clients at $500/month and you've covered the $1,500 monthly license; everything beyond that is margin.</p></details>
+    <details><summary>What's the difference between the license and the buyout?</summary><p>The license ($2,500 setup + $1,500/mo) keeps it hosted and maintained while you resell under your brand. The buyout ($25,000 one-time) hands you the codebase outright to own and operate yourself, with no recurring fee.</p></details>
+    <details><summary>How do I get access after I buy?</summary><p>Access is delivered personally — a GitHub repo invite and an onboarding call — so you're set up right rather than dropped into a portal.</p></details>
+  </div>
+</section>
+
+<!-- ============ FINAL CTA ============ -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="band">
+      <div class="eq">The engine is already running. <span class="g">Put your brand on it.</span></div>
+      <p style="margin-bottom:26px">A working product, priced to resell, with the math to back it.</p>
+      <!-- TODO: replace href with your Strike/Stripe payment link -->
+      <a class="btn" href="[PAYMENT_LINK]">Get started</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Antigravity · White-Label AI Infrastructure</p>
+    <p style="margin-top:6px">Questions? <a href="mailto:jackbockholdt88@gmail.com">jackbockholdt88@gmail.com</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
