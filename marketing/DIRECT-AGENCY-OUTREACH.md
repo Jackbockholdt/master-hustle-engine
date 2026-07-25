@@ -19,7 +19,7 @@ Single source of truth for all outbound copy. Do not fork sequences elsewhere.
 
 {{first_name}} —
 
-Most agencies I talk to in your industry are losing hours a week to lead routing and follow-up that could run itself.
+Most agencies I talk to in digital are losing hours a week to lead routing and follow-up that could run itself.
 
 I built a white-label automation stack agencies deploy under their own brand — lead routing, client follow-ups, custom AI workflows. Your logo, your domain, your client relationship.
 
