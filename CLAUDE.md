@@ -1,146 +1,64 @@
-# Antigravity 2.0 — Current State
+# CLAUDE.md — Repository Directives
 
-## What This Is
-A live AI sales engine that scrapes leads, qualifies them, and auto-sends pitch emails for Jack Bockholdt's **White-Label AI Infrastructure License** ($2,500 setup + $1,500/month, or a $25,000 one-time buyout). Buyers white-label the 9-skill engine and resell it to their own clients.
+## North Star
 
-**Two qualified buyer types (both live as of 2026-07-06):**
-1. Digital marketing / lead-gen agency owners — resell to their local business clients
-2. Tech startups / SaaS / software / digital service companies — resell to their own customers
+This repository exists for exactly one purpose: selling the **White-Label Agency AI Infrastructure** offer.
 
-**This supersedes all earlier offers.** Do not pitch end-business owners directly — the buyer white-labels and resells, they are never the end client. Pitch the agency/founder buyer on the resale opportunity itself, not on any specific end-client vertical. Full playbook: `marketing/GTM-BLUEPRINT.md` (cold call script + scraper targeting), `marketing/OUTREACH-CAMPAIGN.md` (consolidated LinkedIn DM + cold email campaign), and `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` (3-email follow-up).
+All work — code, copy, outreach, tooling — must serve that single objective. If a task does not move a qualified agency owner closer to purchasing one of the three tiers below, it is out of scope.
 
-## Live URLs
-- **Unified backend:** https://master-hustle-engine.onrender.com (single service — Python orchestrator eliminated)
-- **GitHub:** Jackbockholdt/master-hustle-engine (main branch)
+**Status: pivoted from building to selling.** Feature work is frozen unless it directly unblocks a sale or a demo.
 
-## Everything That Is Already Working — DO NOT TOUCH
-- `server.js` — unified Node.js engine, all 9 skills + B2B outreach engine, deployed on Render
-- Stripe webhook live at master-hustle-engine.onrender.com/api/stripe-webhook (STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET set in Render)
-- Lead intake endpoint: POST /webhook/lead (tested and working, accepts `email` or `contact_email`)
-- Pitch emails route through Gmail HTTPS relay (GMAIL_HTTP_URL env var) — do not touch SMTP directly
-- OpenPhone webhook: POST /webhook/openphone
-- Day 5 / Day 10 follow-up sequences: automatic, run hourly
-- B2B outreach batch: runs every 6 hours
+## What We Sell
 
-## Gumloop Scraper — LIVE as of 2026-07-18
-The scraper is ON and pushing leads to the endpoint below. Both campaigns are live: leads without a `campaign` field get the AI-personalized white-label pitch; leads with `"campaign": "antigravity-saas"` get the fixed template sequence. One known failure mode already hit and fixed: duplicating a Gumloop flow breaks its variable references (the HTTP node then sends literal `${...}` strings) — the engine now rejects those payloads with a 400 naming the field, so a broken flow shows up as failed requests in Gumloop's run history. If sends stop, check there first.
+A rebrandable AI automation stack that agencies deploy under their own name: automated lead routing, client follow-up cadences, and custom AI workflows. The buyer keeps the client relationship; nothing in the deployed product points back to us.
 
-**Gumloop HTTP node config (reference):**
-- URL: https://master-hustle-engine.onrender.com/webhook/lead
-- Method: POST
-- Header: Content-Type: application/json
-- Body:
-```json
-{
-  "company_name": "{{company_name}}",
-  "contact_email": "{{email}}",
-  "website": "{{website}}",
-  "industry": "{{industry}}"
-}
+Core technical assets:
+
+- **3-skill token router** — cost-aware model routing across providers.
+- **9-skill agentic engine** — the workflow layer (routing, enrichment, follow-up, scheduling, summarization, escalation, reporting, CRM sync, billing hooks).
+
+## Pricing Model (canonical — do not deviate)
+
+| Tier | Name | Price |
+|------|------|-------|
+| 1 | Done-For-You Agency Deployment | $2,500 setup + $1,500/mo license |
+| 2 | White-Label Partner License | $1,500/mo + usage |
+| 3 | Complete IP / Codebase Buyout | $25,000 one-time |
+
+**Tier 1 — Done-For-You Agency Deployment.** We build, brand, host, and maintain the full stack for the client. Includes configuration of lead routing, follow-up cadences, and AI workflows, plus ongoing monitoring, support, and monthly optimization.
+
+**Tier 2 — White-Label Partner License.** The client runs the stack themselves under their brand. Monthly license plus metered usage. Self-serve onboarding, documentation, and standard support. No setup fee — this tier is for partners who already have technical capacity.
+
+**Tier 3 — Complete IP / Codebase Buyout.** Full transfer of source, assets, and workflow ownership. Unlimited deployments, complete handover, documentation, training, and 30 days of transition support. This tier primarily functions as a price anchor; Tier 1 is the conversion target.
+
+Setup fees and paid license months may be credited toward a Tier 3 buyout.
+
+## Deprecated — Do Not Reintroduce
+
+The following legacy positioning has been fully removed from this repository. Do not reference, resurrect, or generate content based on it:
+
+- Contractor, plumber, HVAC, roofing, and other home-services pitches
+- Missed-call text-back / missed-call automation as a headline offer
+- All prior cold-call scripts and phone-first outreach
+- Third-party micro-site links (tiiny.site and similar)
+- Any hardcoded phone numbers
+
+If you find a reference to any of the above in this repo, delete it rather than updating it.
+
+## Channel Rules
+
+- Outreach points to the landing page, never to a raw Stripe checkout link. Payment links in cold email damage deliverability and read as spam.
+- The 60-second workflow demo video is the primary hook in all outreach.
+- Canonical outreach copy lives in marketing/DIRECT-AGENCY-OUTREACH.md. Do not fork copy elsewhere.
+- Canonical list-building spec lives in marketing/APOLLO-TARGETING-CRITERIA.md.
+
+## Secrets Policy
+
+No secret ever enters source control. All keys are read from the environment at runtime:
+
+```js
+const geminiKey = process.env.GEMINI_API_KEY;
+const routerKey = process.env.ROUTER_API_KEY;
 ```
 
-**Scraper targeting — job titles (any of):** Founder, Co-Founder, CEO, Owner, Managing Director, Head of Growth, Agency Owner
-
-**Scraper targeting — industry keywords (any of, case-insensitive substring match):**
-```
-digital marketing agency, lead generation agency, marketing agency, seo agency,
-ppc agency, social media agency, growth agency, advertising agency,
-startup, saas, software company, tech startup, online startup,
-digital services, digital agency, web development agency, software agency, tech company
-```
-This exact list lives in the `TARGET_INDUSTRIES` env var on the `master-hustle-engine` Render service — anything outside it gets auto-disqualified with no email sent. To add more categories, update that env var, then **trigger a fresh deploy** (env var changes alone do not restart the running process on this account's Render config — confirmed by testing, not just theory).
-
-- Company size: 1–50 employees
-- Must have: real contact email (not `info@`/`hello@`), working website
-
-## Second Campaign — `antigravity-saas` (fixed templates, no AI copy)
-A template-based 3-email sequence pitching the **Antigravity AI Engine pilot** (honest capability pitch, no invented track record): initial send → day-3 follow-up → day-7 breakup. Templates live in `TEMPLATE_CAMPAIGNS` in `server.js`; merge fields `{{first_name}}` (falls back to "there") and `{{company_name}}`. Uses the same qualification filter and the same hourly follow-up scheduler as the main campaign.
-
-**To route a lead into it,** add two fields to the `/webhook/lead` Gumloop body:
-```json
-{ "campaign": "antigravity-saas", "first_name": "{{first_name}}" }
-```
-Leads without a `campaign` field keep getting the AI-personalized white-label pitch as before.
-
-**Shared daily send cap:** `DAILY_SEND_CAP` env var (default 50) caps total outbound pitch + follow-up emails per UTC day **across all campaigns combined** — adding this campaign does not double volume. Leads over the cap are queued (`status: QUEUED`) and go out on later batch runs; due follow-ups stay pending until the next hourly run. Current count visible at `/admin/status` under `sends`.
-
-## Do-Not-Contact List (opt-out suppression)
-When a prospect replies "stop"/"unsubscribe", add them here — enforced before **every** outbound pitch and follow-up send, on every campaign, and adding an email immediately cancels its pending follow-ups and queued leads (mid-sequence stop works). Emails are normalized to lowercase.
-```bash
-# Add (also accepts {"emails": [...]} for bulk; optional "reason")
-curl -X POST https://master-hustle-engine.onrender.com/admin/do-not-contact \
-  -H "Content-Type: application/json" -d '{"email":"prospect@example.com","reason":"replied stop"}'
-# List
-curl https://master-hustle-engine.onrender.com/admin/do-not-contact
-# Remove
-curl -X DELETE https://master-hustle-engine.onrender.com/admin/do-not-contact \
-  -H "Content-Type: application/json" -d '{"email":"prospect@example.com"}'
-```
-Suppressed sends show up as `status: 'suppressed'` in `leads_queue`/`follow_ups`; list size is in `/admin/status` under `do_not_contact`. Nothing automated adds entries — reading replies stays a human job.
-
-## Persistent Database (added 2026-07-20)
-SQLite lives on the Render persistent disk: **`/data/my_database.db`** (disk `data_storage`; `/data` is the primary mount point, and `/var/data` is auto-detected as an alternate). A mount only wins if it exists and is writable, so a bad mount degrades to the repo-local `transactions.sqlite` fallback instead of crashing; the boot log prints the chosen path and whether it's persistent. The suppression list, lead queue, follow-ups, and send counts survive deploys. Overrides: `DB_PATH` (full file path) or `DATA_DIR` (mount dir) env vars. Before this, every deploy silently wiped the database — never move the DB back inside the repo directory.
-
-## Change Control — ALL changes go through GitHub PRs
-No direct pushes to `main`, no dashboard-only tweaks that code depends on. Every agent working this repo (there may be more than one) opens a PR, and coordinates with other agents via PR comments. Jack merges. This is what keeps two agents from breaking production on top of each other.
-
-## Custom Sender Identity (optional)
-`FROM_EMAIL` / `FROM_NAME` env vars: when set, the Gmail relay payload carries `from`/`fromName` (the Apps Script must pass them to `GmailApp.sendEmail`, and `FROM_EMAIL` must be a verified "Send mail as" alias on the relay account). Unset = sends from the relay account's own address, exactly as before.
-
-## Lead Quality Screen (added 2026-07-20)
-Beyond syntax validation, every intake path runs `screenLeadQuality()` and disqualifies (with a named reason, `status: DISQUALIFIED`) leads that would waste a send:
-- **Generic mailboxes** — `info@`, `hello@`, `sales@`, `noreply@`, etc. A real person's address is required.
-- **Free email providers** — gmail/yahoo/hotmail/outlook/etc. Set `ALLOW_FREEMAIL=true` env var to allow them.
-- **Wrong-company contacts** — if the email's domain and the lead's `website` domain are both corporate but don't match (e.g. a `92y.org` address pitched "for IRONPAPER"), the lead is rejected as a mis-scraped contact.
-- **Oversized companies** — if the payload includes `employee_count` or `company_size` (number or range like `"51-200"`; range uses the lower bound), anything over `MAX_EMPLOYEE_COUNT` (env, default 50) is rejected. Add these fields to the Gumloop body to enforce the 1–50 rule server-side.
-- **Blocked domains** — `BLOCKED_DOMAINS` env var (comma-separated, e.g. `edelman.com,jcdecaux.com`) hard-rejects known too-big-to-buy companies.
-
-`/admin/bulk-pitch` skips the screen when `override_email` is explicitly provided (deliberate human choice). Env var changes need a fresh deploy, same as `TARGET_INDUSTRIES`.
-
-## Lead Payload Validation
-Every intake path (`/webhook/lead`, `/admin/leads`, `/admin/bulk-pitch`, batch runs) rejects leads whose `contact_email` isn't a syntactically valid address or whose fields contain unresolved template placeholders (`${...}` / `{{...}}` — e.g. a mis-wired Gumloop variable like `${Valid Emails__NODE_ID__:...}`). Webhook returns `400` with `status: INVALID` and the offending field named, so a broken Gumloop node shows up as a visible failure in Gumloop's run history instead of burning a Gemini call and an admin alert per lead.
-
-## Offer Details
-- Product: White-Label AI Infrastructure License
-- **Pricing (updated 2026-07-23) — two options:**
-  - **Option A — Agency White-Label License:** $2,500 one-time setup + $1,500/month recurring. Buyer white-labels the 9-skill engine and resells access to their own clients.
-  - **Option B — Full Codebase / IP Buyout:** $25,000 one-time. Buyer takes the codebase outright (repo transfer / access), no recurring fee. For buyers who want to own and operate the engine themselves.
-- Buyer: Agency owners OR tech/SaaS/digital-service founders (1–50 employees) who resell to their own customers
-- Proof URL: `PROOF_URL` env var (default: https://master-hustle-engine.onrender.com/pitch — the engine's own sales one-pager)
-- Payment link: replace with the current payment link (Strike/Stripe). Legacy $1,500/mo-only Stripe link: https://buy.stripe.com/3cI14m9hOcPh6Gbcx10000D — update before sending under the new pricing.
-- Pitch tone: Peer-to-peer, math-driven ("resell to 3 clients at $500/mo and you're already break-even on the monthly")
-- Delivery: agency license access + onboarding handled manually via GitHub repo invite once the buyer pays (Gumloop scraper is currently down; outreach is manual — see `marketing/OUTREACH-CAMPAIGN.md`)
-- NEVER mention: SHOVL, shovel, invention, patent licensing
-
-## Render Service IDs
-- master-hustle-engine (Node.js, the live unified service): srv-d8thrho0697c73clcvtg
-- antigravity-orchestrator (Python, srv-d910i40k1i2s73822a5g): **legacy — SUSPENDED as of 2026-07-18.** Its functionality was fully ported into `server.js` above. Do not resurrect it; the unified Node service is the only live backend.
-
-## Test The Engine
-```bash
-# Agency lead
-curl -X POST https://master-hustle-engine.onrender.com/webhook/lead \
-  -H "Content-Type: application/json" \
-  -d '{"company_name":"Test Agency","contact_email":"jackbockholdt88@gmail.com","website":"https://test.com","industry":"digital marketing agency"}'
-
-# Tech/SaaS lead
-curl -X POST https://master-hustle-engine.onrender.com/webhook/lead \
-  -H "Content-Type: application/json" \
-  -d '{"company_name":"Test SaaS Co","contact_email":"jackbockholdt88@gmail.com","website":"https://test.com","industry":"saas startup"}'
-```
-Both confirmed working end-to-end (qualified → pitch generated → email sent) as of 2026-07-13, on the unified `master-hustle-engine` service, after fixing a deprecated Gemini model reference (`gemini-2.5-flash` → `gemini-flash-latest`). Gemini's `gemini-flash-latest` is currently intermittently returning `503 high demand` errors — a temporary, Google-side capacity issue tied to a recent model launch, not a bug here.
-
-## Check Queue / Follow-Up Status
-```bash
-curl https://master-hustle-engine.onrender.com/admin/status
-```
-
-## Daily Engine Status Email (added 2026-07-22)
-A once-a-day health digest emails `ADMIN_EMAIL` so you can see the machine's state without curling `/admin/status`: emails sent today vs. the daily cap, queued/sent/disqualified leads, pending follow-ups, do-not-contact list size, **router-fallback hits today** (how often the primary Gemini model failed over to the intelligent-router pool — a live signal of whether the failover is earning its keep), and failures logged in the last 24h. Uses the same Gmail relay as pitches. Fires on a UTC cron.
-- **Schedule:** `STATUS_EMAIL_CRON` env (5-field cron, UTC; default `0 7 * * *` = 07:00 UTC). Set `STATUS_EMAIL_ENABLED=false` to turn it off. Env changes need a fresh deploy, same as `TARGET_INDUSTRIES`.
-- **Send on demand / test:** `curl -X POST https://master-hustle-engine.onrender.com/admin/status-email`
-- **Raw JSON (no email):** `curl https://master-hustle-engine.onrender.com/admin/status-report`
-- Router-fallback events are recorded in a `router_events` table (durable across deploys via the persistent disk). Zero fallbacks with steady send volume means the primary model is healthy — not that the failover is broken.
-
-## Check Logs
-https://master-hustle-engine.onrender.com/logs
+`.env` is gitignored. `.env.example` documents required variable names with empty values only. Any literal key found in tracked code must be treated as compromised: rotate it at the provider, then remove it from the file.
