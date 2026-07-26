@@ -71,6 +71,14 @@ const B2B_INDUSTRIES     = (process.env.TARGET_INDUSTRIES ||
   'digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
+// Automatic customer onboarding config (fired on a successful Stripe payment).
+// All are env-overridable so you can update links/copy without a code change —
+// remember env changes need a fresh Render deploy to take effect.
+const ONBOARDING_ACCESS_URL = process.env.ONBOARDING_ACCESS_URL || B2B_PROOF_URL;
+const ONBOARDING_VIDEO_URL  = process.env.ONBOARDING_VIDEO_URL  || 'https://master-hustle-engine.onrender.com/pitch'; // placeholder — replace with the real onboarding video
+const SUPPORT_EMAIL         = process.env.SUPPORT_EMAIL || process.env.ADMIN_EMAIL || 'jackbockholdt88@gmail.com';
+const SUPPORT_NAME          = process.env.SUPPORT_NAME || process.env.FROM_NAME || 'Jack Bockholdt';
+
 // Initialize SQLite database with the logs table
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
@@ -148,6 +156,16 @@ const db = new sqlite3.Database(DB_PATH, (err) => {
       outcome   TEXT    NOT NULL,
       detail    TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+    // Idempotency ledger for onboarding: one row per Stripe Checkout session we've
+    // already onboarded. Stripe delivers webhooks at-least-once (retries on any
+    // non-2xx, and occasional duplicates), so we key on the session id to make sure
+    // a buyer receives their onboarding email exactly once even if the event lands twice.
+    db.run(`CREATE TABLE IF NOT EXISTS onboarded_sessions (
+      session_id  TEXT    PRIMARY KEY,
+      buyer_email TEXT,
+      plan        TEXT,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
   }
 });
@@ -302,6 +320,69 @@ async function sendLicenseWelcomeEmail(buyerEmail) {
     </div>
   `;
   await sendHtmlEmail(buyerEmail, `Welcome to the ${B2B_OFFER_NAME}`, emailHtml);
+}
+
+// Reusable Helper: Automatic customer onboarding email, sent the moment a Stripe
+// payment succeeds. `plan` is 'license' (Option A — $2,500 setup + $1,500/mo) or
+// 'buyout' (Option B — $25,000 one-time). Contains the access link, a 3-step setup
+// guide, the onboarding video, and support contact. This replaces the old
+// "Jack will reach out in 24 hours" manual flow for the paid, hands-off path.
+async function sendOnboardingEmail(buyerEmail, plan) {
+  const isBuyout = plan === 'buyout';
+  const heading  = isBuyout
+    ? `Your ${B2B_OFFER_NAME} buyout is complete — here's your access`
+    : `You're in — let's get ${B2B_OFFER_NAME} set up`;
+
+  // Step 1 differs by plan: the license buyer gets access to the running engine;
+  // the buyout buyer takes ownership of the codebase (repo transfer).
+  const step1 = isBuyout
+    ? `<strong>Get the codebase.</strong> You've bought the engine outright. Reply to this email with the GitHub username (or email) you want the repository transferred to, and we'll send the ownership/collaborator invite for <a href="${ONBOARDING_ACCESS_URL}">the Master Hustle Engine repo</a> within one business day.`
+    : `<strong>Activate your access.</strong> Open your engine here: <a href="${ONBOARDING_ACCESS_URL}">${ONBOARDING_ACCESS_URL}</a>. A GitHub repo invite for your white-label copy is on its way to <strong>${buyerEmail}</strong> — accept it to pull the code and deploy under your own brand.`;
+
+  const step2 = isBuyout
+    ? `<strong>Deploy it as your own.</strong> Add your API keys (Gemini, Stripe, the Gmail relay) as environment variables and deploy to Render — the repo ships with <code>render.yaml</code> so it's a one-click service. Full env reference is in <code>.env.example</code>.`
+    : `<strong>Add your keys &amp; branding.</strong> Set your own environment variables (sender name/email, payment link, target industries) so every lead and pitch goes out under your agency's identity. Everything you can configure is documented in <code>.env.example</code>.`;
+
+  const step3 = isBuyout
+    ? `<strong>Point leads at it and sell.</strong> Send leads to <code>POST /webhook/lead</code>, wire up your Stripe payment link, and the engine qualifies, pitches, and follows up automatically. You keep 100% — no recurring fee.`
+    : `<strong>Start reselling.</strong> Point your lead source at <code>POST /webhook/lead</code> and let the engine qualify, pitch, and follow up on autopilot. Resell to 3 clients at $500/mo and you're already break-even on the monthly.`;
+
+  const emailHtml = `
+    <div style="font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 28px; border: 1px solid #e5e7eb; background-color: #ffffff; color: #111827; border-radius: 12px; max-width: 700px; margin: 0 auto;">
+      <h2 style="margin-top: 0; font-size: 22px; font-weight: 700; color: #111827;">${heading}</h2>
+      <p style="font-size: 15px; line-height: 1.6;">Payment confirmed — thank you. Your onboarding is below. It takes about 15 minutes end to end.</p>
+
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:18px 22px; margin:18px 0;">
+        <p style="font-size:14px; margin:0 0 6px; color:#475569; text-transform:uppercase; letter-spacing:.04em;">Your access</p>
+        <p style="font-size:15px; margin:0; line-height:1.6;">
+          <strong>Access link:</strong> <a href="${ONBOARDING_ACCESS_URL}">${ONBOARDING_ACCESS_URL}</a><br/>
+          <strong>Account email:</strong> ${buyerEmail}
+        </p>
+      </div>
+
+      <h3 style="font-size:17px; font-weight:700; color:#111827; margin:22px 0 10px;">Your 3-step setup</h3>
+      <ol style="font-size:15px; line-height:1.7; padding-left:20px; margin:0;">
+        <li style="margin-bottom:12px;">${step1}</li>
+        <li style="margin-bottom:12px;">${step2}</li>
+        <li style="margin-bottom:0;">${step3}</li>
+      </ol>
+
+      <div style="text-align:center; margin:26px 0;">
+        <a href="${ONBOARDING_VIDEO_URL}" style="display:inline-block; background:#111827; color:#ffffff; text-decoration:none; font-size:15px; font-weight:600; padding:12px 26px; border-radius:8px;">▶ Watch the 5-minute onboarding video</a>
+        <p style="font-size:13px; color:#6b7280; margin:8px 0 0;">Or paste this into your browser: ${ONBOARDING_VIDEO_URL}</p>
+      </div>
+
+      <hr style="border:0; border-top:1px solid #e5e7eb; margin:22px 0;" />
+      <p style="font-size:15px; line-height:1.6; margin:0;">Stuck on anything? I'm your direct line: <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a>. Reply to this email any time and it comes straight to me.</p>
+      <p style="font-size:15px; line-height:1.6; margin:16px 0 0;">— ${SUPPORT_NAME}</p>
+    </div>
+  `;
+
+  const subject = isBuyout
+    ? `Your ${B2B_OFFER_NAME} buyout — access & setup inside`
+    : `Welcome aboard — your ${B2B_OFFER_NAME} access & 3-step setup`;
+
+  await sendHtmlEmail(buyerEmail, subject, emailHtml);
 }
 
 // Expected Keys in JSON outputs for validation
@@ -1127,23 +1208,54 @@ app.post('/api/stripe-webhook', async (req, res) => {
         await sendAdminAlert(`Stripe purchase processing failed — niche: ${niche}, buyer: ${buyerEmail}`, err.stack || err.message);
       });
     } else {
-      // No "niche" metadata means this came through the flagship $1,500/mo
-      // White-Label AI Infrastructure License payment link, not one of the
-      // legacy one-off niche tools. Notify Jack for manual onboarding and
-      // confirm receipt to the buyer.
-      logTransaction(buyerEmail, 'white-label-license', 'success', JSON.stringify({ session: session.id, amount_total: session.amount_total }));
-      Promise.all([
-        notifyAdminOfLicensePurchase(session, buyerEmail),
-        sendLicenseWelcomeEmail(buyerEmail),
-      ]).catch(async (err) => {
-        console.error('[Stripe Webhook] License purchase notification error:', err);
-        await sendAdminAlert(`License purchase notification failed — buyer: ${buyerEmail}`, err.stack || err.message);
+      // No "niche" metadata means this came through a White-Label AI Infrastructure
+      // offer link, not a legacy one-off niche tool. Fire fully automatic onboarding.
+      // Fire-and-forget (matching the niche path) so we still return 2xx fast.
+      onboardPaidCustomer(session, buyerEmail).catch(async (err) => {
+        console.error('[Stripe Webhook] Onboarding error:', err);
+        await sendAdminAlert(`Automatic onboarding failed — buyer: ${buyerEmail}, session: ${session.id}`, err.stack || err.message);
       });
     }
   }
 
   res.json({ received: true });
 });
+
+// Runs on a successful White-Label purchase: dedupes on the Stripe session id,
+// figures out which offer was bought, and sends the buyer their onboarding email
+// plus an admin notification. Subscription renewals never reach here — Stripe fires
+// invoice.* events for those, not checkout.session.completed — so onboarding sends
+// exactly once, on the initial signup or the buyout.
+async function onboardPaidCustomer(session, buyerEmail) {
+  // Only onboard once money has actually changed hands (or a $0 trial with no payment due).
+  if (session.payment_status && !['paid', 'no_payment_required'].includes(session.payment_status)) {
+    console.log(`[Onboarding] Skipping session ${session.id} — payment_status=${session.payment_status}`);
+    return;
+  }
+
+  // Option A (license) checks out in subscription mode ($2,500 setup + $1,500/mo);
+  // Option B (buyout) is a single one-time price, so it checks out in payment mode.
+  const plan = session.mode === 'subscription' ? 'license' : 'buyout';
+
+  // Idempotency gate: the INSERT itself is the atomic lock. If the row already
+  // exists (Stripe redelivered the event), changes === 0 and we bail before sending.
+  const result = await dbRun(
+    `INSERT OR IGNORE INTO onboarded_sessions (session_id, buyer_email, plan) VALUES (?, ?, ?)`,
+    [session.id, buyerEmail, plan]
+  );
+  if (result.changes === 0) {
+    console.log(`[Onboarding] Session ${session.id} already onboarded — skipping duplicate.`);
+    return;
+  }
+
+  console.log(`[Onboarding] Onboarding ${buyerEmail} — plan: ${plan}, session: ${session.id}`);
+  logTransaction(buyerEmail, `white-label-${plan}`, 'success', JSON.stringify({ session: session.id, amount_total: session.amount_total, mode: session.mode }));
+
+  await Promise.all([
+    sendOnboardingEmail(buyerEmail, plan),
+    notifyAdminOfLicensePurchase(session, buyerEmail),
+  ]);
+}
 
 // =============================================================================
 // B2B SALES ENGINE — OpenPhone SMS, Lead Queue, Invention Outreach
