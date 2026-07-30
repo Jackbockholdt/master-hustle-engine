@@ -4,19 +4,14 @@
 License. No build step, no external assets (all CSS is inline), so it hosts anywhere static:
 TinyHost, Netlify drop, GitHub Pages, Render static, etc.
 
-## Payment links — already wired (live)
+## Before you publish
 
-The buttons point at live Stripe payment links, verified against the account:
-
-| Button | Link | Charges |
-|---|---|---|
-| "Start my license" / "Get started" | `.../6oU9AS3WGdTlaWr68D0000G` | $2,500 one-time + $1,500/month recurring |
-| "Buy the codebase" | `.../bJecN4al44iL5C7bsX0000H` | $25,000 one-time |
-
-If you ever change the pricing, update these three `href`s in `index.html`.
-
-**Optional:** the copy references booking a 15-minute screen share. If you want a
-"Book a call" button, wire it to your calendar URL the same way.
+1. **Drop in your payment link.** Search `index.html` for `[PAYMENT_LINK]` (3 spots — both
+   pricing buttons and the final CTA) and replace it with your live Strike/Stripe payment link.
+   - If the $25,000 buyout should route to a conversation instead of instant checkout, point
+     that button at a `mailto:` or calendar link instead.
+2. **(Optional) add a calendar link.** The copy references booking a 15-minute screen share;
+   if you want a "Book a call" button, wire it to your calendar URL the same way.
 
 ## Deploy on TinyHost (or any static host)
 
