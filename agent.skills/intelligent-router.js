@@ -63,10 +63,8 @@ function make_phone_call() {
 async function callProvider({ provider, apiKey }, prompt) {
   if (provider === 'gemini') {
     const ai = new GoogleGenAI({ apiKey });
-    // Default to the flash-lite tier: the router only runs after the primary
-    // flash model already failed, and retrying the same congested model is useless.
     const result = await ai.models.generateContent({
-      model: process.env.GEMINI_ROUTER_MODEL || 'gemini-flash-lite-latest',
+      model: 'gemini-2.0-flash',
       contents: prompt,
     });
     return result.text;
@@ -139,14 +137,13 @@ async function routePrompt(prompt) {
       console.log(`[Router] Success with provider: ${entry.provider}`);
       return result;
     } catch (err) {
-      const isTransient = err.status === 429 || err.status === 503 ||
-        /rate.?limit|quota|too many|high demand|unavailable/i.test(err.message);
-      if (isTransient) {
-        console.warn(`[Router] Transient error on ${entry.provider} — trying next provider`);
+      const is429 = err.status === 429 || /rate.?limit|quota|too many/i.test(err.message);
+      if (is429) {
+        console.warn(`[Router] 429 rate limit on ${entry.provider} — trying next provider`);
         lastError = err;
         continue;
       }
-      throw err; // Non-transient errors bubble up immediately
+      throw err; // Non-429 errors bubble up immediately
     }
   }
 
