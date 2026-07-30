@@ -227,18 +227,13 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
   const maxAttempts = 2; // Strict try + 1 retry
   let lastError = null;
 
-  const primaryModel  = process.env.GEMINI_MODEL || 'gemini-flash-latest';
-  // Retry on the flash-lite tier — when flash is congested (503 high demand),
-  // retrying the same model just fails again; lite runs on separate capacity.
-  const fallbackModel = process.env.GEMINI_FALLBACK_MODEL || 'gemini-flash-lite-latest';
-
   while (attempts < maxAttempts && !parsedResponse) {
     attempts++;
     try {
       console.log(`[Gemini] Attempting content generation (Try ${attempts}/${maxAttempts})...`);
-
+      
       const response = await ai.models.generateContent({
-        model: attempts === 1 ? primaryModel : fallbackModel,
+        model: 'gemini-2.0-flash',
         contents: prompt,
         config: {
           systemInstruction,
@@ -265,11 +260,10 @@ async function callGemini(prompt, systemInstruction, nicheKey) {
     } catch (err) {
       console.warn(`[Gemini] Attempt ${attempts} failed:`, err.message);
       lastError = err;
-      // On rate limit or transient unavailability, try the router fallback pool immediately
-      const isTransient = err.status === 429 || err.status === 503 ||
-        /rate.?limit|quota|too many|high demand|unavailable/i.test(err.message);
-      if (isTransient) {
-        console.warn('[Gemini] Transient error hit — delegating to intelligent router fallback');
+      // On 429 rate limit, try the router fallback pool immediately
+      const is429 = err.status === 429 || /rate.?limit|quota|too many/i.test(err.message);
+      if (is429) {
+        console.warn('[Gemini] 429 hit — delegating to intelligent router fallback');
         try {
           const fullPrompt = systemInstruction ? `${systemInstruction}\n\n${prompt}` : prompt;
           const routerText = await routePrompt(fullPrompt);
