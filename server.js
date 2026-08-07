@@ -14,7 +14,7 @@
  * 6. Local SEO
  * 7. Marketplace Ads
  * 8. Faceless Videos
- * 9. Contract Proposals
+ * 9. Client Proposals
  */
 
 require('dotenv').config();
@@ -448,7 +448,7 @@ const NICHE_DISPLAY_NAMES = {
   'local-seo': 'Local SEO',
   'marketplace': 'Marketplace Ads',
   'faceless-video': 'Faceless Videos',
-  'contractor-proposal': 'Contract Proposals'
+  'contractor-proposal': 'Client Proposals'
 };
 
 const NICHES_DICTIONARY = {
@@ -467,38 +467,38 @@ const NICHES_DICTIONARY = {
     { title: "The Shadow Over Ravenwood Manor", genre: "Fiction / Gothic Horror Mystery", targetAudience: "Fans of Victorian-era ghost stories, atmospheric dread, and family curses." }
   ],
   inventor: [
-    { title: "Self-Cleaning Spade Shovel", description: "A shovel featuring a mechanical slide barrier that moves down the blade as you tilt to release sticky clay." },
+    { title: "Rack-Mounted Edge Inference Appliance", description: "A 1U appliance that runs quantized models on-premise so regulated firms can keep inference inside their own network." },
     { title: "Smart Window Screen Dust Filter", description: "A window screen that uses safe static charge to actively repel outdoor pollen, dust, and diesel soot particles." },
-    { title: "Solar-Powered Hydroponic Gutter Planter", description: "An automated vertical planter that hangs from roof gutters, using runoff water and a solar pump to grow herbs." },
+    { title: "Multi-Tenant API Metering Sidecar", description: "A drop-in proxy that meters and rate-limits per-tenant API usage, emitting billing-ready usage records without app changes." },
     { title: "Automatic Cable-Winding Desk Grommet", description: "A desk cable organizer with a spring-tensioned internal spool that retracts cord slack automatically." },
     { title: "Portable Pet Paw Wash Cup", description: "A portable cup with automated rotating soft silicone bristles to clean mud off dog paws after walks." }
   ],
   voice: [
-    { businessType: "Emergency 24/7 Plumber", location: "Dallas, TX", mainOffer: "Immediate dispatch for leaks, burst pipes, and drains." },
-    { businessType: "Boutique Hair & Nail Salon", location: "Chicago, IL", mainOffer: "Premium cut, color, spa treatments, and walk-in scheduling." },
-    { businessType: "Auto Towing & Wrecker Service", location: "Atlanta, GA", mainOffer: "24/7 roadside assistance, accident recovery, flatbed towing." },
-    { businessType: "Residential Roofing & Gutter Repair", location: "Nashville, TN", mainOffer: "Free wind/hail storm damage roof inspections and leak repairs." },
-    { businessType: "HVAC Furnace & AC Maintenance", location: "Minneapolis, MN", mainOffer: "Same-day emergency heat restoration and seasonal tune-ups." }
+    { businessType: "B2B SaaS Company — Inbound Demo Qualification", location: "Austin, TX", mainOffer: "Qualify inbound demo requests, capture use case and seat count, book the AE." },
+    { businessType: "Digital Marketing Agency — New Business Line", location: "Chicago, IL", mainOffer: "Screen inbound retainer inquiries, capture budget and channel mix, route to the partner." },
+    { businessType: "Managed IT / MSP — Support Intake", location: "Denver, CO", mainOffer: "Triage inbound support calls by severity, capture environment details, escalate to on-call." },
+    { businessType: "White-Label Partner — Reseller Onboarding Desk", location: "Remote / US", mainOffer: "Walk new reseller partners through onboarding, capture branding assets, schedule handoff." },
+    { businessType: "Lead-Gen Agency — Client Intake Line", location: "Miami, FL", mainOffer: "Qualify prospective clients by industry and monthly lead volume, book a strategy call." }
   ],
   'review-reply': [
-    { text: "Absolutely loved the service! The team arrived on time, fixed my running toilet in under 20 minutes, and cleaned up the bathroom before leaving. A+", reviewer: "Sarah Jenkins", rating: 5 },
-    { text: "Terrible experience. They rescheduled twice and when the technician finally arrived, he didn't have the right parts to fix our AC furnace. We were left without heat overnight.", reviewer: "Mark Davis", rating: 1 },
-    { text: "Food was decent but the waiter forgot our drink order twice. Overall average experience, might give it another shot if the wait time is shorter.", reviewer: "David L.", rating: 3 },
-    { text: "The custom solar patio installation looks stunning! Very professional crews, explained everything carefully, and handled the permits.", reviewer: "Robert G.", rating: 5 },
-    { text: "Clean office, friendly front desk, but the billing department made a mistake on my insurance claims. Resolved it but took hours of phone tag.", reviewer: "Amanda K.", rating: 3 }
+    { text: "Rolled this out across four of our client accounts in a week. Onboarding was genuinely hands-off and support answered in under an hour every time. Renewing.", reviewer: "Sarah Jenkins", rating: 5 },
+    { text: "Sold to us as turnkey, but the integration with our CRM broke twice in the first month and we lost two days of lead data. Support was slow to acknowledge it.", reviewer: "Mark Davis", rating: 1 },
+    { text: "Solid platform, does what it says. Reporting is thinner than I'd like — I still export to a spreadsheet for our monthly client reviews. Would rate higher with better dashboards.", reviewer: "David L.", rating: 3 },
+    { text: "We white-labeled this for our agency and our clients think we built it. Margin is excellent and it took almost no engineering time on our side to stand up.", reviewer: "Robert G.", rating: 5 },
+    { text: "Product is fine but the billing team double-charged us on the annual plan and it took three weeks of emails to get the credit issued. Frustrating for the price.", reviewer: "Amanda K.", rating: 3 }
   ],
   'local-seo': [
-    { business_name: "Apex Emergency Plumbing Dallas", city: "Dallas, TX", services: "Burst pipe repairs, drain snaking, water heater installation, leak detection" },
-    { business_name: "Glow Hair & Nail Bar Chicago", city: "Chicago, IL", services: "Balayage highlights, precision cuts, shellac manicures, bridal hair styling" },
-    { business_name: "Guardian Storm Roofing Nashville", city: "Nashville, TN", services: "Roof replacement, hail damage repairs, seamless gutters, emergency tarping" },
-    { business_name: "Polar Bear HVAC Minneapolis", city: "Minneapolis, MN", services: "Furnace tune-ups, AC repairs, heat pump installations, duct cleaning" },
-    { business_name: "ProTow Roadside Recovery Atlanta", city: "Atlanta, GA", services: "Flatbed towing, battery jumpstarts, car lockout services, tire changes" }
+    { business_name: "Northgate B2B Growth Partners", city: "Austin, TX", services: "Demand generation, ABM campaign management, HubSpot implementation, pipeline reporting" },
+    { business_name: "Bluepeak SaaS Marketing", city: "Chicago, IL", services: "Product-led growth strategy, lifecycle email, onboarding funnel optimization, churn analytics" },
+    { business_name: "Halden Managed IT Services", city: "Denver, CO", services: "Managed IT, cloud migration, security monitoring, helpdesk-as-a-service for mid-market firms" },
+    { business_name: "Whitelabel Ops Collective", city: "Remote / US", services: "White-label AI automation, reseller enablement, client workspace provisioning, partner onboarding" },
+    { business_name: "Cardinal Lead Systems", city: "Miami, FL", services: "Outbound lead generation, list building, cold email infrastructure, CRM integration" }
   ],
   marketplace: [
     { item_name: "Apple iPhone 15 Pro Max 256GB Black Titanium", condition: "Like New (99% battery health, screen protector since day 1)", key_features: "Original box, unused charging cable, unlocked to all carriers" },
     { item_name: "Sony PlayStation 5 Disc Edition Console", condition: "Excellent (fully working, clean vents, adult owned)", key_features: "2 controllers, charging station, includes Spider-Man 2 disc" },
     { item_name: "Patagonia Torrentshell 3L Rain Jacket (Mens L)", condition: "Good (minor dirt marks on collar, DWR coating still sheds water)", key_features: "Classic navy blue color, underarm pit zips, adjustable hood" },
-    { item_name: "DeWalt 20V MAX Cordless Drill & Driver Kit", condition: "Very Good (typical tool scuffs, battery holds solid charge)", key_features: "Includes 2 batteries, charger, heavy-duty contractor carrying bag" },
+    { item_name: "Herman Miller Aeron Chair (Size B, Graphite)", condition: "Very Good (light wear on armrest pads, mesh taut, all adjustments work)", key_features: "Fully loaded — lumbar support, adjustable arms, tilt limiter; from a closed office" },
     { item_name: "Apple iPad Air 5th Gen (64GB, Wi-Fi, Space Gray)", condition: "Mint (no scratches or scuffs, rarely left the desk)", key_features: "M1 chip model, includes original packaging and Apple Pencil 2" }
   ],
   'faceless-video': [
@@ -509,11 +509,11 @@ const NICHES_DICTIONARY = {
     { niche: "Financial literacy, compound interest explainers, and cashflow hacks" }
   ],
   'contractor-proposal': [
-    { project_name: "Modern Kitchen Backsplash Installation", scope: "Tile removal of 35 sq ft wall area, install subway glass tiles, grout with waterproof white grout, seal tiles." },
-    { project_name: "Wood Deck Re-staining & Sealing", scope: "Power-wash 20x15 ft outdoor pine deck, sand rough board surfaces, apply two coats of semi-transparent premium cedar stain." },
-    { project_name: "Smart Thermostat & Ring Doorbell Install", scope: "Mount and wire Google Nest 3rd Gen thermostat, mount Ring Video Doorbell Wired, configure apps, run functional testing." },
-    { project_name: "Basement Drywall Repair & Paint Match", scope: "Patch 3 large holes (approx 2x2 ft each) in drywall from water leak, mud, sand, match texture, apply two coats of matching eggshell paint." },
-    { project_name: "Seamless Gutter Guard Installation", scope: "Clean out 120 linear feet of residential aluminum gutters, install micro-mesh stainless steel gutter guards to prevent leaf debris clog." }
+    { project_name: "White-Label AI Workspace Rollout — 12 Client Accounts", scope: "Provision 12 branded client workspaces, configure lead routing and follow-up cadences per account, connect each to the client's CRM, hand off admin credentials and a partner runbook." },
+    { project_name: "Marketing Automation Migration — Marketo to HubSpot", scope: "Audit 40 active programs, rebuild lifecycle and nurture flows in HubSpot, migrate contact and activity history, re-map lead scoring, run two weeks of parallel sends before cutover." },
+    { project_name: "Outbound Lead Engine Buildout — Q3 Pilot", scope: "Define ICP and build a 5,000-contact verified list, stand up sending infrastructure with domain warmup, write and test a 4-step sequence, deliver weekly reply-rate reporting." },
+    { project_name: "SaaS Onboarding Funnel Optimization Retainer", scope: "Instrument activation events, run a 90-day experiment backlog against trial-to-paid conversion, rebuild the in-app onboarding checklist, deliver a monthly cohort readout." },
+    { project_name: "Reseller Enablement Program — Partner Launch", scope: "Build partner-facing documentation and demo environment, produce a co-branded pitch kit, train two partner sales reps, define deal-registration and margin structure." }
   ]
 };
 
@@ -826,19 +826,24 @@ app.post('/api/faceless-video', wrapAsync(async (req, res) => {
   res.json({ success: true, data });
 }));
 
-// 9. Contractor Proposal Polish (/api/contractor-proposal)
+// 9. Client Proposal Polish (/api/contractor-proposal)
 app.post('/api/contractor-proposal', wrapAsync(async (req, res) => {
   const { project_name, scope, buyer_email } = req.body;
   if (!project_name || !buyer_email) {
     return res.status(400).json({ success: false, error: 'Missing project_name or buyer_email.' });
   }
 
+  // The JSON keys are load-bearing — EXPECTED_KEYS validates against them and
+  // orchestrator.py emits the same shape — so "bill of materials" survives as a key
+  // name even though this now writes B2B statements of work, not trade estimates.
   const systemInstruction = `
-    Act as an elite construction and field services project estimator.
+    Act as an elite B2B services proposal writer producing a statement of work for a
+    software, SaaS, agency, or white-label partner engagement.
     Return a JSON object with:
     1. "polished_title": string.
     2. "executive_summary": string.
-    3. "detailed_bill_of_materials_milestones": array of strings.
+    3. "detailed_bill_of_materials_milestones": array of strings — the deliverables,
+       workstreams, and milestones for the engagement.
     4. "professional_closing_pitch": string.
   `;
   const prompt = `Project Name: ${project_name}\nScope of Work: ${scope || ''}`;
@@ -847,7 +852,7 @@ app.post('/api/contractor-proposal', wrapAsync(async (req, res) => {
   const renderedContent = renderJsonToHtml(data);
   const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['contractor-proposal'], { project_name, scope }, renderedContent);
 
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Contract Proposals`, emailHtml);
+  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Client Proposals`, emailHtml);
   logTransaction(buyer_email, 'contractor-proposal', 'success', data);
   res.json({ success: true, data });
 }));
@@ -932,7 +937,7 @@ async function triggerDailyNicheHustle() {
       prompt = `Draft 10 viral video scripts for the niche: ${randomTarget.niche}`;
       break;
     case 'contractor-proposal':
-      systemInstruction = `Act as an elite construction and field services project estimator. Return a JSON object with: "polished_title": string, "executive_summary": string, "detailed_bill_of_materials_milestones": array of strings, "professional_closing_pitch": string.`;
+      systemInstruction = `Act as an elite B2B services proposal writer producing a statement of work for a software, SaaS, agency, or white-label partner engagement. Return a JSON object with: "polished_title": string, "executive_summary": string, "detailed_bill_of_materials_milestones": array of strings (deliverables, workstreams, and milestones), "professional_closing_pitch": string.`;
       prompt = `Refine proposal for: ${randomTarget.project_name}\nScope: ${randomTarget.scope}`;
       break;
   }
@@ -1097,12 +1102,12 @@ async function processNicheForBuyer(niche, fields, buyerEmail) {
     case 'contractor-proposal': {
       const project_name = fields.projectname || '';
       const scope = fields.scopeofwork || '';
-      systemInstruction = `Act as an elite construction and field services project estimator. Return a JSON object with: 1. "polished_title": string. 2. "executive_summary": string. 3. "detailed_bill_of_materials_milestones": array of strings. 4. "professional_closing_pitch": string.`;
+      systemInstruction = `Act as an elite B2B services proposal writer producing a statement of work for a software, SaaS, agency, or white-label partner engagement. Return a JSON object with: 1. "polished_title": string. 2. "executive_summary": string. 3. "detailed_bill_of_materials_milestones": array of strings (deliverables, workstreams, and milestones). 4. "professional_closing_pitch": string.`;
       prompt = `Project Name: ${project_name}\nScope of Work: ${scope}`;
       data = await callGemini(prompt, systemInstruction, 'contractor-proposal');
       renderedContent = renderJsonToHtml(data);
       emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['contractor-proposal'], { project_name, scope }, renderedContent);
-      await sendHtmlEmail(buyerEmail, 'Your Contractor Proposal — Antigravity Engine', emailHtml);
+      await sendHtmlEmail(buyerEmail, 'Your Client Proposal — Antigravity Engine', emailHtml);
       logTransaction(buyerEmail, 'contractor-proposal', 'success', data);
       break;
     }
@@ -1932,12 +1937,12 @@ app.get('/', (req, res) => {
       { name: 'Vintage Flipper', endpoint: 'POST /api/vintage', desc: 'Appraise vintage items, generate eBay listings' },
       { name: 'KDP Books', endpoint: 'POST /api/kdp', desc: 'Optimize book launches, categories, keywords' },
       { name: 'Inventor Pitches', endpoint: 'POST /api/inventor', desc: 'Cold emails & elevator pitches for patents' },
-      { name: 'Voice Prompts', endpoint: 'POST /api/voice', desc: 'AI receptionist system instructions for Vapi' },
+      { name: 'Voice Prompts', endpoint: 'POST /api/voice', desc: 'AI intake/qualification agent instructions for Vapi' },
       { name: 'Review Replies', endpoint: 'POST /api/review-reply', desc: 'Sentiment detection & smart responses' },
       { name: 'Local SEO', endpoint: 'POST /api/local-seo', desc: 'GMB optimization, keywords, posts' },
       { name: 'Marketplace Ads', endpoint: 'POST /api/marketplace', desc: 'Classifieds copy & FAQs' },
       { name: 'Faceless Videos', endpoint: 'POST /api/faceless-video', desc: '10 viral short-form video scripts' },
-      { name: 'Contract Proposals', endpoint: 'POST /api/contractor-proposal', desc: 'Professional construction proposals' }
+      { name: 'Client Proposals', endpoint: 'POST /api/contractor-proposal', desc: 'B2B statements of work and client proposals' }
     ],
     admin: {
       logs: 'GET /api/admin/logs',

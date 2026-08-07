@@ -146,7 +146,7 @@ curl -X POST https://antigravity-orchestrator-kz94.onrender.com/webhook/lead \
 {
   "received": true,
   "status": "DISQUALIFIED",
-  "reason": "industry 'plumbing' not in qualified list — discard"
+  "reason": "industry 'retail store' not in qualified list — discard"
 }
 ```
 

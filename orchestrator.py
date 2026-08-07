@@ -65,7 +65,7 @@ DEPLOYER_NAME         = os.getenv("INVENTOR_NAME", "")
 DEPLOYER_EMAIL        = os.getenv("INVENTOR_EMAIL", "") or os.getenv("ADMIN_EMAIL", "")
 OFFER_NAME            = os.getenv("INVENTION_NAME", "") or PRICING["offerName"]
 OFFER_SUMMARY         = os.getenv("INVENTION_SUMMARY", "")
-PROOF_URL             = os.getenv("PROOF_URL", "https://missedcallproject.com")
+PROOF_URL             = os.getenv("PROOF_URL", "https://master-hustle-engine.onrender.com/pitch")
 # Legacy override of the monthly figure only; the price itself lives in pricing.json.
 DEPLOYMENT_FEE        = os.getenv("DEPLOYMENT_FEE", "") or str(PRICING["monthly"])
 STRIPE_PAYMENT_LINK   = os.getenv("STRIPE_PAYMENT_LINK", "")
