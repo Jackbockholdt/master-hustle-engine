@@ -22,9 +22,9 @@
 ### The Offer
 
 - **Product:** White-Label AI Infrastructure License
-- **Price:** $4,000 to start ($2,500 setup + first month), then $1,500/month recurring
+- **Price:** $1,500/month (recurring)
 - **Target:** Digital marketing agencies who white-label the system and resell to local business clients
-- **Value Math:** Agencies pay $4,000 to start, then $1,500/mo, and resell to 3–5 clients at $500–$1,000/month each → break-even fast + pure margin after
+- **Value Math:** Agencies license for $1,500/mo and resell to 3–5 clients at $500–$1,000/month each → break-even day one + pure margin after
 - **What's Included:** 9 production-ready AI skills (call catching, voice agent, lead sorting, web pages, email handling, KDP publishing, vintage appraisal, hemp reviews, inventor outreach)
 
 ---
@@ -54,7 +54,7 @@ All required vars are **already configured in Render**. Do not change unless nee
 | `STRIPE_PAYMENT_LINK` | Payment checkout link in pitches | ✅ Configured |
 | `INVENTOR_NAME`, `INVENTOR_EMAIL` | Deployer contact info | ✅ Configured |
 | `INVENTION_NAME`, `INVENTION_SUMMARY` | Offer title and description | ✅ Configured (auto-generates if empty) |
-| `DEPLOYMENT_FEE` | Legacy override of the monthly figure — leave unset | Price now lives in `config/pricing.json` |
+| `DEPLOYMENT_FEE` | Monthly license price | ✅ Configured: $1,500 |
 
 ---
 
@@ -146,7 +146,7 @@ curl -X POST https://antigravity-orchestrator-kz94.onrender.com/webhook/lead \
 {
   "received": true,
   "status": "DISQUALIFIED",
-  "reason": "industry 'retail store' not in qualified list — discard"
+  "reason": "industry 'plumbing' not in qualified list — discard"
 }
 ```
 

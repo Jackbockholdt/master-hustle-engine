@@ -3,8 +3,8 @@
 **Product:** White-Label AI Infrastructure License
 **Buyer:** Digital marketing / lead-gen agency owners and tech/SaaS founders (1–50 employees) who resell to their own clients
 **Pricing:**
-- **The offer (one price):** $4,000 to start ($2,500 setup + first month), then $1,500/month
-- **$25,000 codebase buyout:** live-call price anchor only — never quoted in a cold sequence
+- **Option A — Agency White-Label License:** $2,500 setup + $1,500/month
+- **Option B — Full Codebase / IP Buyout:** $25,000 one-time
 
 **Context:** Gumloop scraping is currently down, so this campaign is run **manually**. Pull 20–30 agency owners from LinkedIn or Apollo, send the sequences below by hand, and deliver access via GitHub repo invite once they buy. At this price point, high-ticket buyers prefer a personal touch — manual outreach is a feature, not a fallback.
 
@@ -22,7 +22,7 @@ Short, native, no links in the first message (LinkedIn suppresses reach on link-
 > Hey [First Name] — I work with agency owners who want to add an AI automation line without building or hiring for it. You white-label a production engine, put your brand on it, and resell it to your own clients on a monthly. Open to me sending over the 2-minute version?
 
 ### DM 2 — The Math (send on reply, or 2–3 days later if no reply)
-> Appreciate it. Quick version: it's a white-label AI infrastructure license. You license the engine, resell access to your clients, and the math carries the pitch — resell to 3 clients at $500/mo and you're already break-even on the monthly license, everything after is margin. It's $4,000 to start — the $2,500 setup plus your first month — then $1,500/mo. Worth a 15-min screen share so you can see the actual dashboard, not a deck?
+> Appreciate it. Quick version: it's a white-label AI infrastructure license. You license the engine, resell access to your clients, and the math carries the pitch — resell to 3 clients at $500/mo and you're already break-even on the monthly license, everything after is margin. Setup is $2,500, then $1,500/mo. If you'd rather own it outright there's a one-time buyout too. Worth a 15-min screen share so you can see the actual dashboard, not a deck?
 
 ### DM 3 — Soft Close (2–3 days later if no booking)
 > No pressure either way, [First Name]. If it's useful, here's where you can see it live and grab a time: [CALENDAR_LINK]. If AI isn't on your roadmap this quarter, just say the word and I'll get out of your inbox — I know how it fills up.
@@ -43,7 +43,8 @@ I'll keep this short. I license a production AI automation engine to agency owne
 The reason it works is the math, not the tech:
 
 - Resell to **3 clients at $500/mo** and you've already covered the license — everything after that is margin.
-- **$4,000 to start** (the $2,500 setup + your first month), then **$1,500/month**. One price, everything included.
+- Setup is **$2,500**, then **$1,500/month**.
+- Prefer to own it outright? There's a **$25,000 one-time buyout** of the full codebase.
 
 It's live software, not a PDF — so the honest way to evaluate it is 15 minutes on a screen share looking at the real dashboard.
 
@@ -64,7 +65,7 @@ Following up on the white-label AI engine — figured I'd share the part that ac
 
 Most agency services (ads, SEO, social) churn the moment results plateau. An AI service that's embedded in how your client operates doesn't — it becomes infrastructure they don't want to switch off. That's the stickiest recurring revenue an agency can sell, and you're reselling it under your own brand with zero fulfillment hours once it's set up.
 
-You license it once ($4,000 to start, then $1,500/mo), resell it as many times as you can close. Three clients and you're net positive.
+You license it once ($2,500 setup, $1,500/mo), resell it as many times as you can close. Three clients and you're net positive.
 
 I'd rather show you than tell you. 15 minutes, screen share, the real product:
 

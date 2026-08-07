@@ -42,8 +42,7 @@
   .f h3{font-size:1.05rem;margin-bottom:6px}
   .f p{color:var(--muted);font-size:.94rem}
   .f ul{margin:10px 0 0 18px;color:var(--muted);font-size:.9rem}
-  /* Single offer — one centered card rather than a menu of tiers. */
-  .pricing{display:grid;grid-template-columns:1fr;gap:20px;align-items:stretch;max-width:520px;margin:0 auto}
+  .pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:stretch}
   .card{position:relative;background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:20px;padding:30px;display:flex;flex-direction:column}
   .card.hot{border-color:rgba(110,231,183,.45);box-shadow:0 24px 60px -30px rgba(110,231,183,.5)}
   .tag{position:absolute;top:-12px;right:22px;background:linear-gradient(135deg,var(--a),var(--b));color:#06121a;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px}
@@ -108,29 +107,49 @@
   </section>
 
   <section id="pricing" class="wrap">
-    <div class="head"><h2>One price. Everything included.</h2><p>We build it, brand it, host it, and maintain it. You sell it.</p></div>
+    <div class="head"><h2>Three ways to run it</h2><p>Deploy it for you, license it to you, or hand you the keys entirely.</p></div>
     <div class="pricing">
 
-      <div class="card hot"><span class="tag">White-Label Agency AI Infrastructure</span>
+      <div class="card hot"><span class="tag">Most Popular</span>
         <h3>Done-For-You Deployment</h3>
         <p class="blurb">We build, brand, host, and maintain the whole stack.</p>
-        <div class="price">$4,000 to start <small>then $1,500/mo</small></div>
-        <p class="blurb">$2,500 setup + your first month, billed together at signing.</p>
+        <div class="price">$2,500 setup <small>+ $1,500/mo license</small></div>
         <ul class="list">
           <li>Full white-label build under your brand</li>
           <li>Routing, follow-ups, and AI workflows configured</li>
           <li>Hosting, monitoring, and maintenance included</li>
-          <li>Unlimited client workspaces under your brand</li>
           <li>Priority support and monthly optimization</li>
         </ul>
         <a class="btn p1" href="https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G">Start Deployment</a>
       </div>
 
+      <div class="card">
+        <h3>White-Label Partner License</h3>
+        <p class="blurb">You run it yourself. No setup fee.</p>
+        <div class="price">$1,500/mo <small>+ usage</small></div>
+        <ul class="list">
+          <li>Self-serve onboarding and documentation</li>
+          <li>Unlimited client workspaces under your brand</li>
+          <li>Metered usage billed monthly</li>
+          <li>Standard support</li>
+        </ul>
+        <a class="btn gh" href="#pricing">Become a Partner</a>
+      </div>
+
+      <div class="card">
+        <h3>Complete IP Buyout</h3>
+        <p class="blurb">Own the codebase outright. No recurring fee.</p>
+        <div class="price">$25,000 <small>one-time</small></div>
+        <ul class="list">
+          <li>Full source, assets, and workflow ownership</li>
+          <li>Unlimited deployments, no license terms</li>
+          <li>Complete handover, docs, and training</li>
+          <li>30 days of transition support</li>
+        </ul>
+        <a class="btn gh" href="https://buy.stripe.com/bJecN4al44iL5C7bsX0000H">Acquire the IP</a>
+      </div>
+
     </div>
-    <p class="sub" style="text-align:center;margin-top:24px">
-      Prefer to own the codebase outright instead of licensing it? A full IP buyout runs $25,000 one-time —
-      <a href="#pricing">ask about it on the demo call</a>. Most agencies find the license pays for itself long before that math works.
-    </p>
   </section>
 
   <section id="faq" class="wrap">
@@ -138,8 +157,7 @@
     <div class="faq">
       <div><h4>Is it genuinely white-label?</h4><p>Yes. Your brand, your domain, your client relationships. Nothing points back to us.</p></div>
       <div><h4>How fast does it go live?</h4><p>Standard deployments run days, not months, once branding and access are provided.</p></div>
-      <div><h4>What exactly is the $4,000?</h4><p>The $2,500 setup fee plus your first month, billed together at signing. After that it's a flat $1,500/month. No usage surcharges, no tiers.</p></div>
-      <div><h4>Can I buy the codebase instead?</h4><p>A full IP buyout is $25,000 one-time. If you go that route later, your setup fee and paid license months are credited toward it.</p></div>
+      <div><h4>Can I move from license to buyout?</h4><p>Yes. Setup and paid license months are credited toward the $25,000 buyout.</p></div>
       <div><h4>What do you need from me?</h4><p>Logo, domain, inbox and CRM access, and your offer details. We handle the build.</p></div>
       <div><h4>What happens to usage costs?</h4><p>The token router keeps model spend low and meters it per workspace so you can bill clients accurately.</p></div>
       <div><h4>Do you work with my stack?</h4><p>The engine integrates with mainstream CRMs, inboxes, and billing systems. Ask about anything unusual.</p></div>
@@ -147,8 +165,8 @@
   </section>
 
   <section class="wrap"><div class="final">
-    <h2 style="font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.03em">Watch the 60-second demo, then start your deployment.</h2>
-    <p class="sub">$4,000 to start, then $1,500/month. One price, everything included.</p>
+    <h2 style="font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.03em">Watch the 60-second demo, then pick a tier.</h2>
+    <p class="sub">Most agencies start with the done-for-you deployment and upgrade later.</p>
     <div class="cta-row">
       <a class="btn p1" href="#pricing">See Pricing</a>
       <a class="btn gh" href="#demo">Watch Demo</a>

@@ -10,8 +10,6 @@ services:
     buildCommand: npm install
     startCommand: node server.js
     envVars:
-      # Render injects its own PORT; this pins the value the service binds to.
-      # Local dev defaults to 3005 (see .env.example and config/env.js).
       - key: PORT
         value: 10000
       - key: GEMINI_API_KEY
@@ -63,19 +61,15 @@ services:
         sync: false
         placeholder: "your@email.com"
       - key: INVENTION_NAME
-        value: "White-Label Agency AI Infrastructure"
+        value: "White-Label AI Infrastructure License"
       - key: INVENTION_SUMMARY
         sync: false
         placeholder: "One-paragraph description of what you are licensing"
       - key: PROOF_URL
         sync: false
         placeholder: "https://yourdemosite.com"
-      # Pricing lives in config/pricing.json — the single authority read by both
-      # server.js and orchestrator.py. DEPLOYMENT_FEE is a legacy override of the
-      # monthly figure only; leaving it unset keeps the price in one place.
       - key: DEPLOYMENT_FEE
-        sync: false
-        placeholder: "leave empty — price comes from config/pricing.json"
+        value: "1500"
       - key: STRIPE_PAYMENT_LINK
         sync: false
         placeholder: "https://buy.stripe.com/..."
