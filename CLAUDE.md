@@ -4,7 +4,7 @@
 
 This repository exists for exactly one purpose: selling the **White-Label Agency AI Infrastructure** offer.
 
-All work — code, copy, outreach, tooling — must serve that single objective. If a task does not move a qualified agency owner closer to purchasing one of the three tiers below, it is out of scope.
+All work — code, copy, outreach, tooling — must serve that single objective. If a task does not move a qualified agency owner closer to purchasing the single offer below, it is out of scope.
 
 **Status: pivoted from building to selling.** Feature work is frozen unless it directly unblocks a sale or a demo.
 
@@ -19,19 +19,27 @@ Core technical assets:
 
 ## Pricing Model (canonical — do not deviate)
 
-| Tier | Name | Price |
-|------|------|-------|
-| 1 | Done-For-You Agency Deployment | $2,500 setup + $1,500/mo license |
-| 2 | White-Label Partner License | $1,500/mo + usage |
-| 3 | Complete IP / Codebase Buyout | $25,000 one-time |
+**There is exactly ONE offer. The tiered menu is gone — do not reintroduce it.**
 
-**Tier 1 — Done-For-You Agency Deployment.** We build, brand, host, and maintain the full stack for the client. Includes configuration of lead routing, follow-up cadences, and AI workflows, plus ongoing monitoring, support, and monthly optimization.
+| | Amount |
+|---|---|
+| Due at signing | **$4,000** ($2,500 setup + first month) |
+| Recurring | **$1,500/month** |
 
-**Tier 2 — White-Label Partner License.** The client runs the stack themselves under their brand. Monthly license plus metered usage. Self-serve onboarding, documentation, and standard support. No setup fee — this tier is for partners who already have technical capacity.
+**White-Label Agency AI Infrastructure.** We build, brand, host, and maintain the full stack for the agency. Includes configuration of lead routing, follow-up cadences, and AI workflows, plus ongoing monitoring, support, and monthly optimization. The agency resells it to their own clients under their own name.
 
-**Tier 3 — Complete IP / Codebase Buyout.** Full transfer of source, assets, and workflow ownership. Unlimited deployments, complete handover, documentation, training, and 30 days of transition support. This tier primarily functions as a price anchor; Tier 1 is the conversion target.
+**The $25,000 codebase buyout is a price anchor only.** It may appear in human-facing sales copy — landing pages, the one-pager, a live conversation — to frame the license as the cheaper path. It must **never** be quoted as a purchasable option in an API response or in automated outbound email. Setup fees and paid license months may be credited toward a buyout if one is negotiated.
 
-Setup fees and paid license months may be credited toward a Tier 3 buyout.
+### Where the price lives
+
+`config/pricing.json` is the single pricing authority. `config/pricing.js` (Node) and `orchestrator.py` (Python) both read it.
+
+- Never hardcode a dollar figure in application code — import it.
+- `quotableOffer()` is what endpoint responses and automated email must use; it deliberately omits the buyout.
+- `salesCopyOffer()` includes the buyout and is for human-facing pages only.
+- The `DEPLOYMENT_FEE` env var survives only as a legacy override of the monthly figure. Leave it unset.
+
+Static HTML sales pages carry the price inline by necessity. If the price changes, update `config/pricing.json` **and** grep the repo for the old figure.
 
 ## Deprecated — Do Not Reintroduce
 

@@ -26,8 +26,21 @@ const cron = require('node-cron');
 const path = require('path');
 const fs = require('fs');
 const Stripe = require('stripe');
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const https = require('https');
+
+// Environment audit runs before anything else touches process.env so the safe
+// defaults it applies (PORT, send caps, batch sizing) are in place for the
+// module-level config reads below.
+const { auditEnv } = require('./config/env');
+const ENV_REPORT = auditEnv();
+
+// Single pricing authority — never hardcode a dollar figure in this file.
+const { PRICING, quotableOffer } = require('./config/pricing');
+
+// Stripe's constructor throws on a missing key, which used to take the whole
+// process down at require time. Degrade instead: the webhook route returns 503
+// and every other feature — cron, outreach, admin — keeps running.
+const stripe = ENV_REPORT.features.stripe ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 const app = express();
 app.use(express.json({
@@ -36,7 +49,7 @@ app.use(express.json({
   }
 }));
 
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3005', 10);
 // SQLite lives on the Render persistent disk so the suppression list, queues,
 // and send history survive deploys. /data is the primary mount point; /var/data
 // is also detected in case the disk was mounted there. A candidate only wins if
@@ -60,10 +73,12 @@ console.log(`[SQLite] Database path: ${DB_PATH}${DATA_DIR ? ' (persistent disk)'
 // B2B Sales Engine Config
 const B2B_DEPLOYER_NAME  = process.env.INVENTOR_NAME || '';
 const B2B_DEPLOYER_EMAIL = process.env.INVENTOR_EMAIL || process.env.ADMIN_EMAIL || '';
-const B2B_OFFER_NAME     = process.env.INVENTION_NAME || 'White-Label AI Infrastructure License';
+const B2B_OFFER_NAME     = process.env.INVENTION_NAME || PRICING.offerName;
 const B2B_OFFER_SUMMARY  = process.env.INVENTION_SUMMARY || '';
 const B2B_PROOF_URL      = process.env.PROOF_URL || 'https://master-hustle-engine.onrender.com/pitch';
-const B2B_DEPLOYMENT_FEE = process.env.DEPLOYMENT_FEE || '1500';
+// Monthly license fee. Sourced from config/pricing.json — DEPLOYMENT_FEE is kept
+// only so an existing Render env var doesn't silently change the price on deploy.
+const B2B_DEPLOYMENT_FEE = process.env.DEPLOYMENT_FEE || String(PRICING.monthly);
 const B2B_PAYMENT_LINK   = process.env.STRIPE_PAYMENT_LINK || '';
 const B2B_BATCH_HOURS    = parseInt(process.env.BATCH_INTERVAL_HOURS || '6');
 const B2B_BATCH_SIZE     = parseInt(process.env.BATCH_SIZE || '10');
@@ -255,7 +270,7 @@ async function sendAdminAlert(context, errorStack) {
 }
 
 // Reusable Helper: Notify admin of a completed White-Label License purchase
-// (the $1,500/mo flagship offer — sold via a Stripe Payment Link with no
+// (the single White-Label offer — sold via a Stripe Payment Link with no
 // "niche" metadata, so it doesn't run through processNicheForBuyer).
 async function notifyAdminOfLicensePurchase(session, buyerEmail) {
   const adminEmail = process.env.ADMIN_EMAIL;
@@ -938,6 +953,12 @@ async function triggerDailyNicheHustle() {
 
 // Safe cron executor that reports stack trace to admin on any failure
 async function triggerDailyNicheHustleSafe() {
+  // Without a model or a mailer the daily cycle can only fail — skip the run
+  // rather than generating a stack trace nobody can act on from inside the box.
+  if (!ENV_REPORT.features.ai || !ENV_REPORT.features.outboundEmail) {
+    console.warn('[Cron Engine] Skipped daily run — engine is degraded (see GET /health).');
+    return;
+  }
   try {
     await triggerDailyNicheHustle();
   } catch (err) {
@@ -1091,6 +1112,13 @@ async function processNicheForBuyer(niche, fields, buyerEmail) {
 }
 
 app.post('/api/stripe-webhook', async (req, res) => {
+  // Degraded mode: no STRIPE_SECRET_KEY means no client to verify with. Say so
+  // explicitly — Stripe retries a 503, so nothing is lost once the key is set.
+  if (!stripe) {
+    console.warn('[Stripe Webhook] Received a webhook but STRIPE_SECRET_KEY is not set — cannot verify signature.');
+    return res.status(503).json({ error: 'Stripe is not configured on this instance.' });
+  }
+
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -1127,8 +1155,8 @@ app.post('/api/stripe-webhook', async (req, res) => {
         await sendAdminAlert(`Stripe purchase processing failed — niche: ${niche}, buyer: ${buyerEmail}`, err.stack || err.message);
       });
     } else {
-      // No "niche" metadata means this came through the flagship $1,500/mo
-      // White-Label AI Infrastructure License payment link, not one of the
+      // No "niche" metadata means this came through the White-Label Agency AI
+      // Infrastructure payment link (see config/pricing.js), not one of the
       // legacy one-off niche tools. Notify Jack for manual onboarding and
       // confirm receipt to the buyer.
       logTransaction(buyerEmail, 'white-label-license', 'success', JSON.stringify({ session: session.id, amount_total: session.amount_total }));
@@ -1191,6 +1219,13 @@ async function sendSms(to, body) {
 // Send plain-text pitch email — routes through Gmail HTTPS relay first (bypasses Render's SMTP block),
 // falls back to direct SMTP only if relay is not configured.
 async function sendPitchEmail(toEmail, subject, body, campaignId = '') {
+  // No mailer configured — fail loudly but with a typed error the schedulers can
+  // recognise, so a queued lead stays pending instead of being burned as 'failed'.
+  if (!ENV_REPORT.features.outboundEmail) {
+    const err = new Error('Outbound email is not configured (set GMAIL_HTTP_URL or SMTP_USER + SMTP_PASS).');
+    err.code = 'MAILER_NOT_CONFIGURED';
+    throw err;
+  }
   await sendEmailViaRelayOrSmtp(toEmail, subject, body);
   await dbRun('INSERT INTO send_log (sent_to, campaign) VALUES (?, ?)', [toEmail, campaignId])
     .catch(err => console.warn('[Send Log] Failed to record send:', err.message));
@@ -1398,9 +1433,12 @@ async function generatePitchCopy(company, deployerName, deployerEmail, proofUrl,
     '4. Present the offer as a complete 9-skill AI infrastructure backend (call catching, voice agent, lead sorting, web pages, email handling) they can resell tonight — no dev team, no build time. ' +
     '5. Include exactly 3 value bullets: (a) the resell math/break-even, (b) zero dev/maintenance burden, (c) sticky recurring revenue. ' +
     `6. End CTA: request a 15-min screen-share demo. Close with ${ctaLinks}. ` +
-    '7. No buzzwords, no hype. Direct, peer-to-peer, confident tone.'
+    '7. No buzzwords, no hype. Direct, peer-to-peer, confident tone. ' +
+    `8. PRICING IS FIXED — there is exactly one offer: ${PRICING.display.headline}. ` +
+    'If you mention price at all, state it in exactly those terms. Never invent a discount, ' +
+    'a free trial, a waived setup fee, a tiered menu, or any other number.'
   );
-  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Monthly fee: $${fee}. Target company: ${company}.`;
+  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Monthly fee: $${fee}. Target company: ${company}.`;
   const pitch = await callGemini(prompt, systemInstruction, 'pitch-email');
   if (!(pitch.body || '').toLowerCase().includes(company.toLowerCase())) {
     pitch.body = `I'm reaching out to ${company} specifically because ${pitch.body}`;
@@ -1421,9 +1459,12 @@ async function generateFollowupCopy(step, company, deployerName, deployerEmail, 
     'Return JSON only: {"subject":"string max 60 chars","body":"string max 180 words"}. ' +
     `${angles[step]} ` +
     'The body MUST name the target company. Frame the offer as a white-label AI infrastructure license the agency resells to its own local business clients as a new revenue line. ' +
-    `Close with ${ctaLinks}. No buzzwords, no hype. Direct, peer-to-peer tone.`
+    `Close with ${ctaLinks}. No buzzwords, no hype. Direct, peer-to-peer tone. ` +
+    `PRICING IS FIXED — there is exactly one offer: ${PRICING.display.headline}. ` +
+    'If you mention price at all, state it in exactly those terms. Never invent a discount, ' +
+    'a free trial, a waived setup fee, a tiered menu, or any other number.'
   );
-  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Monthly fee: $${fee}. Target company: ${company}.`;
+  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Monthly fee: $${fee}. Target company: ${company}.`;
   const result = await callGemini(prompt, systemInstruction, 'followup-email');
   return { subject: result.subject, body: result.body };
 }
@@ -1444,7 +1485,7 @@ async function runInventionOutreach(payload) {
     offerSummary = (
       `${offerName} is a complete, production-ready 9-skill AI infrastructure backend (call catching, voice agent, ` +
       `web page creation, lead sorting, email handling, and more) that agencies white-label under their own brand and ` +
-      `resell to local business clients. Agencies license it for a flat $${fee}/month and resell access to 3-5 clients ` +
+      `resell to local business clients. ${PRICING.display.headline}. Agencies resell access to 3-5 clients ` +
       `at $500-$1,000/month each — break-even from month one, pure margin after. No dev team, no build time, no maintenance. Proof: ${proofUrl}`
     );
   }
@@ -1522,7 +1563,7 @@ const TEMPLATE_CAMPAIGNS = {
         body:
           'Hi {{first_name}},\n\n' +
           "Last note from me. If reselling AI services to your clients isn't a priority this quarter, no problem.\n\n" +
-          "If it is: I'm onboarding a few agency partners now at pilot pricing to build case studies. Once those slots fill, pricing goes up.\n\n" +
+          "If it is: I'm onboarding a limited number of agency partners now, and I'd rather it be you than a competitor in your market.\n\n" +
           'If timing changes, reply anytime.\n\n' +
           'Jack Bockholdt\n\n' +
           'P.S. Reply "unsubscribe" and I won\'t contact you again.',
@@ -1902,7 +1943,28 @@ app.get('/', (req, res) => {
       logs: 'GET /api/admin/logs',
       triggerDaily: 'POST /api/admin/trigger-daily'
     },
+    // The single offer. Sourced from config/pricing.js — the buyout is a sales
+    // anchor, not a purchasable option, so it is deliberately absent here.
+    offer: quotableOffer(),
+    health: 'GET /health',
     message: 'All 9 skills active. Cron fires daily at 8:00 AM. Ready to use!'
+  });
+});
+
+// Machine-readable health check — reports which features are live vs degraded so
+// a missing key is visible from outside the box without reading deploy logs.
+app.get('/health', (req, res) => {
+  const degraded = ENV_REPORT.missing.length > 0;
+  res.status(degraded ? 503 : 200).json({
+    status: degraded ? 'degraded' : 'ok',
+    port: PORT,
+    uptime_seconds: Math.round(process.uptime()),
+    features: ENV_REPORT.features,
+    mailer: ENV_REPORT.mailer,
+    missing_config: ENV_REPORT.missing,
+    defaults_applied: ENV_REPORT.defaultsApplied,
+    offer: quotableOffer(),
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -2236,8 +2298,16 @@ app.use(async (err, req, res, next) => {
   }
 });
 
+// Outbound needs both a mailer and a model. Without either, the batch loops would
+// just burn queued leads on guaranteed failures every tick, so they idle instead.
+const OUTBOUND_READY = ENV_REPORT.features.outboundEmail && ENV_REPORT.features.ai;
+
 // Background: process lead queue every BATCH_INTERVAL_HOURS hours
 setInterval(async () => {
+  if (!OUTBOUND_READY) {
+    console.warn('[Lead Scheduler] Skipped — outbound is degraded (see GET /health). Queue left untouched.');
+    return;
+  }
   console.log('[Lead Scheduler] Firing lead batch run');
   try {
     await processLeadQueue();
@@ -2246,10 +2316,14 @@ setInterval(async () => {
     await sendAdminAlert('Lead Queue Batch Run Failed', err.stack || err.message);
   }
 }, B2B_BATCH_HOURS * 60 * 60 * 1000);
-console.log(`[Lead Scheduler] Armed — runs every ${B2B_BATCH_HOURS}h`);
+console.log(`[Lead Scheduler] Armed — runs every ${B2B_BATCH_HOURS}h${OUTBOUND_READY ? '' : ' (IDLE — outbound degraded)'}`);
 
 // Background: send due follow-ups every hour
 setInterval(async () => {
+  if (!OUTBOUND_READY) {
+    console.warn('[Follow-up Scheduler] Skipped — outbound is degraded (see GET /health). Due follow-ups stay pending.');
+    return;
+  }
   try {
     const due = await fetchDueFollowUps();
     for (const fu of due) {
@@ -2267,6 +2341,12 @@ setInterval(async () => {
         await markFollowUp(fu.id, 'sent');
         console.log(`[Follow-up Scheduler] Sent step ${fu.step} → ${fu.contact_email}`);
       } catch (err) {
+        // A config gap isn't this lead's fault — leave it pending so it goes out
+        // once the mailer is set, rather than marking it permanently failed.
+        if (err.code === 'MAILER_NOT_CONFIGURED') {
+          console.warn(`[Follow-up Scheduler] Mailer unconfigured — step ${fu.step} → ${fu.contact_email} stays pending.`);
+          break;
+        }
         await markFollowUp(fu.id, 'failed');
         console.error(`[Follow-up Scheduler] Failed → ${fu.contact_email}: ${err.message}`);
       }
@@ -2320,4 +2400,6 @@ if (GUMLOOP_API_KEY && GUMLOOP_USER_ID && GUMLOOP_ITEM_ID) {
 // Start Server
 app.listen(PORT, () => {
   console.log(`[Server] Antigravity Master Engine running on port ${PORT}`);
+  console.log(`[Server] Local: http://localhost:${PORT}  |  Health: http://localhost:${PORT}/health`);
+  console.log(`[Offer]  ${PRICING.display.headline}`);
 });
