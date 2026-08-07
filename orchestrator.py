@@ -45,13 +45,29 @@ DB_PATH            = os.getenv("DB_PATH", "orchestrator_audit.sqlite")
 SKILLS_DIR         = Path(__file__).parent / "skills"
 REVIEW_DIR         = Path(__file__).parent / "manual_review"
 
+# ── PRICING (single authority — shared with Node via config/pricing.json) ─────
+# Do not hardcode a dollar figure anywhere in this file; read it from here.
+with open(Path(__file__).parent / "config" / "pricing.json", encoding="utf-8") as _pf:
+    PRICING = json.load(_pf)
+
+def _money(n: int) -> str:
+    return f"${n:,}"
+
+# The canonical one-line quote. If price is stated at all, it is stated like this.
+PRICE_HEADLINE = (
+    f"{_money(PRICING['dueAtSigning'])} to start "
+    f"({_money(PRICING['setupFee'])} setup + first month), "
+    f"then {_money(PRICING['monthly'])}/month"
+)
+
 # ── B2B SALES ENGINE CONFIG (set once in Render; used by /skill/invention-outreach) ──
 DEPLOYER_NAME         = os.getenv("INVENTOR_NAME", "")
 DEPLOYER_EMAIL        = os.getenv("INVENTOR_EMAIL", "") or os.getenv("ADMIN_EMAIL", "")
-OFFER_NAME            = os.getenv("INVENTION_NAME", "White-Label AI Infrastructure License")
+OFFER_NAME            = os.getenv("INVENTION_NAME", "") or PRICING["offerName"]
 OFFER_SUMMARY         = os.getenv("INVENTION_SUMMARY", "")
-PROOF_URL             = os.getenv("PROOF_URL", "https://missedcallproject.com")
-DEPLOYMENT_FEE        = os.getenv("DEPLOYMENT_FEE", "1500")
+PROOF_URL             = os.getenv("PROOF_URL", "https://master-hustle-engine.onrender.com/pitch")
+# Legacy override of the monthly figure only; the price itself lives in pricing.json.
+DEPLOYMENT_FEE        = os.getenv("DEPLOYMENT_FEE", "") or str(PRICING["monthly"])
 STRIPE_PAYMENT_LINK   = os.getenv("STRIPE_PAYMENT_LINK", "")
 QUALIFIED_INDUSTRIES  = [i.strip().lower() for i in os.getenv(
     "TARGET_INDUSTRIES",
@@ -955,7 +971,7 @@ async def skill_invention_outreach(payload: dict) -> dict:
             f"{offer_name} is a complete, production-ready 9-skill AI infrastructure backend "
             "(call catching, voice agent, web page creation, lead sorting, email handling, and more) "
             "that agencies white-label under their own brand and resell to local business clients. "
-            f"Agencies license it for a flat ${fee}/month and resell access to 3-5 clients at "
+            f"{PRICE_HEADLINE}. Agencies resell access to 3-5 clients at "
             "$500-$1,000/month each — break-even from month one, pure margin after. No dev team, "
             f"no build time, no maintenance. Proof: {proof_url}"
         )
@@ -979,11 +995,14 @@ async def skill_invention_outreach(payload: dict) -> dict:
             f"6. End CTA: request a 15-min screen-share demo. Close with proof link: {proof_url}"
             + (f" and payment/booking link: {STRIPE_PAYMENT_LINK}" if STRIPE_PAYMENT_LINK else "")
             + f" and contact email {{{{DEPLOYER_EMAIL}}}}. "
-            "7. No buzzwords, no hype, no mockups. Direct, peer-to-peer, confident tone."
+            "7. No buzzwords, no hype, no mockups. Direct, peer-to-peer, confident tone. "
+            f"8. PRICING IS FIXED — there is exactly one offer: {PRICE_HEADLINE}. "
+            "If you mention price at all, state it in exactly those terms. Never invent a discount, "
+            "a free trial, a waived setup fee, a tiered menu, or any other number."
         )
         prompt = (
             f"Deployer: {deployer_name}. Offer: {offer_name}. "
-            f"Summary: {offer_summary}. Monthly fee: ${fee}. "
+            f"Summary: {offer_summary}. Price: {PRICE_HEADLINE}. Monthly fee: ${fee}. "
             f"Target company: {company}."
         )
         raw = await call_gemini(prompt, system, json_mode=True)
@@ -1069,11 +1088,14 @@ async def _generate_followup_copy(
         "license the agency resells to its own local business clients as a new revenue line. "
         f"Close with proof link: {proof_url}"
         + (f" and payment/booking link: {STRIPE_PAYMENT_LINK}" if STRIPE_PAYMENT_LINK else "")
-        + f" and contact email {deployer_email}. No buzzwords, no hype. Direct, peer-to-peer tone."
+        + f" and contact email {deployer_email}. No buzzwords, no hype. Direct, peer-to-peer tone. "
+        + f"PRICING IS FIXED — there is exactly one offer: {PRICE_HEADLINE}. "
+        + "If you mention price at all, state it in exactly those terms. Never invent a discount, "
+        + "a free trial, a waived setup fee, a tiered menu, or any other number."
     )
     prompt = (
         f"Deployer: {deployer_name}. Offer: {offer_name}. Summary: {offer_summary}. "
-        f"Monthly fee: ${fee}. Target company: {company}."
+        f"Price: {PRICE_HEADLINE}. Monthly fee: ${fee}. Target company: {company}."
     )
     raw = await call_gemini(prompt, system, json_mode=True)
     pitch = json.loads(_clean_json(raw))

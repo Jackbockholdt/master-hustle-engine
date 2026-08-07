@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Antigravity — White-Label AI Infrastructure for Agencies</title>
-<meta name="description" content="License a production AI automation engine, put your brand on it, and resell it to your clients. $2,500 setup + $1,500/mo, or a $25,000 one-time buyout.">
+<meta name="description" content="License a production AI automation engine, put your brand on it, and resell it to your clients. $4,000 to start ($2,500 setup + first month), then $1,500/mo.">
 <style>
   :root{
     --bg:#0d1826; --bg2:#111f31; --card:#ffffff; --ink:#16233a; --mut:#5a6b82;
@@ -60,7 +60,8 @@
   .band p{color:var(--hero-mut);margin-top:14px;font-size:16px}
 
   /* pricing */
-  .price-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;align-items:stretch}
+  /* Single offer — one centered card rather than a menu of tiers. */
+  .price-grid{display:grid;grid-template-columns:1fr;gap:22px;align-items:stretch;max-width:520px;margin:0 auto}
   .plan{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:34px;display:flex;flex-direction:column}
   .plan.feature{border:2px solid var(--brand);box-shadow:0 14px 40px rgba(18,184,134,.14)}
   .plan .tag{font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand);margin-bottom:10px}
@@ -168,15 +169,16 @@
 <section id="pricing">
   <div class="wrap">
     <p class="eyebrow" style="color:var(--brand-d)">Pricing</p>
-    <h2>Two ways to own it</h2>
-    <p class="sec-intro">License it and resell under your brand, or buy the codebase outright and run it yourself.</p>
+    <h2>One price</h2>
+    <p class="sec-intro">License it, put your brand on it, and resell it to your clients. Everything included.</p>
     <div class="price-grid">
 
       <div class="plan feature">
-        <span class="tag">Option A · Most popular</span>
+        <span class="tag">White-Label Agency AI Infrastructure</span>
         <h3>Agency White-Label License</h3>
-        <div class="amt">$2,500 <small>setup</small></div>
+        <div class="amt">$4,000 <small>to start</small></div>
         <div class="amt2">then $1,500 / month</div>
+        <p style="font-size:14px;opacity:.75;margin:4px 0 0">$2,500 setup + your first month, billed together at signing.</p>
         <ul>
           <li>Full 9-skill engine, white-labeled</li>
           <li>Hosted &amp; maintained for you</li>
@@ -188,23 +190,11 @@
         <a class="btn" href="[PAYMENT_LINK]">Start my license</a>
       </div>
 
-      <div class="plan buy">
-        <span class="tag">Option B · Own it outright</span>
-        <h3>Full Codebase / IP Buyout</h3>
-        <div class="amt">$25,000 <small>one-time</small></div>
-        <div class="amt2">no recurring fee</div>
-        <ul>
-          <li>Complete codebase, transferred to you</li>
-          <li>Run and modify it yourself</li>
-          <li>No monthly license</li>
-          <li>Repo access &amp; handoff included</li>
-          <li>For operators who want to own the engine</li>
-        </ul>
-        <!-- TODO: replace href with your Strike/Stripe payment link (or "contact" link) -->
-        <a class="btn" href="[PAYMENT_LINK]">Buy the codebase</a>
-      </div>
-
     </div>
+    <p class="sec-intro" style="margin-top:24px">
+      Want to own the codebase outright instead? A full IP buyout is $25,000 one-time — bring it up on the
+      onboarding call. Most agencies find the license pays for itself long before that math works.
+    </p>
   </div>
 </section>
 
@@ -215,7 +205,8 @@
     <div style="height:22px"></div>
     <details><summary>Do I need a developer to use this?</summary><p>No. The engine is built, hosted, and maintained. You license it, brand it, and resell it — you never touch a line of code. (The buyout option is for operators who <em>do</em> want to run it themselves.)</p></details>
     <details><summary>How do my clients pay — and how do I make money?</summary><p>You set your own resale price and bill your clients directly. Resell to three clients at $500/month and you've covered the $1,500 monthly license; everything beyond that is margin.</p></details>
-    <details><summary>What's the difference between the license and the buyout?</summary><p>The license ($2,500 setup + $1,500/mo) keeps it hosted and maintained while you resell under your brand. The buyout ($25,000 one-time) hands you the codebase outright to own and operate yourself, with no recurring fee.</p></details>
+    <details><summary>What exactly is the $4,000?</summary><p>The $2,500 setup fee plus your first month, billed together at signing. After that it's a flat $1,500/month — no tiers, no usage surcharges.</p></details>
+    <details><summary>Can I buy the codebase instead of licensing it?</summary><p>Yes — a full IP buyout is $25,000 one-time, and it hands you the codebase outright with no recurring fee. If you start on the license and move to a buyout later, your setup fee and paid months are credited toward it.</p></details>
     <details><summary>How do I get access after I buy?</summary><p>Access is delivered personally — a GitHub repo invite and an onboarding call — so you're set up right rather than dropped into a portal.</p></details>
   </div>
 </section>

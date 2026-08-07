@@ -1,8 +1,12 @@
 # Finance — White-Label AI Infrastructure License
 
 Two assets for the White-Label AI Infrastructure License (the product this repo sells).
-**Pricing (updated 2026-07-23):** Option A — $2,500 setup + $1,500/month; Option B —
-$25,000 one-time codebase buyout.
+**Pricing (updated 2026-08-07):** ONE offer — $4,000 to start ($2,500 setup + first month),
+then $1,500/month. The $25,000 codebase buyout is a live-call price anchor, not a listed
+option. Canonical numbers live in `config/pricing.json`.
+
+The model's inputs are unchanged by the move to a single price: $4,000 at signing is exactly
+the $2,500 setup fee plus month one, so setup revenue and MRR still model separately below.
 
 - **`ai_doc_financial_model.xlsx`** — the 3-year, fully formula-driven model (below).
 - **`antigravity_pitch_deck.pptx`** — a 9-slide investor/partner pitch deck built on the
@@ -34,8 +38,8 @@ built to survive scrutiny from an actual buyer or lender.
 | Lever | Value |
 |---|---|
 | License price | $1,500 / customer / month |
-| Setup fee (Option A) | $2,500 one-time per new customer |
-| Codebase buyout (Option B) | $25,000 one-time (reference; alternative to the recurring build) |
+| Setup fee | $2,500 one-time per new customer (billed with month one as $4,000 at signing) |
+| Codebase buyout | $25,000 one-time (anchor only; not modeled as a revenue line) |
 | New customers / month | 2 (Y1) → 4 (Y2) → 6 (Y3) |
 | Monthly logo churn | 4% (~39% / yr) |
 | Variable COGS | $60 / customer / month |
@@ -76,7 +80,8 @@ strategic-acquirer outcome — see the disclaimer on the Annual Summary tab.
 > and compress the ratio; treat $300 as the current-reality input, not a promise.
 
 **Buyer's resale break-even:** resell to 3 clients at $500/mo to cover the $1,500/mo
-license; the $2,500 setup is recovered in ~5 months from one additional client.
+license; the $2,500 setup portion of the $4,000 start is recovered in ~5 months from one
+additional client.
 
 ## Editing conventions
 

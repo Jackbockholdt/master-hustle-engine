@@ -38,7 +38,7 @@ We built a complete AI automation backend that agencies like yours can white-lab
 
 You put your agency's name on it. You set the price. Your clients pay you every month for AI that runs their outreach — and you never touch a line of code.
 
-License is $1,500/month. Most agencies resell access to 3–5 clients at $500–$1,000 each and treat it as a pure revenue line from month one.
+It's $4,000 to start — the $2,500 setup plus your first month — then $1,500/month. Most agencies resell access to 3–5 clients at $500–$1,000 each and treat it as a pure revenue line from month one.
 
 **Worth 15 minutes?**
 
@@ -64,7 +64,7 @@ Checking back in — didn't hear from you after the call and I know inboxes get 
 
 Wanted to share the part that actually matters for an agency P&L:
 
-You license the engine once, put your brand on it, and resell access to your own clients as a recurring AI service. Say you land 4 clients at $750/month each — that's $3,000/month in new MRR on top of your existing retainers. The license runs $1,500/month, so the net margin on the AI service alone is $1,500/month recurring, with effectively zero fulfillment hours once it's set up.
+You license the engine once, put your brand on it, and resell access to your own clients as a recurring AI service. Say you land 4 clients at $750/month each — that's $3,000/month in new MRR on top of your existing retainers. The license runs $1,500/month after the $4,000 to get started, so the net margin on the AI service alone is $1,500/month recurring, with effectively zero fulfillment hours once it's set up.
 
 The agencies that win with it don't try to explain the technology. They show the client the result — leads pulled, qualified, pitched, and followed up automatically — and let that close the deal.
 
