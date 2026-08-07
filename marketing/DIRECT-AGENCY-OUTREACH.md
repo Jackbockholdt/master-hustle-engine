@@ -10,10 +10,6 @@ Single source of truth for all outbound copy. Do not fork sequences elsewhere.
 4. Variables: {{first_name}}, {{company}}.
 5. Plain text only. No images, no tracking pixels on step 1, one link maximum per email.
 6. Pricing is never quoted in step 1. Let the page do that.
-7. There is exactly ONE offer: **$4,000 to start ($2,500 setup + first month), then $1,500/month.**
-   If a later step quotes price at all, it quotes it in those exact terms. Never invent a
-   discount, a trial, a waived setup fee, or a tiered menu. The $25,000 buyout is a live-call
-   anchor only — it does not belong in a cold sequence.
 
 ## Sequence A — Cold Agency Owners (5 steps, 12 business days)
 
@@ -53,13 +49,13 @@ If it's not relevant, tell me and I'll close the loop.
 
 ### Step 4 — Day 9
 
-**Subject:** (Threaded Reply — no subject; was "what it costs")
+**Subject:** (Threaded Reply — no subject; was "two ways agencies run this")
 
 {{first_name}} —
 
-Straight answer on cost, since that's usually the next question: $4,000 to start — that's the $2,500 setup plus your first month — then $1,500/month. We build it, brand it, host it, and maintain it. You resell it to as many of your own clients as you can close.
+Two models depending on your team: we deploy and run it for you, or you license it and run it yourself under your brand. Some agencies just buy the codebase outright.
 
-Full breakdown alongside the demo: https://Jackbockholdt.github.io/master-hustle-engine/
+All three are laid out here alongside the demo: https://Jackbockholdt.github.io/master-hustle-engine/
 
 ### Step 5 — Day 12 — Breakup
 

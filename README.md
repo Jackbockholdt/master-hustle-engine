@@ -36,7 +36,7 @@ A production-ready, highly optimized backend engine that runs nine text-only mic
 6. **Local SEO (`/api/local-seo`)**
 7. **Marketplace Ads (`/api/marketplace`)**
 8. **Faceless Videos (`/api/faceless-video`)**
-9. **Client Proposals (`/api/contractor-proposal`)**
+9. **Contract Proposals (`/api/contractor-proposal`)**
 
 ---
 

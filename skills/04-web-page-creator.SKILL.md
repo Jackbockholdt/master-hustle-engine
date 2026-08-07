@@ -21,7 +21,7 @@ Go from zero to a live, lead-capturing landing page in one automated run. This s
 - **Source:** Antigravity dashboard, Gumloop workflow, or client onboarding webhook
 - **Payload Required:**
   - `brand_name` — string
-  - `industry_niche` — string (e.g., "b2b saas", "marketing agency", "managed services")
+  - `industry_niche` — string (e.g., "plumbing", "real estate", "hemp retail")
   - `primary_services` — array of strings (up to 5)
   - `color_scheme` — object with `primary`, `secondary`, `accent` hex codes (optional — defaults applied if missing)
   - `target_audience` — string describing ideal customer

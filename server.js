@@ -14,7 +14,7 @@
  * 6. Local SEO
  * 7. Marketplace Ads
  * 8. Faceless Videos
- * 9. Client Proposals
+ * 9. Contract Proposals
  */
 
 require('dotenv').config();
@@ -26,21 +26,8 @@ const cron = require('node-cron');
 const path = require('path');
 const fs = require('fs');
 const Stripe = require('stripe');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const https = require('https');
-
-// Environment audit runs before anything else touches process.env so the safe
-// defaults it applies (PORT, send caps, batch sizing) are in place for the
-// module-level config reads below.
-const { auditEnv } = require('./config/env');
-const ENV_REPORT = auditEnv();
-
-// Single pricing authority — never hardcode a dollar figure in this file.
-const { PRICING, quotableOffer } = require('./config/pricing');
-
-// Stripe's constructor throws on a missing key, which used to take the whole
-// process down at require time. Degrade instead: the webhook route returns 503
-// and every other feature — cron, outreach, admin — keeps running.
-const stripe = ENV_REPORT.features.stripe ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
 
 const app = express();
 app.use(express.json({
@@ -49,7 +36,7 @@ app.use(express.json({
   }
 }));
 
-const PORT = parseInt(process.env.PORT || '3005', 10);
+const PORT = process.env.PORT || 3000;
 // SQLite lives on the Render persistent disk so the suppression list, queues,
 // and send history survive deploys. /data is the primary mount point; /var/data
 // is also detected in case the disk was mounted there. A candidate only wins if
@@ -73,12 +60,10 @@ console.log(`[SQLite] Database path: ${DB_PATH}${DATA_DIR ? ' (persistent disk)'
 // B2B Sales Engine Config
 const B2B_DEPLOYER_NAME  = process.env.INVENTOR_NAME || '';
 const B2B_DEPLOYER_EMAIL = process.env.INVENTOR_EMAIL || process.env.ADMIN_EMAIL || '';
-const B2B_OFFER_NAME     = process.env.INVENTION_NAME || PRICING.offerName;
+const B2B_OFFER_NAME     = process.env.INVENTION_NAME || 'White-Label AI Infrastructure License';
 const B2B_OFFER_SUMMARY  = process.env.INVENTION_SUMMARY || '';
 const B2B_PROOF_URL      = process.env.PROOF_URL || 'https://master-hustle-engine.onrender.com/pitch';
-// Monthly license fee. Sourced from config/pricing.json — DEPLOYMENT_FEE is kept
-// only so an existing Render env var doesn't silently change the price on deploy.
-const B2B_DEPLOYMENT_FEE = process.env.DEPLOYMENT_FEE || String(PRICING.monthly);
+const B2B_DEPLOYMENT_FEE = process.env.DEPLOYMENT_FEE || '1500';
 const B2B_PAYMENT_LINK   = process.env.STRIPE_PAYMENT_LINK || '';
 const B2B_BATCH_HOURS    = parseInt(process.env.BATCH_INTERVAL_HOURS || '6');
 const B2B_BATCH_SIZE     = parseInt(process.env.BATCH_SIZE || '10');
@@ -270,7 +255,7 @@ async function sendAdminAlert(context, errorStack) {
 }
 
 // Reusable Helper: Notify admin of a completed White-Label License purchase
-// (the single White-Label offer — sold via a Stripe Payment Link with no
+// (the $1,500/mo flagship offer — sold via a Stripe Payment Link with no
 // "niche" metadata, so it doesn't run through processNicheForBuyer).
 async function notifyAdminOfLicensePurchase(session, buyerEmail) {
   const adminEmail = process.env.ADMIN_EMAIL;
@@ -448,7 +433,7 @@ const NICHE_DISPLAY_NAMES = {
   'local-seo': 'Local SEO',
   'marketplace': 'Marketplace Ads',
   'faceless-video': 'Faceless Videos',
-  'contractor-proposal': 'Client Proposals'
+  'contractor-proposal': 'Contract Proposals'
 };
 
 const NICHES_DICTIONARY = {
@@ -467,38 +452,38 @@ const NICHES_DICTIONARY = {
     { title: "The Shadow Over Ravenwood Manor", genre: "Fiction / Gothic Horror Mystery", targetAudience: "Fans of Victorian-era ghost stories, atmospheric dread, and family curses." }
   ],
   inventor: [
-    { title: "Rack-Mounted Edge Inference Appliance", description: "A 1U appliance that runs quantized models on-premise so regulated firms can keep inference inside their own network." },
+    { title: "Self-Cleaning Spade Shovel", description: "A shovel featuring a mechanical slide barrier that moves down the blade as you tilt to release sticky clay." },
     { title: "Smart Window Screen Dust Filter", description: "A window screen that uses safe static charge to actively repel outdoor pollen, dust, and diesel soot particles." },
-    { title: "Multi-Tenant API Metering Sidecar", description: "A drop-in proxy that meters and rate-limits per-tenant API usage, emitting billing-ready usage records without app changes." },
+    { title: "Solar-Powered Hydroponic Gutter Planter", description: "An automated vertical planter that hangs from roof gutters, using runoff water and a solar pump to grow herbs." },
     { title: "Automatic Cable-Winding Desk Grommet", description: "A desk cable organizer with a spring-tensioned internal spool that retracts cord slack automatically." },
     { title: "Portable Pet Paw Wash Cup", description: "A portable cup with automated rotating soft silicone bristles to clean mud off dog paws after walks." }
   ],
   voice: [
-    { businessType: "B2B SaaS Company — Inbound Demo Qualification", location: "Austin, TX", mainOffer: "Qualify inbound demo requests, capture use case and seat count, book the AE." },
-    { businessType: "Digital Marketing Agency — New Business Line", location: "Chicago, IL", mainOffer: "Screen inbound retainer inquiries, capture budget and channel mix, route to the partner." },
-    { businessType: "Managed IT / MSP — Support Intake", location: "Denver, CO", mainOffer: "Triage inbound support calls by severity, capture environment details, escalate to on-call." },
-    { businessType: "White-Label Partner — Reseller Onboarding Desk", location: "Remote / US", mainOffer: "Walk new reseller partners through onboarding, capture branding assets, schedule handoff." },
-    { businessType: "Lead-Gen Agency — Client Intake Line", location: "Miami, FL", mainOffer: "Qualify prospective clients by industry and monthly lead volume, book a strategy call." }
+    { businessType: "Emergency 24/7 Plumber", location: "Dallas, TX", mainOffer: "Immediate dispatch for leaks, burst pipes, and drains." },
+    { businessType: "Boutique Hair & Nail Salon", location: "Chicago, IL", mainOffer: "Premium cut, color, spa treatments, and walk-in scheduling." },
+    { businessType: "Auto Towing & Wrecker Service", location: "Atlanta, GA", mainOffer: "24/7 roadside assistance, accident recovery, flatbed towing." },
+    { businessType: "Residential Roofing & Gutter Repair", location: "Nashville, TN", mainOffer: "Free wind/hail storm damage roof inspections and leak repairs." },
+    { businessType: "HVAC Furnace & AC Maintenance", location: "Minneapolis, MN", mainOffer: "Same-day emergency heat restoration and seasonal tune-ups." }
   ],
   'review-reply': [
-    { text: "Rolled this out across four of our client accounts in a week. Onboarding was genuinely hands-off and support answered in under an hour every time. Renewing.", reviewer: "Sarah Jenkins", rating: 5 },
-    { text: "Sold to us as turnkey, but the integration with our CRM broke twice in the first month and we lost two days of lead data. Support was slow to acknowledge it.", reviewer: "Mark Davis", rating: 1 },
-    { text: "Solid platform, does what it says. Reporting is thinner than I'd like — I still export to a spreadsheet for our monthly client reviews. Would rate higher with better dashboards.", reviewer: "David L.", rating: 3 },
-    { text: "We white-labeled this for our agency and our clients think we built it. Margin is excellent and it took almost no engineering time on our side to stand up.", reviewer: "Robert G.", rating: 5 },
-    { text: "Product is fine but the billing team double-charged us on the annual plan and it took three weeks of emails to get the credit issued. Frustrating for the price.", reviewer: "Amanda K.", rating: 3 }
+    { text: "Absolutely loved the service! The team arrived on time, fixed my running toilet in under 20 minutes, and cleaned up the bathroom before leaving. A+", reviewer: "Sarah Jenkins", rating: 5 },
+    { text: "Terrible experience. They rescheduled twice and when the technician finally arrived, he didn't have the right parts to fix our AC furnace. We were left without heat overnight.", reviewer: "Mark Davis", rating: 1 },
+    { text: "Food was decent but the waiter forgot our drink order twice. Overall average experience, might give it another shot if the wait time is shorter.", reviewer: "David L.", rating: 3 },
+    { text: "The custom solar patio installation looks stunning! Very professional crews, explained everything carefully, and handled the permits.", reviewer: "Robert G.", rating: 5 },
+    { text: "Clean office, friendly front desk, but the billing department made a mistake on my insurance claims. Resolved it but took hours of phone tag.", reviewer: "Amanda K.", rating: 3 }
   ],
   'local-seo': [
-    { business_name: "Northgate B2B Growth Partners", city: "Austin, TX", services: "Demand generation, ABM campaign management, HubSpot implementation, pipeline reporting" },
-    { business_name: "Bluepeak SaaS Marketing", city: "Chicago, IL", services: "Product-led growth strategy, lifecycle email, onboarding funnel optimization, churn analytics" },
-    { business_name: "Halden Managed IT Services", city: "Denver, CO", services: "Managed IT, cloud migration, security monitoring, helpdesk-as-a-service for mid-market firms" },
-    { business_name: "Whitelabel Ops Collective", city: "Remote / US", services: "White-label AI automation, reseller enablement, client workspace provisioning, partner onboarding" },
-    { business_name: "Cardinal Lead Systems", city: "Miami, FL", services: "Outbound lead generation, list building, cold email infrastructure, CRM integration" }
+    { business_name: "Apex Emergency Plumbing Dallas", city: "Dallas, TX", services: "Burst pipe repairs, drain snaking, water heater installation, leak detection" },
+    { business_name: "Glow Hair & Nail Bar Chicago", city: "Chicago, IL", services: "Balayage highlights, precision cuts, shellac manicures, bridal hair styling" },
+    { business_name: "Guardian Storm Roofing Nashville", city: "Nashville, TN", services: "Roof replacement, hail damage repairs, seamless gutters, emergency tarping" },
+    { business_name: "Polar Bear HVAC Minneapolis", city: "Minneapolis, MN", services: "Furnace tune-ups, AC repairs, heat pump installations, duct cleaning" },
+    { business_name: "ProTow Roadside Recovery Atlanta", city: "Atlanta, GA", services: "Flatbed towing, battery jumpstarts, car lockout services, tire changes" }
   ],
   marketplace: [
     { item_name: "Apple iPhone 15 Pro Max 256GB Black Titanium", condition: "Like New (99% battery health, screen protector since day 1)", key_features: "Original box, unused charging cable, unlocked to all carriers" },
     { item_name: "Sony PlayStation 5 Disc Edition Console", condition: "Excellent (fully working, clean vents, adult owned)", key_features: "2 controllers, charging station, includes Spider-Man 2 disc" },
     { item_name: "Patagonia Torrentshell 3L Rain Jacket (Mens L)", condition: "Good (minor dirt marks on collar, DWR coating still sheds water)", key_features: "Classic navy blue color, underarm pit zips, adjustable hood" },
-    { item_name: "Herman Miller Aeron Chair (Size B, Graphite)", condition: "Very Good (light wear on armrest pads, mesh taut, all adjustments work)", key_features: "Fully loaded — lumbar support, adjustable arms, tilt limiter; from a closed office" },
+    { item_name: "DeWalt 20V MAX Cordless Drill & Driver Kit", condition: "Very Good (typical tool scuffs, battery holds solid charge)", key_features: "Includes 2 batteries, charger, heavy-duty contractor carrying bag" },
     { item_name: "Apple iPad Air 5th Gen (64GB, Wi-Fi, Space Gray)", condition: "Mint (no scratches or scuffs, rarely left the desk)", key_features: "M1 chip model, includes original packaging and Apple Pencil 2" }
   ],
   'faceless-video': [
@@ -509,11 +494,11 @@ const NICHES_DICTIONARY = {
     { niche: "Financial literacy, compound interest explainers, and cashflow hacks" }
   ],
   'contractor-proposal': [
-    { project_name: "White-Label AI Workspace Rollout — 12 Client Accounts", scope: "Provision 12 branded client workspaces, configure lead routing and follow-up cadences per account, connect each to the client's CRM, hand off admin credentials and a partner runbook." },
-    { project_name: "Marketing Automation Migration — Marketo to HubSpot", scope: "Audit 40 active programs, rebuild lifecycle and nurture flows in HubSpot, migrate contact and activity history, re-map lead scoring, run two weeks of parallel sends before cutover." },
-    { project_name: "Outbound Lead Engine Buildout — Q3 Pilot", scope: "Define ICP and build a 5,000-contact verified list, stand up sending infrastructure with domain warmup, write and test a 4-step sequence, deliver weekly reply-rate reporting." },
-    { project_name: "SaaS Onboarding Funnel Optimization Retainer", scope: "Instrument activation events, run a 90-day experiment backlog against trial-to-paid conversion, rebuild the in-app onboarding checklist, deliver a monthly cohort readout." },
-    { project_name: "Reseller Enablement Program — Partner Launch", scope: "Build partner-facing documentation and demo environment, produce a co-branded pitch kit, train two partner sales reps, define deal-registration and margin structure." }
+    { project_name: "Modern Kitchen Backsplash Installation", scope: "Tile removal of 35 sq ft wall area, install subway glass tiles, grout with waterproof white grout, seal tiles." },
+    { project_name: "Wood Deck Re-staining & Sealing", scope: "Power-wash 20x15 ft outdoor pine deck, sand rough board surfaces, apply two coats of semi-transparent premium cedar stain." },
+    { project_name: "Smart Thermostat & Ring Doorbell Install", scope: "Mount and wire Google Nest 3rd Gen thermostat, mount Ring Video Doorbell Wired, configure apps, run functional testing." },
+    { project_name: "Basement Drywall Repair & Paint Match", scope: "Patch 3 large holes (approx 2x2 ft each) in drywall from water leak, mud, sand, match texture, apply two coats of matching eggshell paint." },
+    { project_name: "Seamless Gutter Guard Installation", scope: "Clean out 120 linear feet of residential aluminum gutters, install micro-mesh stainless steel gutter guards to prevent leaf debris clog." }
   ]
 };
 
@@ -826,24 +811,19 @@ app.post('/api/faceless-video', wrapAsync(async (req, res) => {
   res.json({ success: true, data });
 }));
 
-// 9. Client Proposal Polish (/api/contractor-proposal)
+// 9. Contractor Proposal Polish (/api/contractor-proposal)
 app.post('/api/contractor-proposal', wrapAsync(async (req, res) => {
   const { project_name, scope, buyer_email } = req.body;
   if (!project_name || !buyer_email) {
     return res.status(400).json({ success: false, error: 'Missing project_name or buyer_email.' });
   }
 
-  // The JSON keys are load-bearing — EXPECTED_KEYS validates against them and
-  // orchestrator.py emits the same shape — so "bill of materials" survives as a key
-  // name even though this now writes B2B statements of work, not trade estimates.
   const systemInstruction = `
-    Act as an elite B2B services proposal writer producing a statement of work for a
-    software, SaaS, agency, or white-label partner engagement.
+    Act as an elite construction and field services project estimator.
     Return a JSON object with:
     1. "polished_title": string.
     2. "executive_summary": string.
-    3. "detailed_bill_of_materials_milestones": array of strings — the deliverables,
-       workstreams, and milestones for the engagement.
+    3. "detailed_bill_of_materials_milestones": array of strings.
     4. "professional_closing_pitch": string.
   `;
   const prompt = `Project Name: ${project_name}\nScope of Work: ${scope || ''}`;
@@ -852,7 +832,7 @@ app.post('/api/contractor-proposal', wrapAsync(async (req, res) => {
   const renderedContent = renderJsonToHtml(data);
   const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['contractor-proposal'], { project_name, scope }, renderedContent);
 
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Client Proposals`, emailHtml);
+  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Contract Proposals`, emailHtml);
   logTransaction(buyer_email, 'contractor-proposal', 'success', data);
   res.json({ success: true, data });
 }));
@@ -937,7 +917,7 @@ async function triggerDailyNicheHustle() {
       prompt = `Draft 10 viral video scripts for the niche: ${randomTarget.niche}`;
       break;
     case 'contractor-proposal':
-      systemInstruction = `Act as an elite B2B services proposal writer producing a statement of work for a software, SaaS, agency, or white-label partner engagement. Return a JSON object with: "polished_title": string, "executive_summary": string, "detailed_bill_of_materials_milestones": array of strings (deliverables, workstreams, and milestones), "professional_closing_pitch": string.`;
+      systemInstruction = `Act as an elite construction and field services project estimator. Return a JSON object with: "polished_title": string, "executive_summary": string, "detailed_bill_of_materials_milestones": array of strings, "professional_closing_pitch": string.`;
       prompt = `Refine proposal for: ${randomTarget.project_name}\nScope: ${randomTarget.scope}`;
       break;
   }
@@ -958,12 +938,6 @@ async function triggerDailyNicheHustle() {
 
 // Safe cron executor that reports stack trace to admin on any failure
 async function triggerDailyNicheHustleSafe() {
-  // Without a model or a mailer the daily cycle can only fail — skip the run
-  // rather than generating a stack trace nobody can act on from inside the box.
-  if (!ENV_REPORT.features.ai || !ENV_REPORT.features.outboundEmail) {
-    console.warn('[Cron Engine] Skipped daily run — engine is degraded (see GET /health).');
-    return;
-  }
   try {
     await triggerDailyNicheHustle();
   } catch (err) {
@@ -1102,12 +1076,12 @@ async function processNicheForBuyer(niche, fields, buyerEmail) {
     case 'contractor-proposal': {
       const project_name = fields.projectname || '';
       const scope = fields.scopeofwork || '';
-      systemInstruction = `Act as an elite B2B services proposal writer producing a statement of work for a software, SaaS, agency, or white-label partner engagement. Return a JSON object with: 1. "polished_title": string. 2. "executive_summary": string. 3. "detailed_bill_of_materials_milestones": array of strings (deliverables, workstreams, and milestones). 4. "professional_closing_pitch": string.`;
+      systemInstruction = `Act as an elite construction and field services project estimator. Return a JSON object with: 1. "polished_title": string. 2. "executive_summary": string. 3. "detailed_bill_of_materials_milestones": array of strings. 4. "professional_closing_pitch": string.`;
       prompt = `Project Name: ${project_name}\nScope of Work: ${scope}`;
       data = await callGemini(prompt, systemInstruction, 'contractor-proposal');
       renderedContent = renderJsonToHtml(data);
       emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['contractor-proposal'], { project_name, scope }, renderedContent);
-      await sendHtmlEmail(buyerEmail, 'Your Client Proposal — Antigravity Engine', emailHtml);
+      await sendHtmlEmail(buyerEmail, 'Your Contractor Proposal — Antigravity Engine', emailHtml);
       logTransaction(buyerEmail, 'contractor-proposal', 'success', data);
       break;
     }
@@ -1117,13 +1091,6 @@ async function processNicheForBuyer(niche, fields, buyerEmail) {
 }
 
 app.post('/api/stripe-webhook', async (req, res) => {
-  // Degraded mode: no STRIPE_SECRET_KEY means no client to verify with. Say so
-  // explicitly — Stripe retries a 503, so nothing is lost once the key is set.
-  if (!stripe) {
-    console.warn('[Stripe Webhook] Received a webhook but STRIPE_SECRET_KEY is not set — cannot verify signature.');
-    return res.status(503).json({ error: 'Stripe is not configured on this instance.' });
-  }
-
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -1160,8 +1127,8 @@ app.post('/api/stripe-webhook', async (req, res) => {
         await sendAdminAlert(`Stripe purchase processing failed — niche: ${niche}, buyer: ${buyerEmail}`, err.stack || err.message);
       });
     } else {
-      // No "niche" metadata means this came through the White-Label Agency AI
-      // Infrastructure payment link (see config/pricing.js), not one of the
+      // No "niche" metadata means this came through the flagship $1,500/mo
+      // White-Label AI Infrastructure License payment link, not one of the
       // legacy one-off niche tools. Notify Jack for manual onboarding and
       // confirm receipt to the buyer.
       logTransaction(buyerEmail, 'white-label-license', 'success', JSON.stringify({ session: session.id, amount_total: session.amount_total }));
@@ -1224,13 +1191,6 @@ async function sendSms(to, body) {
 // Send plain-text pitch email — routes through Gmail HTTPS relay first (bypasses Render's SMTP block),
 // falls back to direct SMTP only if relay is not configured.
 async function sendPitchEmail(toEmail, subject, body, campaignId = '') {
-  // No mailer configured — fail loudly but with a typed error the schedulers can
-  // recognise, so a queued lead stays pending instead of being burned as 'failed'.
-  if (!ENV_REPORT.features.outboundEmail) {
-    const err = new Error('Outbound email is not configured (set GMAIL_HTTP_URL or SMTP_USER + SMTP_PASS).');
-    err.code = 'MAILER_NOT_CONFIGURED';
-    throw err;
-  }
   await sendEmailViaRelayOrSmtp(toEmail, subject, body);
   await dbRun('INSERT INTO send_log (sent_to, campaign) VALUES (?, ?)', [toEmail, campaignId])
     .catch(err => console.warn('[Send Log] Failed to record send:', err.message));
@@ -1438,12 +1398,9 @@ async function generatePitchCopy(company, deployerName, deployerEmail, proofUrl,
     '4. Present the offer as a complete 9-skill AI infrastructure backend (call catching, voice agent, lead sorting, web pages, email handling) they can resell tonight — no dev team, no build time. ' +
     '5. Include exactly 3 value bullets: (a) the resell math/break-even, (b) zero dev/maintenance burden, (c) sticky recurring revenue. ' +
     `6. End CTA: request a 15-min screen-share demo. Close with ${ctaLinks}. ` +
-    '7. No buzzwords, no hype. Direct, peer-to-peer, confident tone. ' +
-    `8. PRICING IS FIXED — there is exactly one offer: ${PRICING.display.headline}. ` +
-    'If you mention price at all, state it in exactly those terms. Never invent a discount, ' +
-    'a free trial, a waived setup fee, a tiered menu, or any other number.'
+    '7. No buzzwords, no hype. Direct, peer-to-peer, confident tone.'
   );
-  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Monthly fee: $${fee}. Target company: ${company}.`;
+  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Monthly fee: $${fee}. Target company: ${company}.`;
   const pitch = await callGemini(prompt, systemInstruction, 'pitch-email');
   if (!(pitch.body || '').toLowerCase().includes(company.toLowerCase())) {
     pitch.body = `I'm reaching out to ${company} specifically because ${pitch.body}`;
@@ -1464,12 +1421,9 @@ async function generateFollowupCopy(step, company, deployerName, deployerEmail, 
     'Return JSON only: {"subject":"string max 60 chars","body":"string max 180 words"}. ' +
     `${angles[step]} ` +
     'The body MUST name the target company. Frame the offer as a white-label AI infrastructure license the agency resells to its own local business clients as a new revenue line. ' +
-    `Close with ${ctaLinks}. No buzzwords, no hype. Direct, peer-to-peer tone. ` +
-    `PRICING IS FIXED — there is exactly one offer: ${PRICING.display.headline}. ` +
-    'If you mention price at all, state it in exactly those terms. Never invent a discount, ' +
-    'a free trial, a waived setup fee, a tiered menu, or any other number.'
+    `Close with ${ctaLinks}. No buzzwords, no hype. Direct, peer-to-peer tone.`
   );
-  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Monthly fee: $${fee}. Target company: ${company}.`;
+  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Monthly fee: $${fee}. Target company: ${company}.`;
   const result = await callGemini(prompt, systemInstruction, 'followup-email');
   return { subject: result.subject, body: result.body };
 }
@@ -1490,7 +1444,7 @@ async function runInventionOutreach(payload) {
     offerSummary = (
       `${offerName} is a complete, production-ready 9-skill AI infrastructure backend (call catching, voice agent, ` +
       `web page creation, lead sorting, email handling, and more) that agencies white-label under their own brand and ` +
-      `resell to local business clients. ${PRICING.display.headline}. Agencies resell access to 3-5 clients ` +
+      `resell to local business clients. Agencies license it for a flat $${fee}/month and resell access to 3-5 clients ` +
       `at $500-$1,000/month each — break-even from month one, pure margin after. No dev team, no build time, no maintenance. Proof: ${proofUrl}`
     );
   }
@@ -1568,7 +1522,7 @@ const TEMPLATE_CAMPAIGNS = {
         body:
           'Hi {{first_name}},\n\n' +
           "Last note from me. If reselling AI services to your clients isn't a priority this quarter, no problem.\n\n" +
-          "If it is: I'm onboarding a limited number of agency partners now, and I'd rather it be you than a competitor in your market.\n\n" +
+          "If it is: I'm onboarding a few agency partners now at pilot pricing to build case studies. Once those slots fill, pricing goes up.\n\n" +
           'If timing changes, reply anytime.\n\n' +
           'Jack Bockholdt\n\n' +
           'P.S. Reply "unsubscribe" and I won\'t contact you again.',
@@ -1937,39 +1891,18 @@ app.get('/', (req, res) => {
       { name: 'Vintage Flipper', endpoint: 'POST /api/vintage', desc: 'Appraise vintage items, generate eBay listings' },
       { name: 'KDP Books', endpoint: 'POST /api/kdp', desc: 'Optimize book launches, categories, keywords' },
       { name: 'Inventor Pitches', endpoint: 'POST /api/inventor', desc: 'Cold emails & elevator pitches for patents' },
-      { name: 'Voice Prompts', endpoint: 'POST /api/voice', desc: 'AI intake/qualification agent instructions for Vapi' },
+      { name: 'Voice Prompts', endpoint: 'POST /api/voice', desc: 'AI receptionist system instructions for Vapi' },
       { name: 'Review Replies', endpoint: 'POST /api/review-reply', desc: 'Sentiment detection & smart responses' },
       { name: 'Local SEO', endpoint: 'POST /api/local-seo', desc: 'GMB optimization, keywords, posts' },
       { name: 'Marketplace Ads', endpoint: 'POST /api/marketplace', desc: 'Classifieds copy & FAQs' },
       { name: 'Faceless Videos', endpoint: 'POST /api/faceless-video', desc: '10 viral short-form video scripts' },
-      { name: 'Client Proposals', endpoint: 'POST /api/contractor-proposal', desc: 'B2B statements of work and client proposals' }
+      { name: 'Contract Proposals', endpoint: 'POST /api/contractor-proposal', desc: 'Professional construction proposals' }
     ],
     admin: {
       logs: 'GET /api/admin/logs',
       triggerDaily: 'POST /api/admin/trigger-daily'
     },
-    // The single offer. Sourced from config/pricing.js — the buyout is a sales
-    // anchor, not a purchasable option, so it is deliberately absent here.
-    offer: quotableOffer(),
-    health: 'GET /health',
     message: 'All 9 skills active. Cron fires daily at 8:00 AM. Ready to use!'
-  });
-});
-
-// Machine-readable health check — reports which features are live vs degraded so
-// a missing key is visible from outside the box without reading deploy logs.
-app.get('/health', (req, res) => {
-  const degraded = ENV_REPORT.missing.length > 0;
-  res.status(degraded ? 503 : 200).json({
-    status: degraded ? 'degraded' : 'ok',
-    port: PORT,
-    uptime_seconds: Math.round(process.uptime()),
-    features: ENV_REPORT.features,
-    mailer: ENV_REPORT.mailer,
-    missing_config: ENV_REPORT.missing,
-    defaults_applied: ENV_REPORT.defaultsApplied,
-    offer: quotableOffer(),
-    timestamp: new Date().toISOString(),
   });
 });
 
@@ -2303,16 +2236,8 @@ app.use(async (err, req, res, next) => {
   }
 });
 
-// Outbound needs both a mailer and a model. Without either, the batch loops would
-// just burn queued leads on guaranteed failures every tick, so they idle instead.
-const OUTBOUND_READY = ENV_REPORT.features.outboundEmail && ENV_REPORT.features.ai;
-
 // Background: process lead queue every BATCH_INTERVAL_HOURS hours
 setInterval(async () => {
-  if (!OUTBOUND_READY) {
-    console.warn('[Lead Scheduler] Skipped — outbound is degraded (see GET /health). Queue left untouched.');
-    return;
-  }
   console.log('[Lead Scheduler] Firing lead batch run');
   try {
     await processLeadQueue();
@@ -2321,14 +2246,10 @@ setInterval(async () => {
     await sendAdminAlert('Lead Queue Batch Run Failed', err.stack || err.message);
   }
 }, B2B_BATCH_HOURS * 60 * 60 * 1000);
-console.log(`[Lead Scheduler] Armed — runs every ${B2B_BATCH_HOURS}h${OUTBOUND_READY ? '' : ' (IDLE — outbound degraded)'}`);
+console.log(`[Lead Scheduler] Armed — runs every ${B2B_BATCH_HOURS}h`);
 
 // Background: send due follow-ups every hour
 setInterval(async () => {
-  if (!OUTBOUND_READY) {
-    console.warn('[Follow-up Scheduler] Skipped — outbound is degraded (see GET /health). Due follow-ups stay pending.');
-    return;
-  }
   try {
     const due = await fetchDueFollowUps();
     for (const fu of due) {
@@ -2346,12 +2267,6 @@ setInterval(async () => {
         await markFollowUp(fu.id, 'sent');
         console.log(`[Follow-up Scheduler] Sent step ${fu.step} → ${fu.contact_email}`);
       } catch (err) {
-        // A config gap isn't this lead's fault — leave it pending so it goes out
-        // once the mailer is set, rather than marking it permanently failed.
-        if (err.code === 'MAILER_NOT_CONFIGURED') {
-          console.warn(`[Follow-up Scheduler] Mailer unconfigured — step ${fu.step} → ${fu.contact_email} stays pending.`);
-          break;
-        }
         await markFollowUp(fu.id, 'failed');
         console.error(`[Follow-up Scheduler] Failed → ${fu.contact_email}: ${err.message}`);
       }
@@ -2405,6 +2320,4 @@ if (GUMLOOP_API_KEY && GUMLOOP_USER_ID && GUMLOOP_ITEM_ID) {
 // Start Server
 app.listen(PORT, () => {
   console.log(`[Server] Antigravity Master Engine running on port ${PORT}`);
-  console.log(`[Server] Local: http://localhost:${PORT}  |  Health: http://localhost:${PORT}/health`);
-  console.log(`[Offer]  ${PRICING.display.headline}`);
 });

@@ -24,7 +24,7 @@ Get the right invention pitch in front of the right executive decision-maker —
   - `invention_summary` — string (max 300 words describing the product/utility)
   - `patent_status` — string (`"Provisional Filed"` / `"Non-Provisional Filed"` / `"Pending"` / `"No Patent"`)
   - `patent_number` — string (optional — include if filed)
-  - `target_industries` — array of strings (e.g., `["b2b saas", "marketing agency", "managed services"]`)
+  - `target_industries` — array of strings (e.g., `["power tools", "construction", "hardware retail"]`)
   - `target_companies` — array of company names (optional — agent will discover if not provided)
   - `inventor_name` — string
   - `inventor_email` — valid email address

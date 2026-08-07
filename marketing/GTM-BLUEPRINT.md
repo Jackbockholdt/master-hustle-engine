@@ -223,10 +223,10 @@ Apply these filters BEFORE exporting to the call queue:
 # ASSET 3: STRIPE CHECKOUT POSITIONING
 
 **Product:** White-Label AI Infrastructure License
-**Price:** $4,000 to start ($2,500 setup + first month), then $1,500 / month recurring
+**Price:** $1,500 / month recurring
 **Buyer:** Digital marketing or lead gen agency owner
 
-**Positioning goal:** Make $4,000 to start and $1,500/month feel like the most obvious business decision they've made all year.
+**Positioning goal:** Make $1,500/month feel like the most obvious business decision they've made all year.
 
 ---
 
@@ -244,7 +244,7 @@ Apply these filters BEFORE exporting to the call queue:
 **Bullet 2 — What You're Actually Getting**
 
 > **9 production-ready AI skills. No dev team. No build time. No maintenance.**
-> You're getting a complete, enterprise-grade agentic backend — Call Catcher, Voice Agent, Web Page Creator, Lead Sorter, Email Handler, KDP Publisher, Vintage Appraiser, Hemp Content Engine, and Invention Outreach — fully built, hosted, and maintained. Agencies that tried to build this stack themselves spent $40,000–$120,000 and 6–12 months. You're getting it live for $4,000 to start and $1,500/month with your logo on it.
+> You're getting a complete, enterprise-grade agentic backend — Call Catcher, Voice Agent, Web Page Creator, Lead Sorter, Email Handler, KDP Publisher, Vintage Appraiser, Hemp Content Engine, and Invention Outreach — fully built, hosted, and maintained. Agencies that tried to build this stack themselves spent $40,000–$120,000 and 6–12 months. You're getting it live tonight for $1,500/month with your logo on it.
 
 ---
 
@@ -264,7 +264,7 @@ Apply these filters BEFORE exporting to the call queue:
 > "White-label 9 AI skills. Resell to your clients. Keep the margin."
 
 **CTA Button:**
-> "Start My License — $4,000 to start"
+> "Start My License — $1,500/mo"
 
 **Trust line beneath button:**
 > "Cancel anytime. Infrastructure stays live until end of billing period. Onboarding call included."
