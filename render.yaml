@@ -71,11 +71,7 @@ services:
         sync: false
         placeholder: "https://yourdemosite.com"
       # Pricing lives in config/pricing.json — the single authority read by both
-      # server.js and orchestrator.py. DEPLOYMENT_FEE is a legacy override of the
-      # monthly figure only; leaving it unset keeps the price in one place.
-      - key: DEPLOYMENT_FEE
-        sync: false
-        placeholder: "leave empty — price comes from config/pricing.json"
+      # server.js and orchestrator.py. Do not declare a pricing env var here.
       - key: STRIPE_PAYMENT_LINK
         sync: false
         placeholder: "https://buy.stripe.com/..."
