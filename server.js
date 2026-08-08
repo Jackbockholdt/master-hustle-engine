@@ -1716,6 +1716,42 @@ const MAX_EMPLOYEE_COUNT = parseInt(process.env.MAX_EMPLOYEE_COUNT || '50', 10);
 const BLOCKED_DOMAINS    = new Set((process.env.BLOCKED_DOMAINS || '')
   .split(',').map(d => d.trim().toLowerCase()).filter(Boolean));
 
+// Permanent do-not-send list — every address and domain that hard-bounced, was
+// blocked by an admin, or whose domain is dead. Entries never come off. This is
+// the file the outbound history is written into; see config/blocklist.json.
+//
+// A missing or unreadable file must NOT take the process down, but it does mean
+// suppression is off, so it is logged loudly rather than swallowed. Sending to a
+// known blocker is a spam signal against the account.
+const BLOCKLIST_PATH = path.join(__dirname, 'config', 'blocklist.json');
+const { blocklistAddresses: BLOCKLIST_ADDRESSES, blocklistDomains: BLOCKLIST_DOMAINS } = (() => {
+  try {
+    const raw = JSON.parse(fs.readFileSync(BLOCKLIST_PATH, 'utf8'));
+    const addresses = new Map(Object.entries(raw.addresses || {}).map(([k, v]) => [k.toLowerCase(), v]));
+    const domains   = new Map(Object.entries(raw.domains   || {}).map(([k, v]) => [k.toLowerCase(), v]));
+    console.log(`[Blocklist] Loaded ${addresses.size} address(es), ${domains.size} domain(s) from config/blocklist.json`);
+    return { blocklistAddresses: addresses, blocklistDomains: domains };
+  } catch (err) {
+    const why = err.code === 'ENOENT' ? 'file not found' : err.message;
+    console.warn(`[Blocklist] ⚠️  NOT LOADED (${why}) — suppression by blocklist is OFF. ` +
+                 `Known bad addresses will not be caught. Restore ${BLOCKLIST_PATH}.`);
+    return { blocklistAddresses: new Map(), blocklistDomains: new Map() };
+  }
+})();
+
+// Returns the matching blocklist entry (with how it matched), or null.
+function blocklistHit(email) {
+  const addr = (email || '').trim().toLowerCase();
+  const at = addr.lastIndexOf('@');
+  if (at < 0) return null;
+  const byAddress = BLOCKLIST_ADDRESSES.get(addr);
+  if (byAddress) return { scope: 'address', key: addr, entry: byAddress };
+  const domain = addr.slice(at + 1);
+  const byDomain = BLOCKLIST_DOMAINS.get(domain) || BLOCKLIST_DOMAINS.get(rootDomain(domain));
+  if (byDomain) return { scope: 'domain', key: domain, entry: byDomain };
+  return null;
+}
+
 const FREEMAIL_DOMAINS = new Set([
   'gmail.com', 'yahoo.com', 'ymail.com', 'hotmail.com', 'outlook.com', 'live.com',
   'msn.com', 'aol.com', 'icloud.com', 'me.com', 'mac.com', 'protonmail.com',
@@ -1747,14 +1783,25 @@ function parseEmployeeCount(size) {
 
 // Returns null when the lead looks sendable, else a human-readable rejection reason.
 // Syntax problems are validateLeadFields' job — this screens for the WRONG lead:
-// generic mailboxes, personal freemail, contacts whose email belongs to a different
-// company than the one being pitched, and companies too big to buy the license.
+// anything on the permanent blocklist, generic mailboxes, personal freemail, contacts
+// whose email belongs to a different company than the one being pitched, and companies
+// too big to buy the license.
 function screenLeadQuality(lead) {
   const email = (lead.contact_email || '').trim().toLowerCase();
   const at = email.lastIndexOf('@');
   if (at < 0) return null;
   const prefix = email.slice(0, at);
   const domain = email.slice(at + 1);
+
+  // Checked first: a permanent failure outranks every other judgement here.
+  const blocked = blocklistHit(email);
+  if (blocked) {
+    const { status, last_seen: lastSeen } = blocked.entry || {};
+    const when = lastSeen ? `, last seen ${lastSeen}` : '';
+    return blocked.scope === 'address'
+      ? `blocklisted address — ${status || 'permanent failure'}${when}`
+      : `blocklisted domain '${blocked.key}' — ${status || 'permanent failure'}${when}`;
+  }
 
   if (ROLE_MAILBOXES.has(prefix)) {
     return `generic mailbox '${prefix}@' — needs a real person's address`;

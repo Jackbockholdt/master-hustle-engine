@@ -1,0 +1,946 @@
+{
+  "_comment": "Permanent do-not-send list. Entries NEVER come off \u2014 a hard bounce, an admin block or a dead domain is final. Check contact_email against \"addresses\" and its domain against \"domains\" before every send. Both keys are lowercased.",
+  "_source": "Gmail Delivery Status Notification (Failure) messages from mailer-daemon, read 2026-08-08",
+  "_coverage": "Bounces dated 2025-12-06 through 2026-08-08. Transient (Delay) notices are excluded \u2014 only permanent failures are listed.",
+  "generated_at": "2026-08-08",
+  "counts": {
+    "addresses": 102,
+    "domains": 24
+  },
+  "domains": {
+    "central-labor.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to annuity@central-labor.com because the domain central-labor.com couldn't be found. Check for typos or unnecess",
+      "first_seen": "2025-12-06",
+      "last_seen": "2025-12-06",
+      "seen_addresses": [
+        "annuity@central-labor.com"
+      ]
+    },
+    "silew.org": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to conniegeorge@silew.org because the domain silew.org couldn't be found. Check for typos or unnecessary spaces ",
+      "first_seen": "2026-04-29",
+      "last_seen": "2026-04-29",
+      "seen_addresses": [
+        "conniegeorge@silew.org"
+      ]
+    },
+    "cbddunkin.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to info@cbddunkin.com because the domain cbddunkin.com couldn't be found. Check for typos or unnecessary spaces ",
+      "first_seen": "2026-05-10",
+      "last_seen": "2026-05-10",
+      "seen_addresses": [
+        "info@cbddunkin.com"
+      ]
+    },
+    "coughpotato.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to hello@coughpotato.com because the domain coughpotato.com couldn't be found. Check for typos or unnecessary sp",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "seen_addresses": [
+        "hello@coughpotato.com"
+      ]
+    },
+    "whamhemp.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to support@whamhemp.com because the domain whamhemp.com couldn't be found. Check for typos or unnecessary spaces",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "seen_addresses": [
+        "support@whamhemp.com"
+      ]
+    },
+    "donaldtrumpweed.com": {
+      "status": "dead_domain",
+      "reason": "Message not delivered There was a problem delivering your message to info@donaldtrumpweed.com. See the technical details below. The response was: DNS Error: DNS",
+      "first_seen": "2026-05-28",
+      "last_seen": "2026-06-10",
+      "seen_addresses": [
+        "info@donaldtrumpweed.com",
+        "support@donaldtrumpweed.com"
+      ]
+    },
+    "bulkkush.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to info@bulkkush.com because the domain bulkkush.com couldn't be found. Check for typos or unnecessary spaces an",
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-12",
+      "seen_addresses": [
+        "info@bulkkush.com"
+      ]
+    },
+    "hempdeltaco.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to business@hempdeltaco.com because the domain hempdeltaco.com couldn't be found. Check for typos or unnecessary",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "seen_addresses": [
+        "business@hempdeltaco.com"
+      ]
+    },
+    "deltaremedies.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to hello@deltaremedies.com because the domain deltaremedies.com couldn't be found. Check for typos or unnecessar",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "seen_addresses": [
+        "hello@deltaremedies.com"
+      ]
+    },
+    "greenhousejuiceco.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to hello@greenhousejuiceco.com because the domain greenhousejuiceco.com couldn't be found. Check for typos or un",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "seen_addresses": [
+        "hello@greenhousejuiceco.com"
+      ]
+    },
+    "southerngrownhemp.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to info@southerngrownhemp.com because the domain southerngrownhemp.com couldn't be found. Check for typos or unn",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "seen_addresses": [
+        "info@southerngrownhemp.com"
+      ]
+    },
+    "wolverinehandtools.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to pjohnson@wolverinehandtools.com has been blocked. See technical details below for more information. The response from the remote",
+      "first_seen": "2026-06-22",
+      "last_seen": "2026-06-22",
+      "seen_addresses": [
+        "pjohnson@wolverinehandtools.com"
+      ]
+    },
+    "twilio.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to noreply@twilio.com has been blocked. See technical details below for more information. LEARN MORE The response from the recipien",
+      "first_seen": "2026-06-24",
+      "last_seen": "2026-06-24",
+      "seen_addresses": [
+        "noreply@twilio.com"
+      ]
+    },
+    "hsi.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to customercare@hsi.com has been blocked. See technical details below for more information. The response from the remote server was",
+      "first_seen": "2026-07-03",
+      "last_seen": "2026-07-03",
+      "seen_addresses": [
+        "customercare@hsi.com"
+      ]
+    },
+    "networkrepublic.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to sales.us@networkrepublic.com has been blocked. See technical details below for more information. The response from the remote se",
+      "first_seen": "2026-07-03",
+      "last_seen": "2026-07-03",
+      "seen_addresses": [
+        "sales.us@networkrepublic.com"
+      ]
+    },
+    "ramcomminc.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to info@ramcomminc.com has been blocked. See technical details below for more information. LEARN MORE This link will take you to a ",
+      "first_seen": "2026-07-04",
+      "last_seen": "2026-07-04",
+      "seen_addresses": [
+        "info@ramcomminc.com"
+      ]
+    },
+    "nimbussaaslabs.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to founder@nimbussaaslabs.com because the domain nimbussaaslabs.com couldn't be found. Check for typos or unnece",
+      "first_seen": "2026-07-06",
+      "last_seen": "2026-07-06",
+      "seen_addresses": [
+        "founder@nimbussaaslabs.com"
+      ]
+    },
+    "example.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to smtptest@example.com because the domain example.com couldn't be found. Check for typos or unnecessary spaces ",
+      "first_seen": "2026-07-06",
+      "last_seen": "2026-08-08",
+      "seen_addresses": [
+        "smtptest@example.com",
+        "test@example.com"
+      ]
+    },
+    "sanitycheck.example.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to test@sanitycheck.example.com because the domain sanitycheck.example.com couldn't be found. Check for typos or",
+      "first_seen": "2026-07-06",
+      "last_seen": "2026-07-06",
+      "seen_addresses": [
+        "test@sanitycheck.example.com"
+      ]
+    },
+    "jemso.io": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to jonathan@jemso.io because the domain jemso.io couldn't be found. Check for typos or unnecessary spaces and tr",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "seen_addresses": [
+        "jonathan@jemso.io"
+      ]
+    },
+    "leadpronto.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to mark@leadpronto.com because the domain leadpronto.com couldn't be found. Check for typos or unnecessary space",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "seen_addresses": [
+        "mark@leadpronto.com"
+      ]
+    },
+    "barkerdzp.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to abarker@barkerdzp.com has been blocked. See technical details below for more information. LEARN MORE The response from the recip",
+      "first_seen": "2026-07-19",
+      "last_seen": "2026-07-19",
+      "seen_addresses": [
+        "abarker@barkerdzp.com"
+      ]
+    },
+    "catalystgetsit.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to tkucinsky@catalystgetsit.com has been blocked. See technical details below for more information. LEARN MORE The response from th",
+      "first_seen": "2026-07-21",
+      "last_seen": "2026-07-29",
+      "seen_addresses": [
+        "tkucinsky@catalystgetsit.com"
+      ]
+    },
+    "thetagagency.com": {
+      "status": "dead_domain",
+      "reason": "Message not delivered There was a problem delivering your message to rebecca@thetagagency.com. See the technical details below. The response was: DNS Error: DNS",
+      "first_seen": "2026-07-22",
+      "last_seen": "2026-07-22",
+      "seen_addresses": [
+        "rebecca@thetagagency.com"
+      ]
+    }
+  },
+  "addresses": {
+    "annuity@central-labor.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to annuity@central-labor.com because the domain central-labor.com couldn't be found. Check for typos or unnecess",
+      "first_seen": "2025-12-06",
+      "last_seen": "2025-12-06",
+      "bounce_events": 1
+    },
+    "innouation@fiskars.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to innouation@fiskars.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This l",
+      "first_seen": "2026-04-11",
+      "last_seen": "2026-04-11",
+      "bounce_events": 2
+    },
+    "info@manplow.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to info@manplow.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This link wi",
+      "first_seen": "2026-04-14",
+      "last_seen": "2026-04-14",
+      "bounce_events": 1
+    },
+    "info@radiusgarden.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to info@radiusgarden.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This li",
+      "first_seen": "2026-04-14",
+      "last_seen": "2026-04-14",
+      "bounce_events": 1
+    },
+    "inventions@ames.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to inventions@ames.com because the address couldn't be found, or is unable to receive mail. The response from th",
+      "first_seen": "2026-04-14",
+      "last_seen": "2026-04-14",
+      "bounce_events": 1
+    },
+    "newproducts@ames.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to newproducts@ames.com because the address couldn't be found, or is unable to receive mail. The response from t",
+      "first_seen": "2026-04-14",
+      "last_seen": "2026-04-14",
+      "bounce_events": 4
+    },
+    "info@coronatoolsusa.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to info@coronatoolsusa.com. See the technical details below. LEARN MORE The response was: The ",
+      "first_seen": "2026-04-15",
+      "last_seen": "2026-04-26",
+      "bounce_events": 4
+    },
+    "new.products@fiskars.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to new.products@fiskars.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This",
+      "first_seen": "2026-04-15",
+      "last_seen": "2026-04-15",
+      "bounce_events": 1
+    },
+    "newproductideas@acttool.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to Newproductideas@acttool.com. See the technical details below. LEARN MORE The response was: ",
+      "first_seen": "2026-04-15",
+      "last_seen": "2026-04-17",
+      "bounce_events": 2
+    },
+    "cust.service@bontool.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to cust.service@bontool.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This",
+      "first_seen": "2026-04-22",
+      "last_seen": "2026-04-22",
+      "bounce_events": 1
+    },
+    "info@bontool.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to info@bontool.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This link wi",
+      "first_seen": "2026-04-22",
+      "last_seen": "2026-04-22",
+      "bounce_events": 1
+    },
+    "conniegeorge@silew.org": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to conniegeorge@silew.org because the domain silew.org couldn't be found. Check for typos or unnecessary spaces ",
+      "first_seen": "2026-04-29",
+      "last_seen": "2026-04-29",
+      "bounce_events": 1
+    },
+    "info@cbddunkin.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to info@cbddunkin.com because the domain cbddunkin.com couldn't be found. Check for typos or unnecessary spaces ",
+      "first_seen": "2026-05-10",
+      "last_seen": "2026-05-10",
+      "bounce_events": 1
+    },
+    "contact@jkdistributionco.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to contact@jkdistributionco.com. See the technical details below. LEARN MORE The response was:",
+      "first_seen": "2026-05-13",
+      "last_seen": "2026-05-13",
+      "bounce_events": 1
+    },
+    "thca@goblin420.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to THCa@goblin420.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The respon",
+      "first_seen": "2026-05-13",
+      "last_seen": "2026-05-13",
+      "bounce_events": 1
+    },
+    "affiliates@secretnature.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to affiliates@secretnature.com because the address couldn't be found, or is unable to receive mail. LEARN MORE T",
+      "first_seen": "2026-05-17",
+      "last_seen": "2026-05-17",
+      "bounce_events": 1
+    },
+    "hello@plainjane.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to hello@plainjane.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The respo",
+      "first_seen": "2026-05-17",
+      "last_seen": "2026-06-12",
+      "bounce_events": 3
+    },
+    "support@hometownherobrand.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to support@hometownherobrand.com. See the technical details below. LEARN MORE The response was",
+      "first_seen": "2026-05-20",
+      "last_seen": "2026-05-20",
+      "bounce_events": 1
+    },
+    "a.brinckerhoff@ames.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to a.brinckerhoff@ames.com because the address couldn't be found, or is unable to receive mail. The response fro",
+      "first_seen": "2026-05-21",
+      "last_seen": "2026-07-29",
+      "bounce_events": 5
+    },
+    "dave.neff@fiskars.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to dave.neff@fiskars.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This li",
+      "first_seen": "2026-05-22",
+      "last_seen": "2026-05-22",
+      "bounce_events": 1
+    },
+    "katy.harmeling@fiskarsgroup.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to katy.harmeling@fiskarsgroup.com because the address couldn't be found, or is unable to receive mail. LEARN MO",
+      "first_seen": "2026-05-22",
+      "last_seen": "2026-05-22",
+      "bounce_events": 1
+    },
+    "wholesale@goldcbd.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to wholesale@goldcbd.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The res",
+      "first_seen": "2026-05-22",
+      "last_seen": "2026-05-22",
+      "bounce_events": 1
+    },
+    "hello@coughpotato.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to hello@coughpotato.com because the domain coughpotato.com couldn't be found. Check for typos or unnecessary sp",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "bounce_events": 1
+    },
+    "info@weedcigs.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to info@weedcigs.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The respons",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "bounce_events": 1
+    },
+    "support@jlittys.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to support@jlittys.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The respo",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "bounce_events": 1
+    },
+    "support@thcasmallbuds.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to support@thcasmallbuds.com because the address couldn't be found, or is unable to receive mail. LEARN MORE Thi",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "bounce_events": 1
+    },
+    "support@thepeoplesplug.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered Your message couldn't be delivered to support@thepeoplesplug.com because the remote server is misconfigured. See technical details below f",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "bounce_events": 1
+    },
+    "support@whamhemp.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to support@whamhemp.com because the domain whamhemp.com couldn't be found. Check for typos or unnecessary spaces",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "bounce_events": 1
+    },
+    "wholesale@bulkthcafarm.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to wholesale@bulkthcafarm.com. See the technical details below. LEARN MORE The response was: T",
+      "first_seen": "2026-05-25",
+      "last_seen": "2026-05-25",
+      "bounce_events": 1
+    },
+    "support@hellaslumped.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to support@hellaslumped.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The ",
+      "first_seen": "2026-05-27",
+      "last_seen": "2026-05-27",
+      "bounce_events": 1
+    },
+    "info@donaldtrumpweed.com": {
+      "status": "dead_domain",
+      "reason": "Message not delivered There was a problem delivering your message to info@donaldtrumpweed.com. See the technical details below. The response was: DNS Error: DNS",
+      "first_seen": "2026-05-28",
+      "last_seen": "2026-05-28",
+      "bounce_events": 1
+    },
+    "info@thcaqueen.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to info@thcaqueen.com. See the technical details below. LEARN MORE The response was: The recip",
+      "first_seen": "2026-05-28",
+      "last_seen": "2026-05-28",
+      "bounce_events": 1
+    },
+    "support@simplemary.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to support@simplemary.com. See the technical details below. LEARN MORE The response was: The r",
+      "first_seen": "2026-05-28",
+      "last_seen": "2026-05-28",
+      "bounce_events": 1
+    },
+    "info@bulkkush.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to info@bulkkush.com because the domain bulkkush.com couldn't be found. Check for typos or unnecessary spaces an",
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-12",
+      "bounce_events": 2
+    },
+    "katy.harmeling@fiskars.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to katy.harmeling@fiskars.com because the address couldn't be found, or is unable to receive mail. LEARN MORE Th",
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-09",
+      "bounce_events": 1
+    },
+    "marketing@injoyextracts.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to marketing@injoyextracts.com because the address couldn't be found, or is unable to receive mail. LEARN MORE T",
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-12",
+      "bounce_events": 2
+    },
+    "partnerships@cannaflower.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to partnerships@cannaflower.com because the address couldn't be found, or is unable to receive mail. LEARN MORE ",
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-12",
+      "bounce_events": 2
+    },
+    "partnerships@hometownherocbd.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to partnerships@hometownherocbd.com because the address couldn't be found, or is unable to receive mail. LEARN M",
+      "first_seen": "2026-06-09",
+      "last_seen": "2026-06-12",
+      "bounce_events": 2
+    },
+    "support@donaldtrumpweed.com": {
+      "status": "dead_domain",
+      "reason": "Message not delivered There was a problem delivering your message to support@donaldtrumpweed.com. See the technical details below. The response was: DNS Error: ",
+      "first_seen": "2026-06-10",
+      "last_seen": "2026-06-10",
+      "bounce_events": 1
+    },
+    "business@cascadiablooms.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to business@cascadiablooms.com because the address couldn't be found, or is unable to receive mail. LEARN MORE T",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "bounce_events": 1
+    },
+    "business@hempdeltaco.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to business@hempdeltaco.com because the domain hempdeltaco.com couldn't be found. Check for typos or unnecessary",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "bounce_events": 1
+    },
+    "hello@deltaremedies.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to hello@deltaremedies.com because the domain deltaremedies.com couldn't be found. Check for typos or unnecessar",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "bounce_events": 1
+    },
+    "hello@greenhousejuiceco.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to hello@greenhousejuiceco.com because the domain greenhousejuiceco.com couldn't be found. Check for typos or un",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "bounce_events": 1
+    },
+    "info@southerngrownhemp.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to info@southerngrownhemp.com because the domain southerngrownhemp.com couldn't be found. Check for typos or unn",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "bounce_events": 1
+    },
+    "partnerships@berkshirecbd.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to partnerships@berkshirecbd.com because the address couldn't be found, or is unable to receive mail. LEARN MORE",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "bounce_events": 1
+    },
+    "partnerships@iheartjane.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to partnerships@iheartjane.com because the address couldn't be found, or is unable to receive mail. LEARN MORE T",
+      "first_seen": "2026-06-12",
+      "last_seen": "2026-06-12",
+      "bounce_events": 1
+    },
+    "hello@lifterlabs.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to hello@lifterlabs.com. See the technical details below. LEARN MORE The response was: The rec",
+      "first_seen": "2026-06-15",
+      "last_seen": "2026-06-15",
+      "bounce_events": 1
+    },
+    "partnerships@cedarcreekorganics.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to partnerships@cedarcreekorganics.com. See the technical details below. LEARN MORE The respon",
+      "first_seen": "2026-06-15",
+      "last_seen": "2026-06-15",
+      "bounce_events": 1
+    },
+    "partnerships@exhalewellness.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to partnerships@exhalewellness.com. See the technical details below. LEARN MORE The response w",
+      "first_seen": "2026-06-15",
+      "last_seen": "2026-06-15",
+      "bounce_events": 1
+    },
+    "innovations@ames.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to innovations@ames.com because the address couldn't be found, or is unable to receive mail. The response from t",
+      "first_seen": "2026-06-21",
+      "last_seen": "2026-06-22",
+      "bounce_events": 2
+    },
+    "innovations@fiskars.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to innovations@fiskars.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This ",
+      "first_seen": "2026-06-21",
+      "last_seen": "2026-06-22",
+      "bounce_events": 2
+    },
+    "submissions@seymourmidwest.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to submissions@seymourmidwest.com because the address couldn't be found, or is unable to receive mail. LEARN MOR",
+      "first_seen": "2026-06-21",
+      "last_seen": "2026-06-22",
+      "bounce_events": 2
+    },
+    "info@cascadiablooms.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to info@cascadiablooms.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The r",
+      "first_seen": "2026-06-22",
+      "last_seen": "2026-06-22",
+      "bounce_events": 1
+    },
+    "pjohnson@wolverinehandtools.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to pjohnson@wolverinehandtools.com has been blocked. See technical details below for more information. The response from the remote",
+      "first_seen": "2026-06-22",
+      "last_seen": "2026-06-22",
+      "bounce_events": 1
+    },
+    "ideas@coronatoolsusa.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to ideas@coronatoolsusa.com. See the technical details below. LEARN MORE The response was: The",
+      "first_seen": "2026-06-24",
+      "last_seen": "2026-06-25",
+      "bounce_events": 2
+    },
+    "noreply@twilio.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to noreply@twilio.com has been blocked. See technical details below for more information. LEARN MORE The response from the recipien",
+      "first_seen": "2026-06-24",
+      "last_seen": "2026-06-24",
+      "bounce_events": 1
+    },
+    "jwoodbury@coronatoolsusa.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to jwoodbury@coronatoolsusa.com. See the technical details below. LEARN MORE The response was:",
+      "first_seen": "2026-06-25",
+      "last_seen": "2026-06-25",
+      "bounce_events": 1
+    },
+    "cash@square.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to cash@square.com because the address couldn't be found, or is unable to receive mail. The response from the re",
+      "first_seen": "2026-07-03",
+      "last_seen": "2026-07-03",
+      "bounce_events": 1
+    },
+    "customercare@hsi.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to customercare@hsi.com has been blocked. See technical details below for more information. The response from the remote server was",
+      "first_seen": "2026-07-03",
+      "last_seen": "2026-07-03",
+      "bounce_events": 1
+    },
+    "sales.us@networkrepublic.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to sales.us@networkrepublic.com has been blocked. See technical details below for more information. The response from the remote se",
+      "first_seen": "2026-07-03",
+      "last_seen": "2026-07-03",
+      "bounce_events": 1
+    },
+    "hello@destinofarms.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to hello@destinofarms.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The re",
+      "first_seen": "2026-07-04",
+      "last_seen": "2026-07-04",
+      "bounce_events": 1
+    },
+    "info@ramcomminc.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to info@ramcomminc.com has been blocked. See technical details below for more information. LEARN MORE This link will take you to a ",
+      "first_seen": "2026-07-04",
+      "last_seen": "2026-07-04",
+      "bounce_events": 1
+    },
+    "founder@nimbussaaslabs.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to founder@nimbussaaslabs.com because the domain nimbussaaslabs.com couldn't be found. Check for typos or unnece",
+      "first_seen": "2026-07-06",
+      "last_seen": "2026-07-06",
+      "bounce_events": 1
+    },
+    "smtptest@example.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to smtptest@example.com because the domain example.com couldn't be found. Check for typos or unnecessary spaces ",
+      "first_seen": "2026-07-06",
+      "last_seen": "2026-07-06",
+      "bounce_events": 1
+    },
+    "test@sanitycheck.example.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to test@sanitycheck.example.com because the domain sanitycheck.example.com couldn't be found. Check for typos or",
+      "first_seen": "2026-07-06",
+      "last_seen": "2026-07-06",
+      "bounce_events": 1
+    },
+    "arthur@findymail.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to arthur@findymail.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The resp",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "george@sendowl.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to george@sendowl.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The respon",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "jonathan@jemso.io": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to jonathan@jemso.io because the domain jemso.io couldn't be found. Check for typos or unnecessary spaces and tr",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "lisa@presshook.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to lisa@presshook.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The respon",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "luke@gathercontent.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to luke@gathercontent.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The re",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "mark@leadpronto.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to mark@leadpronto.com because the domain leadpronto.com couldn't be found. Check for typos or unnecessary space",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "matt@modusagency.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to matt@modusagency.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The resp",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "matt@sproutmediagroup.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to matt@sproutmediagroup.com because the address couldn't be found, or is unable to receive mail. LEARN MORE Thi",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "nick@adherecreative.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to nick@adherecreative.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The r",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "robert@brightoak.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to robert@brightoak.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The resp",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 1
+    },
+    "ryan@webcanopystudio.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to ryan@webcanopystudio.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The ",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 2
+    },
+    "tea@testimonial.to": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to tea@testimonial.to because the address couldn't be found, or is unable to receive mail. LEARN MORE The respon",
+      "first_seen": "2026-07-07",
+      "last_seen": "2026-07-07",
+      "bounce_events": 1
+    },
+    "elsa@honchosearch.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to elsa@honchosearch.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This li",
+      "first_seen": "2026-07-08",
+      "last_seen": "2026-07-08",
+      "bounce_events": 1
+    },
+    "chris@ceekmarketing.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to chris@ceekmarketing.com. See the technical details below. LEARN MORE The response was: The ",
+      "first_seen": "2026-07-10",
+      "last_seen": "2026-07-10",
+      "bounce_events": 2
+    },
+    "matt@punchydigital.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to matt@punchydigital.com. See the technical details below. LEARN MORE The response was: The r",
+      "first_seen": "2026-07-10",
+      "last_seen": "2026-07-10",
+      "bounce_events": 2
+    },
+    "abarker@barkerdzp.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to abarker@barkerdzp.com has been blocked. See technical details below for more information. LEARN MORE The response from the recip",
+      "first_seen": "2026-07-19",
+      "last_seen": "2026-07-19",
+      "bounce_events": 1
+    },
+    "adenworth@woadigital.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to adenworth@woadigital.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The ",
+      "first_seen": "2026-07-19",
+      "last_seen": "2026-07-19",
+      "bounce_events": 1
+    },
+    "agustin@dial911fordesign.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to agustin@dial911fordesign.com because the address couldn't be found, or is unable to receive mail. LEARN MORE ",
+      "first_seen": "2026-07-19",
+      "last_seen": "2026-07-19",
+      "bounce_events": 1
+    },
+    "brianc@lunarsolargroup.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to brianc@lunarsolargroup.com because the address couldn't be found, or is unable to receive mail. LEARN MORE Th",
+      "first_seen": "2026-07-19",
+      "last_seen": "2026-07-19",
+      "bounce_events": 1
+    },
+    "melanie.wilhoite@edelman.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to melanie.wilhoite@edelman.com because the address couldn't be found, or is unable to receive mail. LEARN MORE ",
+      "first_seen": "2026-07-19",
+      "last_seen": "2026-07-19",
+      "bounce_events": 1
+    },
+    "moon.technolabs@moontechnolabs.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to moon.technolabs@moontechnolabs.com because the address couldn't be found, or is unable to receive mail. LEARN",
+      "first_seen": "2026-07-19",
+      "last_seen": "2026-07-19",
+      "bounce_events": 1
+    },
+    "melissa@spaweekmedia.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to melissa@spaweekmedia.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The ",
+      "first_seen": "2026-07-20",
+      "last_seen": "2026-07-20",
+      "bounce_events": 1
+    },
+    "someone@gmail.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to someone@gmail.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The respons",
+      "first_seen": "2026-07-20",
+      "last_seen": "2026-07-20",
+      "bounce_events": 1
+    },
+    "supremejudicial@yahoo.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to supremejudicial@yahoo.com because the address couldn't be found, or is unable to receive mail. The response f",
+      "first_seen": "2026-07-20",
+      "last_seen": "2026-07-20",
+      "bounce_events": 1
+    },
+    "sabra@brittonmdg.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to sabra@brittonmdg.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This lin",
+      "first_seen": "2026-07-21",
+      "last_seen": "2026-07-29",
+      "bounce_events": 4
+    },
+    "tkucinsky@catalystgetsit.com": {
+      "status": "admin_blocked",
+      "reason": "Message blocked Your message to tkucinsky@catalystgetsit.com has been blocked. See technical details below for more information. LEARN MORE The response from th",
+      "first_seen": "2026-07-21",
+      "last_seen": "2026-07-29",
+      "bounce_events": 4
+    },
+    "rebecca@thetagagency.com": {
+      "status": "dead_domain",
+      "reason": "Message not delivered There was a problem delivering your message to rebecca@thetagagency.com. See the technical details below. The response was: DNS Error: DNS",
+      "first_seen": "2026-07-22",
+      "last_seen": "2026-07-22",
+      "bounce_events": 1
+    },
+    "ktaylor@id121.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to ktaylor@id121.com. Contact the remote server administrator for details. LEARN MORE This lin",
+      "first_seen": "2026-07-23",
+      "last_seen": "2026-07-23",
+      "bounce_events": 1
+    },
+    "shspanthers@empiremediaandmgmt.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to shspanthers@empiremediaandmgmt.com. See the technical details below. The response from the ",
+      "first_seen": "2026-07-23",
+      "last_seen": "2026-07-23",
+      "bounce_events": 1
+    },
+    "corrina.chavez@accentadv.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to corrina.chavez@accentadv.com. See the technical details below. LEARN MORE The response was:",
+      "first_seen": "2026-07-24",
+      "last_seen": "2026-07-31",
+      "bounce_events": 3
+    },
+    "nfrench@westmichiganmarketing.com": {
+      "status": "undelivered",
+      "reason": "Message not delivered There was a problem delivering your message to nfrench@westmichiganmarketing.com. See the technical details below. LEARN MORE The response",
+      "first_seen": "2026-07-25",
+      "last_seen": "2026-08-01",
+      "bounce_events": 3
+    },
+    "angrussell04@aol.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to angrussell04@aol.com because the address couldn't be found, or is unable to receive mail. The response from t",
+      "first_seen": "2026-07-29",
+      "last_seen": "2026-07-29",
+      "bounce_events": 1
+    },
+    "kstoltz@stoltzgroup.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to kstoltz@stoltzgroup.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This ",
+      "first_seen": "2026-07-29",
+      "last_seen": "2026-07-29",
+      "bounce_events": 1
+    },
+    "hello@automationagency.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to hello@automationagency.com because the address couldn't be found, or is unable to receive mail. The response ",
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31",
+      "bounce_events": 1
+    },
+    "sayhello@tinuiti.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to sayhello@tinuiti.com because the address couldn't be found, or is unable to receive mail. LEARN MORE The resp",
+      "first_seen": "2026-07-31",
+      "last_seen": "2026-07-31",
+      "bounce_events": 1
+    },
+    "mpluim@pappasgroup.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found Your message wasn't delivered to mpluim@pappasgroup.com because the address couldn't be found, or is unable to receive mail. LEARN MORE This l",
+      "first_seen": "2026-08-08",
+      "last_seen": "2026-08-08",
+      "bounce_events": 1
+    },
+    "test@example.com": {
+      "status": "dead_domain",
+      "reason": "Address not found Your message wasn't delivered to test@example.com because the domain example.com couldn't be found. Check for typos or unnecessary spaces and ",
+      "first_seen": "2026-08-08",
+      "last_seen": "2026-08-08",
+      "bounce_events": 1
+    }
+  }
+}
