@@ -81,9 +81,7 @@ const B2B_PROOF_URL      = process.env.PROOF_URL || 'https://master-hustle-engin
 const B2B_DEPLOYMENT_FEE = process.env.DEPLOYMENT_FEE || String(PRICING.monthly);
 const B2B_PAYMENT_LINK   = process.env.STRIPE_PAYMENT_LINK || '';
 const B2B_BATCH_HOURS    = parseInt(process.env.BATCH_INTERVAL_HOURS || '6');
-// Warming cap: a new sending account tolerates 3-4 cold emails/day. Overflow is
-// not dropped — it stays 'pending' in leads_queue and goes out on later batches.
-const B2B_BATCH_SIZE     = parseInt(process.env.BATCH_SIZE || '4');
+const B2B_BATCH_SIZE     = parseInt(process.env.BATCH_SIZE || '10');
 const B2B_INDUSTRIES     = (process.env.TARGET_INDUSTRIES ||
   'digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
@@ -1242,9 +1240,7 @@ async function sendPitchEmail(toEmail, subject, body, campaignId = '') {
 // Shared daily outbound cap — counts every pitch/follow-up send across ALL campaigns,
 // so adding a campaign never doubles total volume. Follow-ups and queued leads that
 // hit the cap stay pending and go out on later runs.
-// Counts every outbound send for the day, follow-ups included — they leave the
-// same mailbox and carry the same reputation risk as a first-touch pitch.
-const DAILY_SEND_CAP = parseInt(process.env.DAILY_SEND_CAP || '4');
+const DAILY_SEND_CAP = parseInt(process.env.DAILY_SEND_CAP || '50');
 
 async function sendsToday() {
   const row = await dbGetOne(
@@ -2143,13 +2139,8 @@ app.post('/admin/leads', wrapAsync(async (req, res) => {
 
 // Immediately process the next batch of pending leads
 app.post('/admin/run-now', wrapAsync(async (req, res) => {
-  const requested = parseInt((req.body && req.body.batch_size) || B2B_BATCH_SIZE);
-  // A manual run must not outrun the warming cap. Clamp rather than reject so a
-  // large batch_size still sends what the cap allows; the rest stays pending.
-  const size = Math.max(1, Math.min(requested || B2B_BATCH_SIZE, B2B_BATCH_SIZE));
+  const size = parseInt((req.body && req.body.batch_size) || B2B_BATCH_SIZE);
   const result = await processLeadQueue(size);
-  if (size < requested) result.clamped_from = requested;
-  result.batch_size = size;
   result.queue = await queueStats();
   res.json(result);
 }));
