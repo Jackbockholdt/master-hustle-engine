@@ -1752,11 +1752,29 @@ let BLOCKLIST_ERROR     = '';
 
 // Safe to call repeatedly: once the file is restored, the next attempt picks it
 // up, so recovering does not require a process restart.
+const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
 function loadBlocklist({ quiet = false } = {}) {
   try {
     const raw = JSON.parse(fs.readFileSync(BLOCKLIST_PATH, 'utf8'));
-    BLOCKLIST_ADDRESSES = new Map(Object.entries(raw.addresses || {}).map(([k, v]) => [k.toLowerCase(), v]));
-    BLOCKLIST_DOMAINS   = new Map(Object.entries(raw.domains   || {}).map(([k, v]) => [k.toLowerCase(), v]));
+    if (!isPlainObject(raw)) throw new Error('top level is not a JSON object');
+    // Absent is fine (one map may legitimately be empty); wrong type is not.
+    if (raw.addresses !== undefined && !isPlainObject(raw.addresses)) throw new Error('"addresses" is not a JSON object');
+    if (raw.domains   !== undefined && !isPlainObject(raw.domains))   throw new Error('"domains" is not a JSON object');
+
+    const addresses = new Map(Object.entries(raw.addresses || {}).map(([k, v]) => [k.toLowerCase(), v]));
+    const domains   = new Map(Object.entries(raw.domains   || {}).map(([k, v]) => [k.toLowerCase(), v]));
+
+    // An empty list is treated as unusable, not as "nothing to suppress". This
+    // repo's blocklist is populated, so zero entries means the file was
+    // truncated, overwritten or half-written — and we cannot tell that apart
+    // from a legitimately empty one. Refuse rather than send unsuppressed.
+    if (addresses.size === 0 && domains.size === 0) {
+      throw new Error('file contains no entries — refusing to treat an empty blocklist as "nothing to suppress"');
+    }
+
+    BLOCKLIST_ADDRESSES = addresses;
+    BLOCKLIST_DOMAINS   = domains;
     BLOCKLIST_READY = true;
     BLOCKLIST_ERROR = '';
     if (!quiet) {
