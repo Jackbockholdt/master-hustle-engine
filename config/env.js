@@ -78,19 +78,18 @@ function auditEnv({ log = true } = {}) {
     applied.push('PORT=3005');
   }
   if (!process.env.DAILY_SEND_CAP) {
-    // A cap of 0 would silently halt outbound; 4 matches .env.example and is the
-    // warming cap for a new sending account — pitches and follow-ups combined.
-    // Erring low is safe: overflow stays queued, it is never dropped.
-    process.env.DAILY_SEND_CAP = '4';
-    applied.push('DAILY_SEND_CAP=4');
+    // A cap of 0 would silently halt outbound; 50 matches .env.example and is
+    // the documented default. Bounded either way, so this is safe to assume.
+    process.env.DAILY_SEND_CAP = '50';
+    applied.push('DAILY_SEND_CAP=50');
   }
   if (!process.env.BATCH_INTERVAL_HOURS) {
     process.env.BATCH_INTERVAL_HOURS = '6';
     applied.push('BATCH_INTERVAL_HOURS=6');
   }
   if (!process.env.BATCH_SIZE) {
-    process.env.BATCH_SIZE = '4';
-    applied.push('BATCH_SIZE=4');
+    process.env.BATCH_SIZE = '10';
+    applied.push('BATCH_SIZE=10');
   }
   if (!process.env.STATUS_EMAIL_CRON) {
     process.env.STATUS_EMAIL_CRON = '0 7 * * *';
