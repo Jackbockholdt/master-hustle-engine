@@ -80,4 +80,4 @@ services:
       - key: BATCH_INTERVAL_HOURS
         value: "6"
       - key: BATCH_SIZE
-        value: "10"
+        value: "4"
