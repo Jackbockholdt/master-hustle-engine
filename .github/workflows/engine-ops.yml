@@ -13,11 +13,24 @@ on:
 
 env:
   ENGINE: https://master-hustle-engine.onrender.com
+  # Admin routes are token-gated. This must match ADMIN_TOKEN in the engine's
+  # Render environment, or every admin step below returns 401. Set it at
+  # Settings → Secrets and variables → Actions.
+  ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
 
 jobs:
   ops:
     runs-on: ubuntu-latest
     steps:
+      # Fail loudly and immediately rather than letting each admin step 401 in
+      # a way that reads like the engine is down.
+      - name: Require ADMIN_TOKEN secret
+        run: |
+          if [ -z "$ADMIN_TOKEN" ]; then
+            echo "::error::ADMIN_TOKEN secret is not set — admin steps would all return 401. Add it under Settings → Secrets and variables → Actions, matching ADMIN_TOKEN in Render."
+            exit 1
+          fi
+
       # Suppression runs FIRST and unconditionally: it must succeed even when the
       # expected build isn't live, and it must precede any smoke test so test
       # addresses can never receive a real send from a stale build.
@@ -30,10 +43,12 @@ jobs:
           echo "Suppressing: [$EMAILS]"
           curl -sS -X POST "$ENGINE/admin/do-not-contact" \
             -H 'Content-Type: application/json' \
+            -H "x-admin-token: $ADMIN_TOKEN" \
             -d "{\"emails\":[$EMAILS],\"reason\":\"bounced 2026-07-19\"}"
 
       - name: Show do-not-contact list
-        run: curl -sS "$ENGINE/admin/do-not-contact"
+        run: |
+          curl -sS -H "x-admin-token: $ADMIN_TOKEN" "$ENGINE/admin/do-not-contact"
 
       # Hard gate: smoke tests fire real webhook leads, so they must never run
       # against a build without the lead quality screen — a stale build would
@@ -66,4 +81,5 @@ jobs:
           echo "$R" | grep -q DISQUALIFIED
 
       - name: Engine status snapshot
-        run: curl -sS "$ENGINE/admin/status"
+        run: |
+          curl -sS -H "x-admin-token: $ADMIN_TOKEN" "$ENGINE/admin/status"
