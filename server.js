@@ -1901,7 +1901,11 @@ async function findEmailForCompany(companyName, website) {
 // =============================================================================
 
 // OpenPhone webhook — missed call → instant SMS text-back
-app.post('/webhook/openphone', wrapAsync(async (req, res) => {
+// Inbound call events. /webhook/openphone is the path OpenPhone is configured to
+// hit; /api/inbound is an alias on the same handler so the /api/* surface is
+// consistent. Both must keep working — changing OpenPhone's configured URL is a
+// separate, coordinated change.
+app.post(['/webhook/openphone', '/api/inbound'], wrapAsync(async (req, res) => {
   const { type: eventType, data } = req.body;
   const obj = (data && data.object) ? data.object : (data || {});
   console.log(`[OpenPhone] event=${eventType}`);
@@ -1925,8 +1929,11 @@ app.post('/webhook/openphone', wrapAsync(async (req, res) => {
   res.json({ received: true, status: 'SUCCESS', result });
 }));
 
-// Direct lead intake — qualify and pitch immediately
-app.post('/webhook/lead', wrapAsync(async (req, res) => {
+// Direct lead intake — qualify and pitch immediately.
+// /webhook/lead is the path Gumloop is configured to POST to; /api/ingest is an
+// alias on the same handler. Both must keep working — do not retire
+// /webhook/lead without updating the Gumloop pipeline first.
+app.post(['/webhook/lead', '/api/ingest'], wrapAsync(async (req, res) => {
   const body = req.body;
   if (!body.contact_email && body.email) body.contact_email = body.email;
   const missing = ['company_name', 'contact_email', 'website'].filter(f => !body[f]);
