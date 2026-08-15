@@ -2,7 +2,7 @@
 name: "The Invention Outreach & B2B Lead Generator"
 version: "1.0.0"
 description: "Ingests invention/patent data and corporate targets, locates direct executive contacts at manufacturing companies, drafts high-impact cold pitches for licensing or buyout deals, and manages outreach tracking sequences."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -18,7 +18,7 @@ Get the right invention pitch in front of the right executive decision-maker —
 ## Trigger
 
 - **Type:** API call or form submission
-- **Source:** Antigravity dashboard, Gumloop workflow, or inventor onboarding webhook
+- **Source:** Engine dashboard, Gumloop workflow, or inventor onboarding webhook
 - **Payload Required:**
   - `invention_name` — string
   - `invention_summary` — string (max 300 words describing the product/utility)

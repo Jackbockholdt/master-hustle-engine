@@ -2,7 +2,7 @@
 name: "The Intelligent Email Handler & Router"
 version: "1.0.0"
 description: "Scans inbound email inboxes, categorizes by intent, extracts key variables, drafts context-aware replies using approved knowledge, and escalates high-priority messages to human team members."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"

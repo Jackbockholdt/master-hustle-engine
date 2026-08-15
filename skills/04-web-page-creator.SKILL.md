@@ -2,7 +2,7 @@
 name: "The Web Page Creator"
 version: "1.0.0"
 description: "Ingests a business profile and generates high-converting landing page copy, spins up the page on the configured CMS/hosting framework, and wires lead capture forms to the client database."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -18,7 +18,7 @@ Go from zero to a live, lead-capturing landing page in one automated run. This s
 ## Trigger
 
 - **Type:** API call or form submission
-- **Source:** Antigravity dashboard, Gumloop workflow, or client onboarding webhook
+- **Source:** Engine dashboard, Gumloop workflow, or client onboarding webhook
 - **Payload Required:**
   - `brand_name` — string
   - `industry_niche` — string (e.g., "b2b saas", "marketing agency", "managed services")

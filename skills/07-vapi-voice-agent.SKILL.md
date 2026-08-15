@@ -2,7 +2,7 @@
 name: "The Vapi Voice Automation Agent"
 version: "1.0.0"
 description: "Orchestrates automated inbound and outbound voice calls via Vapi, injects live business knowledge guardrails, captures key data points during conversation, logs outcomes, and triggers follow-up actions from call transcripts."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -18,7 +18,7 @@ Put a tireless, always-on AI voice agent on every phone line. This skill handles
 ## Trigger
 
 - **Type:** Webhook (outbound: scheduled or on-demand) | Vapi inbound call event
-- **Source:** Vapi platform webhook, Gumloop trigger, or Antigravity scheduler
+- **Source:** Vapi platform webhook, Gumloop trigger, or engine scheduler
 - **Payload Required:**
   - `call_type` — `"INBOUND"` or `"OUTBOUND"`
   - `lead_phone` — E.164 format

@@ -2,7 +2,7 @@
 name: "The File Mix-Up Catcher"
 version: "1.0.0"
 description: "Ingests disorganized, messy data sets — spreadsheets, CSVs, raw text — parses hidden structure, remaps to a standardized schema, deduplicates, and exports a clean output file."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -18,7 +18,7 @@ Stop losing money to bad data. This skill takes any pile of mismatched spreadshe
 ## Trigger
 
 - **Type:** File upload, API payload, or Gumloop file ingestion node
-- **Source:** Antigravity dashboard, email attachment handler, or direct POST
+- **Source:** Engine dashboard, email attachment handler, or direct POST
 - **Payload Required:**
   - `input_files` — array of file paths or URLs (CSV, XLSX, TXT, JSON)
   - `target_schema` — JSON object defining the output column names and data types

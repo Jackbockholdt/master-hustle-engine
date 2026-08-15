@@ -2,7 +2,7 @@
 name: "The Hemp Strain Review & Affiliate Content Generator"
 version: "1.0.0"
 description: "Ingests strain data (terpenes, effects, vendor details), generates SEO-optimized written reviews and video scripts for affiliate marketing, and embeds monetization links into the final content package."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -18,7 +18,7 @@ Turn raw strain data into a complete, revenue-ready content package in one autom
 ## Trigger
 
 - **Type:** API call or form submission
-- **Source:** Antigravity dashboard, Gumloop workflow, or direct POST
+- **Source:** Engine dashboard, Gumloop workflow, or direct POST
 - **Payload Required:**
   - `strain_name` — string (e.g., "Sour Space Candy")
   - `strain_type` — string (`"Hemp"` / `"THCA"` / `"CBD"` / `"Delta-8"`)

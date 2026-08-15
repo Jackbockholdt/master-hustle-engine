@@ -2,7 +2,7 @@
 name: "The Call Catcher"
 version: "1.0.0"
 description: "Monitors missed calls and voicemails, extracts caller intent via LLM, and fires a personalized SMS text-back before the lead goes cold."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -43,7 +43,7 @@ Capture every missed call as a live revenue opportunity. The moment a call goes 
 ### Step 3 — Draft Personalized SMS
 - Compose a text-back message using the extracted `primary_need` and `business_name`.
 - Template:
-  > "Hi! You just called [business_name]. We missed you but we're on it. [If urgency=HIGH: 'We know this is urgent — someone will call you back within 15 minutes.'] [If urgency=MEDIUM/LOW/UNKNOWN: 'We'll be in touch shortly. Reply to this message if you need anything now.'] — Powered by Antigravity"
+  > "Hi! You just called [business_name]. We missed you but we're on it. [If urgency=HIGH: 'We know this is urgent — someone will call you back within 15 minutes.'] [If urgency=MEDIUM/LOW/UNKNOWN: 'We'll be in touch shortly. Reply to this message if you need anything now.']"
 - Message must not exceed 160 characters per SMS segment.
 
 ### Step 4 — Send SMS

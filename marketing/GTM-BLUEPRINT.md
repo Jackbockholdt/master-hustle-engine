@@ -1,8 +1,8 @@
 ---
 name: "White-Label AI Infrastructure — Go-To-Market Blueprint"
 version: "1.0.0"
-description: "Three production GTM assets for distributing the 9-skill Antigravity Agent Framework to digital marketing and lead generation agencies as a white-label recurring retainer."
-author: "Jack Bockholdt / Antigravity 2.0"
+description: "Three production GTM assets for distributing the 9-skill agent framework to digital marketing and lead generation agencies as a white-label recurring retainer."
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -23,7 +23,7 @@ changelog:
 
 **[OPENING — First 8 seconds. Hook before they hang up.]**
 
-> "Hey [First Name], this is Alex calling on behalf of Antigravity AI. Quick question — are you currently offering any kind of AI automation to your local business clients, or is that still on the roadmap for you?"
+> "Hey [First Name], this is Alex calling. Quick question — are you currently offering any kind of AI automation to your local business clients, or is that still on the roadmap for you?"
 
 *[Wait for response.]*
 
@@ -67,7 +67,7 @@ changelog:
 
 **[VOICEMAIL — if no answer:]**
 
-> "Hey [First Name], Alex with Antigravity AI. We built white-label AI infrastructure for agencies — call catching, voice agents, lead sorting, all ready to resell to your local business clients under your brand. Fifteen-hundred a month, unlimited resell. Worth a fifteen-minute look. Call me back at [NUMBER] or I'll try you again [DAY]. Talk soon."
+> "Hey [First Name], Alex here. We built white-label AI infrastructure for agencies — call catching, voice agents, lead sorting, all ready to resell to your local business clients under your brand. Fifteen-hundred a month, unlimited resell. Worth a fifteen-minute look. Call me back at [NUMBER] or I'll try you again [DAY]. Talk soon."
 
 ---
 ---

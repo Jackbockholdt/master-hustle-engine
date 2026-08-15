@@ -2,7 +2,7 @@
 name: "The Vintage & Antique Appraiser"
 version: "1.0.0"
 description: "Researches, identifies, and values collectible or vintage items using online databases and historical sales data. Outputs a structured appraisal report."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -18,7 +18,7 @@ Turn any vintage item description or image into a professional appraisal report 
 ## Trigger
 
 - **Type:** API call, file upload, or form submission
-- **Source:** Antigravity dashboard, Gumloop workflow, or direct webhook
+- **Source:** Engine dashboard, Gumloop workflow, or direct webhook
 - **Payload Required:**
   - `item_description` — string (text description of the item)
   - `item_images` — array of URLs or base64 strings (optional but improves confidence)
