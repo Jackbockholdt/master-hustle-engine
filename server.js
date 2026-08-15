@@ -326,12 +326,10 @@ const EXPECTED_KEYS = {
   'vintage': ['estimated_value_range', 'ebay_optimized_title', 'compelling_listing_description', 'key_keywords_tags'],
   'kdp': ['optimized_title_subtitle', 'category_recommendations', 'amazon_description', 'seven_backend_keywords'],
   'inventor': ['elevator_pitch', 'cold_email_subject', 'cold_email_body', 'licensing_value_proposition'],
-  'voice': ['custom_receptionist_prompt', 'first_turn_greeting', 'suggested_voice_profile'],
   'review-reply': ['detected_sentiment', 'custom_reply'],
   'local-seo': ['optimized_about_section', 'top_5_local_keywords', '3_GMB_posts'],
   'marketplace': ['catchy_title', 'high_converting_description', 'FAQ_section'],
-  'faceless-video': ['10_video_scripts'],
-  'contractor-proposal': ['polished_title', 'executive_summary', 'detailed_bill_of_materials_milestones', 'professional_closing_pitch']
+  'faceless-video': ['10_video_scripts']
 };
 
 // 3-Tier Intelligent Router — auto-loaded, used by callGemini for 429 fallback
@@ -429,28 +427,31 @@ function wrapAsync(fn) {
 // =============================================================================
 // NICHES DICTIONARY & ROTATION CONFIG
 // =============================================================================
+// Niches the daily 8am cron rotates through. Two were removed as deprecated per
+// CLAUDE.md and must not be reintroduced:
+//   'contractor-proposal' — home-services / contractor pitches
+//   'voice'               — Vapi voice receptionist (missed-call automation)
+// Removing them here is what actually stops the cron generating that content;
+// deleting the manual routes alone did not, because the cron drives this list
+// independently. processNicheForBuyer still handles every name below.
 const NICHES_ROTATION = [
   'vintage',
   'kdp',
   'inventor',
-  'voice',
   'review-reply',
   'local-seo',
   'marketplace',
-  'faceless-video',
-  'contractor-proposal'
+  'faceless-video'
 ];
 
 const NICHE_DISPLAY_NAMES = {
   'vintage': 'Vintage Flipper',
   'kdp': 'KDP Books',
   'inventor': 'Inventor Pitches',
-  'voice': 'Voice Prompts',
   'review-reply': 'Review Replies',
   'local-seo': 'Local SEO',
   'marketplace': 'Marketplace Ads',
-  'faceless-video': 'Faceless Videos',
-  'contractor-proposal': 'Client Proposals'
+  'faceless-video': 'Faceless Videos'
 };
 
 const NICHES_DICTIONARY = {
@@ -509,13 +510,6 @@ const NICHES_DICTIONARY = {
     { niche: "Self-improvement, productivity hacks, and modern stoicism habits" },
     { niche: "Unbelievable space mysteries, black hole facts, and cosmic anomalies" },
     { niche: "Financial literacy, compound interest explainers, and cashflow hacks" }
-  ],
-  'contractor-proposal': [
-    { project_name: "White-Label AI Workspace Rollout — 12 Client Accounts", scope: "Provision 12 branded client workspaces, configure lead routing and follow-up cadences per account, connect each to the client's CRM, hand off admin credentials and a partner runbook." },
-    { project_name: "Marketing Automation Migration — Marketo to HubSpot", scope: "Audit 40 active programs, rebuild lifecycle and nurture flows in HubSpot, migrate contact and activity history, re-map lead scoring, run two weeks of parallel sends before cutover." },
-    { project_name: "Outbound Lead Engine Buildout — Q3 Pilot", scope: "Define ICP and build a 5,000-contact verified list, stand up sending infrastructure with domain warmup, write and test a 4-step sequence, deliver weekly reply-rate reporting." },
-    { project_name: "SaaS Onboarding Funnel Optimization Retainer", scope: "Instrument activation events, run a 90-day experiment backlog against trial-to-paid conversion, rebuild the in-app onboarding checklist, deliver a monthly cohort readout." },
-    { project_name: "Reseller Enablement Program — Partner Launch", scope: "Build partner-facing documentation and demo environment, produce a co-branded pitch kit, train two partner sales reps, define deal-registration and margin structure." }
   ]
 };
 
@@ -621,244 +615,6 @@ function renderJsonToHtml(data) {
   return html;
 }
 
-// =============================================================================
-// BACKUP MANUAL ENDPOINTS (All 9 Niches)
-// =============================================================================
-
-// 1. Vintage Flipper (/api/vintage)
-app.post('/api/vintage', wrapAsync(async (req, res) => {
-  const { item_name, description, buyer_email } = req.body;
-  if (!item_name || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing item_name or buyer_email.' });
-  }
-
-  const systemInstruction = `
-    Act as an expert vintage appraisal and marketplace listing copywriter.
-    Return a JSON object with:
-    1. "estimated_value_range": string, realistic vintage pricing.
-    2. "ebay_optimized_title": string, keyword-rich title.
-    3. "compelling_listing_description": string, detailed listing details.
-    4. "key_keywords_tags": array of 5 tags.
-  `;
-  const prompt = `Item Name: ${item_name}\nDescription/Condition: ${description || 'unknown'}`;
-  const data = await callGemini(prompt, systemInstruction, 'vintage');
-  
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['vintage'], { item_name, description }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Vintage Flipper`, emailHtml);
-  logTransaction(buyer_email, 'vintage', 'success', data);
-  res.json({ success: true, data });
-}));
-
-// 2. KDP Optimizer (/api/kdp)
-app.post('/api/kdp', wrapAsync(async (req, res) => {
-  const { title, genre, targetAudience, buyer_email } = req.body;
-  if (!title || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing title or buyer_email.' });
-  }
-
-  const systemInstruction = `
-    Act as a professional self-publishing KDP book launch strategist.
-    Return a JSON object with:
-    1. "optimized_title_subtitle": string.
-    2. "category_recommendations": array of 3 categories.
-    3. "amazon_description": string (SEO-rich HTML style).
-    4. "seven_backend_keywords": array of 7 keywords.
-  `;
-  const prompt = `Book Title: ${title}\nGenre: ${genre || 'General'}\nTarget Audience: ${targetAudience || 'Any'}`;
-  const data = await callGemini(prompt, systemInstruction, 'kdp');
-
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['kdp'], { title, genre, targetAudience }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - KDP Books`, emailHtml);
-  logTransaction(buyer_email, 'kdp', 'success', data);
-  res.json({ success: true, data });
-}));
-
-// 3. Inventor Pitch (/api/inventor)
-app.post('/api/inventor', wrapAsync(async (req, res) => {
-  const { title, description, buyer_email } = req.body;
-  if (!title || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing title or buyer_email.' });
-  }
-
-  const systemInstruction = `
-    Act as a high-converting technology scout and cold outreach copywriter.
-    Return a JSON object with:
-    1. "elevator_pitch": string.
-    2. "cold_email_subject": string.
-    3. "cold_email_body": string.
-    4. "licensing_value_proposition": string.
-  `;
-  const prompt = `Invention: ${title}\nDescription: ${description || ''}`;
-  const data = await callGemini(prompt, systemInstruction, 'inventor');
-
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['inventor'], { title, description }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Inventor Pitches`, emailHtml);
-  logTransaction(buyer_email, 'inventor', 'success', data);
-  res.json({ success: true, data });
-}));
-
-// 4. Voice Agent Prompt (/api/voice)
-app.post('/api/voice', wrapAsync(async (req, res) => {
-  const { businessType, location, mainOffer, buyer_email } = req.body;
-  if (!businessType || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing businessType or buyer_email.' });
-  }
-
-  const systemInstruction = `
-    Act as a Vapi voice receptionist dialog engineer.
-    Return a JSON object with:
-    1. "custom_receptionist_prompt": string (800+ words detailed agent system instruction).
-    2. "first_turn_greeting": string.
-    3. "suggested_voice_profile": string.
-  `;
-  const prompt = `Business Type: ${businessType}\nLocation: ${location || 'Any'}\nOffer: ${mainOffer || 'Call dispatching'}`;
-  const data = await callGemini(prompt, systemInstruction, 'voice');
-
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['voice'], { businessType, location, mainOffer }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Voice Prompts`, emailHtml);
-  logTransaction(buyer_email, 'voice', 'success', data);
-  res.json({ success: true, data });
-}));
-
-// 5. Google Review Reply (/api/review-reply)
-app.post('/api/review-reply', wrapAsync(async (req, res) => {
-  const { review_text, tone, buyer_email } = req.body;
-  if (!review_text || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing review_text or buyer_email.' });
-  }
-
-  const systemInstruction = `
-    Act as an expert customer review responder.
-    Return a JSON object with:
-    1. "detected_sentiment": string (positive/negative/neutral).
-    2. "custom_reply": string (polite, under 80 words response).
-  `;
-  const prompt = `Review Content: "${review_text}"\nTone requested: ${tone || 'professional'}`;
-  const data = await callGemini(prompt, systemInstruction, 'review-reply');
-
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['review-reply'], { review_text, tone }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Review Replies`, emailHtml);
-  logTransaction(buyer_email, 'review-reply', 'success', data);
-  res.json({ success: true, data });
-}));
-
-// 6. GMB Local SEO (/api/local-seo)
-app.post('/api/local-seo', wrapAsync(async (req, res) => {
-  const { business_name, city, services, buyer_email } = req.body;
-  if (!business_name || !city || !services || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing required parameters.' });
-  }
-
-  const systemInstruction = `
-    Act as a local SEO expert.
-    Return a JSON object with:
-    1. "optimized_about_section": string (max 750 chars).
-    2. "top_5_local_keywords": array of 5 strings.
-    3. "3_GMB_posts": array of 3 optimized GMB posts.
-  `;
-  const prompt = `Business: ${business_name}\nCity: ${city}\nServices: ${Array.isArray(services) ? services.join(', ') : services}`;
-  const data = await callGemini(prompt, systemInstruction, 'local-seo');
-
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['local-seo'], { business_name, city, services }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Local SEO`, emailHtml);
-  logTransaction(buyer_email, 'local-seo', 'success', data);
-  res.json({ success: true, data });
-}));
-
-// 7. Marketplace Ad Writer (/api/marketplace)
-app.post('/api/marketplace', wrapAsync(async (req, res) => {
-  const { item_name, condition, key_features, buyer_email } = req.body;
-  if (!item_name || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing required parameters.' });
-  }
-
-  const systemInstruction = `
-    Act as a classifieds copywriter.
-    Return a JSON object with:
-    1. "catchy_title": string.
-    2. "high_converting_description": string.
-    3. "FAQ_section": array of objects with "question" and "answer".
-  `;
-  const prompt = `Item: ${item_name}\nCondition: ${condition || ''}\nFeatures: ${key_features || ''}`;
-  const data = await callGemini(prompt, systemInstruction, 'marketplace');
-
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['marketplace'], { item_name, condition, key_features }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Marketplace Ads`, emailHtml);
-  logTransaction(buyer_email, 'marketplace', 'success', data);
-  res.json({ success: true, data });
-}));
-
-// 8. Faceless Video Scripts (/api/faceless-video)
-app.post('/api/faceless-video', wrapAsync(async (req, res) => {
-  const { niche, buyer_email } = req.body;
-  if (!niche || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing niche or buyer_email.' });
-  }
-
-  const systemInstruction = `
-    Act as a short-form content strategist.
-    Return a JSON object with a "10_video_scripts" array. Each script must have:
-    - "hook": string.
-    - "visual_instructions": string.
-    - "spoken_script": string.
-    - "caption_with_hashtags": string.
-  `;
-  const prompt = `Niche: ${niche}`;
-  const data = await callGemini(prompt, systemInstruction, 'faceless-video');
-
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['faceless-video'], { niche }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Faceless Videos`, emailHtml);
-  logTransaction(buyer_email, 'faceless-video', 'success', data);
-  res.json({ success: true, data });
-}));
-
-// 9. Client Proposal Polish (/api/contractor-proposal)
-app.post('/api/contractor-proposal', wrapAsync(async (req, res) => {
-  const { project_name, scope, buyer_email } = req.body;
-  if (!project_name || !buyer_email) {
-    return res.status(400).json({ success: false, error: 'Missing project_name or buyer_email.' });
-  }
-
-  // The JSON keys are load-bearing — EXPECTED_KEYS validates against them and
-  // orchestrator.py emits the same shape — so "bill of materials" survives as a key
-  // name even though this now writes B2B statements of work, not trade estimates.
-  const systemInstruction = `
-    Act as an elite B2B services proposal writer producing a statement of work for a
-    software, SaaS, agency, or white-label partner engagement.
-    Return a JSON object with:
-    1. "polished_title": string.
-    2. "executive_summary": string.
-    3. "detailed_bill_of_materials_milestones": array of strings — the deliverables,
-       workstreams, and milestones for the engagement.
-    4. "professional_closing_pitch": string.
-  `;
-  const prompt = `Project Name: ${project_name}\nScope of Work: ${scope || ''}`;
-  const data = await callGemini(prompt, systemInstruction, 'contractor-proposal');
-
-  const renderedContent = renderJsonToHtml(data);
-  const emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['contractor-proposal'], { project_name, scope }, renderedContent);
-
-  await sendHtmlEmail(buyer_email, `Daily Hustle Report - Client Proposals`, emailHtml);
-  logTransaction(buyer_email, 'contractor-proposal', 'success', data);
-  res.json({ success: true, data });
-}));
-
 
 // =============================================================================
 // AUTOMATED CRON CLOCK CYCLE (Daily 8:00 AM)
@@ -897,7 +653,18 @@ async function triggerDailyNicheHustle() {
   const activeNiche = NICHES_ROTATION[currentIndex];
   console.log(`[Cron Engine] Selected Niche for Today: ${activeNiche} (Yesterday was: ${yesterdayNiche || 'none'})`);
 
+  // NICHES_DICTIONARY does not cover every entry in NICHES_ROTATION — 'vintage',
+  // 'kdp', 'inventor', and 'marketplace' have no sample data. This predates the
+  // niche teardown: the unguarded lookup below returned undefined and threw a
+  // TypeError, so the daily run has been failing on those days and emailing a
+  // stack trace via triggerDailyNicheHustleSafe. Skip cleanly instead. The real
+  // fix is retiring this cron entirely — it generates legacy-niche content that
+  // no longer maps to anything being sold.
   const dictionaryList = NICHES_DICTIONARY[activeNiche];
+  if (!Array.isArray(dictionaryList) || dictionaryList.length === 0) {
+    console.warn(`[Cron Engine] No sample data for niche '${activeNiche}' — skipping today's run.`);
+    return;
+  }
   const randomTarget = dictionaryList[Math.floor(Math.random() * dictionaryList.length)];
   console.log(`[Cron Engine] Selected Target Example: ${JSON.stringify(randomTarget)}`);
 
@@ -918,10 +685,6 @@ async function triggerDailyNicheHustle() {
       systemInstruction = `Act as a high-converting technology scout and cold outreach copywriter. Return a JSON object with: "elevator_pitch": string, "cold_email_subject": string, "cold_email_body": string, "licensing_value_proposition": string.`;
       prompt = `Create pitch kit for: ${randomTarget.title}\nDescription: ${randomTarget.description}`;
       break;
-    case 'voice':
-      systemInstruction = `Act as a Vapi voice receptionist dialog engineer. Return a JSON object with: "custom_receptionist_prompt": string (800+ words detailed agent system instruction), "first_turn_greeting": string, "suggested_voice_profile": string.`;
-      prompt = `Draft receptionist prompt for: ${randomTarget.businessType} in ${randomTarget.location}\nOffer: ${randomTarget.mainOffer}`;
-      break;
     case 'review-reply':
       systemInstruction = `Act as an expert customer review responder. Return a JSON object with: "detected_sentiment": string, "custom_reply": string.`;
       prompt = `Draft response to review: "${randomTarget.text}" by reviewer ${randomTarget.reviewer}`;
@@ -937,10 +700,6 @@ async function triggerDailyNicheHustle() {
     case 'faceless-video':
       systemInstruction = `Act as a short-form content strategist. Return a JSON object with a "10_video_scripts" array containing hooks, visual_instructions, spoken_script, and caption_with_hashtags.`;
       prompt = `Draft 10 viral video scripts for the niche: ${randomTarget.niche}`;
-      break;
-    case 'contractor-proposal':
-      systemInstruction = `Act as an elite B2B services proposal writer producing a statement of work for a software, SaaS, agency, or white-label partner engagement. Return a JSON object with: "polished_title": string, "executive_summary": string, "detailed_bill_of_materials_milestones": array of strings (deliverables, workstreams, and milestones), "professional_closing_pitch": string.`;
-      prompt = `Refine proposal for: ${randomTarget.project_name}\nScope: ${randomTarget.scope}`;
       break;
   }
 
@@ -1039,19 +798,6 @@ async function processNicheForBuyer(niche, fields, buyerEmail) {
       logTransaction(buyerEmail, 'inventor', 'success', data);
       break;
     }
-    case 'voice': {
-      const businessType = fields.businesstype || '';
-      const location = fields.location || '';
-      const mainOffer = fields.mainoffer || '';
-      systemInstruction = `Act as a Vapi voice receptionist dialog engineer. Return a JSON object with: 1. "custom_receptionist_prompt": string (800+ words detailed agent system instruction). 2. "first_turn_greeting": string. 3. "suggested_voice_profile": string.`;
-      prompt = `Business Type: ${businessType}\nLocation: ${location}\nOffer: ${mainOffer}`;
-      data = await callGemini(prompt, systemInstruction, 'voice');
-      renderedContent = renderJsonToHtml(data);
-      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['voice'], { businessType, location, mainOffer }, renderedContent);
-      await sendHtmlEmail(buyerEmail, 'Your AI Voice Receptionist Prompt — Antigravity Engine', emailHtml);
-      logTransaction(buyerEmail, 'voice', 'success', data);
-      break;
-    }
     case 'review-reply': {
       const review_text = fields.reviewtext || '';
       const tone = fields.tone || 'professional';
@@ -1101,20 +847,22 @@ async function processNicheForBuyer(niche, fields, buyerEmail) {
       logTransaction(buyerEmail, 'faceless-video', 'success', data);
       break;
     }
-    case 'contractor-proposal': {
-      const project_name = fields.projectname || '';
-      const scope = fields.scopeofwork || '';
-      systemInstruction = `Act as an elite B2B services proposal writer producing a statement of work for a software, SaaS, agency, or white-label partner engagement. Return a JSON object with: 1. "polished_title": string. 2. "executive_summary": string. 3. "detailed_bill_of_materials_milestones": array of strings (deliverables, workstreams, and milestones). 4. "professional_closing_pitch": string.`;
-      prompt = `Project Name: ${project_name}\nScope of Work: ${scope}`;
-      data = await callGemini(prompt, systemInstruction, 'contractor-proposal');
-      renderedContent = renderJsonToHtml(data);
-      emailHtml = getPremiumEmailHtml(NICHE_DISPLAY_NAMES['contractor-proposal'], { project_name, scope }, renderedContent);
-      await sendHtmlEmail(buyerEmail, 'Your Client Proposal — Antigravity Engine', emailHtml);
-      logTransaction(buyerEmail, 'contractor-proposal', 'success', data);
-      break;
-    }
     default:
-      throw new Error(`Unknown niche: ${niche}`);
+      // Retired or unrecognized niche. This used to throw. The webhook never
+      // 500'd from it — the call site (search: processNicheForBuyer(niche) is
+      // fire-and-forget with a .catch) already responded 200 regardless — but
+      // the throw produced a stack-trace admin alert that read like a crash
+      // rather than a retired-product hit. No live payment link sets
+      // metadata.niche, so reaching here means a retired niche or a malformed
+      // session. Log it plainly, record it, and send an alert that says what to
+      // actually do about it.
+      console.warn(`[Niche] Retired or unknown niche '${niche}' for ${buyerEmail} — nothing generated.`);
+      logTransaction(buyerEmail, `retired:${niche}`, 'failure', `Unknown or retired niche: ${niche}`);
+      await sendAdminAlert(
+        `Stripe purchase arrived with retired niche '${niche}'`,
+        `Buyer: ${buyerEmail}\n\nNo deliverable was generated. If this buyer paid, fulfil manually and remove the niche metadata from the payment link.`
+      ).catch(() => { /* alerting is best-effort — never let it mask the original event */ });
+      return;
   }
 }
 
@@ -1988,29 +1736,20 @@ app.get('/pitch', (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     status: '✅ Running',
-    name: 'Antigravity Master Hustle Engine',
+    name: 'Master Hustle Engine',
     version: '1.0.0',
-    dailyAutomation: '8:00 AM Server Time (UTC)',
-    niches: [
-      { name: 'Vintage Flipper', endpoint: 'POST /api/vintage', desc: 'Appraise vintage items, generate eBay listings' },
-      { name: 'KDP Books', endpoint: 'POST /api/kdp', desc: 'Optimize book launches, categories, keywords' },
-      { name: 'Inventor Pitches', endpoint: 'POST /api/inventor', desc: 'Cold emails & elevator pitches for patents' },
-      { name: 'Voice Prompts', endpoint: 'POST /api/voice', desc: 'AI intake/qualification agent instructions for Vapi' },
-      { name: 'Review Replies', endpoint: 'POST /api/review-reply', desc: 'Sentiment detection & smart responses' },
-      { name: 'Local SEO', endpoint: 'POST /api/local-seo', desc: 'GMB optimization, keywords, posts' },
-      { name: 'Marketplace Ads', endpoint: 'POST /api/marketplace', desc: 'Classifieds copy & FAQs' },
-      { name: 'Faceless Videos', endpoint: 'POST /api/faceless-video', desc: '10 viral short-form video scripts' },
-      { name: 'Client Proposals', endpoint: 'POST /api/contractor-proposal', desc: 'B2B statements of work and client proposals' }
-    ],
-    admin: {
+    endpoints: {
+      ingest: 'POST /webhook/lead  (alias: POST /api/ingest)',
+      inbound: 'POST /webhook/openphone  (alias: POST /api/inbound)',
+      status: 'GET /admin/status',
+      health: 'GET /health',
       logs: 'GET /api/admin/logs',
       triggerDaily: 'POST /api/admin/trigger-daily'
     },
     // The single offer. Sourced from config/pricing.js — the buyout is a sales
     // anchor, not a purchasable option, so it is deliberately absent here.
     offer: quotableOffer(),
-    health: 'GET /health',
-    message: 'All 9 skills active. Cron fires daily at 8:00 AM. Ready to use!'
+    message: 'Lead ingestion and outbound dispatch active.'
   });
 });
 
