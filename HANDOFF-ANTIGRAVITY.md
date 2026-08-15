@@ -414,7 +414,7 @@ sqlite3 orchestrator_audit.sqlite "SELECT * FROM audit_log ORDER BY id DESC LIMI
 - See `orchestrator.py` comments for skill function structure
 - See `CLAUDE.md` for project north star and business model
 - See `marketing/GTM-BLUEPRINT.md` for cold call script and scraper targeting
-- See `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` for 3-email nurture flow
+- See `marketing/DIRECT-AGENCY-OUTREACH.md` for the canonical 5-step email sequence
 
 **Production Incident:**
 - If service goes down, check Render dashboard for errors
@@ -430,7 +430,7 @@ sqlite3 orchestrator_audit.sqlite "SELECT * FROM audit_log ORDER BY id DESC LIMI
 | `orchestrator.py` | Main FastAPI app; all 9 skills; SMTP, Gemini integration |
 | `CLAUDE.md` | Project north star; business model; live URLs; config |
 | `marketing/GTM-BLUEPRINT.md` | Cold call script; Gumloop scraper targeting params |
-| `marketing/FOLLOWUP-EMAIL-SEQUENCE.md` | 3-email nurture sequence (manual setup in email tool) |
+| `marketing/DIRECT-AGENCY-OUTREACH.md` | Canonical 5-step cold email sequence (single source of truth) |
 | `orchestrator_audit.sqlite` | SQLite audit log (local to Render; ephemeral) |
 
 ---
