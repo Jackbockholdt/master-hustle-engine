@@ -2,7 +2,7 @@
 name: "The KDP Book Publisher Helper"
 version: "1.0.0"
 description: "Takes a raw manuscript, auto-formats it to Amazon KDP specifications, generates optimized metadata (description, keywords, categories), and packages the upload-ready files with a submission checklist."
-author: "Jack Bockholdt / Antigravity 2.0"
+author: "Jack Bockholdt"
 changelog:
   - version: "1.0.0"
     date: "2026-06-29"
@@ -18,7 +18,7 @@ Eliminate the 80% of KDP publishing that is pure formatting busywork. This skill
 ## Trigger
 
 - **Type:** File upload or API call
-- **Source:** Antigravity dashboard, Gumloop file ingestion, or direct POST
+- **Source:** Engine dashboard, Gumloop file ingestion, or direct POST
 - **Payload Required:**
   - `manuscript_file` — URL or base64 of `.docx`, `.txt`, or `.pdf`
   - `book_title` — string

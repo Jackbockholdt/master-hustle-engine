@@ -6,9 +6,21 @@ services:
   - type: web
     name: master-hustle-engine
     env: node
-    plan: free
+    # Starter (not free): the free tier spins down after ~15 min idle, which kills
+    # the in-process setInterval schedulers (lead batch, follow-ups, Gumloop trigger)
+    # long before their 6h timers elapse. Free also cannot mount a persistent disk.
+    plan: starter
     buildCommand: npm install
     startCommand: node server.js
+    # Persistent disk for SQLite. pickDataDir() (server.js:58) probes /data first,
+    # so this mountPath is what moves the DB off the ephemeral container filesystem.
+    # Without it, send history, the lead queue, pending follow-ups, and the runtime
+    # do-not-contact table are wiped on every restart and redeploy — and a wiped
+    # DNC table means re-mailing people who already opted out.
+    disk:
+      name: master-hustle-engine-data
+      mountPath: /data
+      sizeGB: 1
     envVars:
       # Render injects its own PORT; this pins the value the service binds to.
       # Local dev defaults to 3005 (see .env.example and config/env.js).

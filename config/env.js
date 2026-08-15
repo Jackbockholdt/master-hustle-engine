@@ -19,7 +19,7 @@
 const CRITICAL = [
   {
     key: 'GEMINI_API_KEY',
-    feature: 'AI generation (all 9 skills, pitch + follow-up copy)',
+    feature: 'AI generation (pitch copy, follow-up copy, call classification)',
     degraded: 'Generation endpoints return an error; cron/batch runs are skipped instead of looping on failures.',
   },
   {

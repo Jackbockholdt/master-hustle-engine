@@ -40,6 +40,6 @@ directly — the buyer white-labels and resells.
 - **Landing page:** `landing/index.html` (static, hosts anywhere)
 - **Outreach campaign:** `marketing/OUTREACH-CAMPAIGN.md` (LinkedIn DM + cold email)
 - **Targeting + GTM plan:** `marketing/GTM-BLUEPRINT.md`
-- **Follow-up email sequence:** `marketing/FOLLOWUP-EMAIL-SEQUENCE.md`
+- **Canonical outreach copy (5-step sequence):** `marketing/DIRECT-AGENCY-OUTREACH.md`
 - **Financial model + pitch deck:** `finance/`
 - **Full playbook & product state:** `CLAUDE.md`

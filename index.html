@@ -95,9 +95,9 @@
   <section id="features" class="wrap">
     <div class="head"><h2>What you're deploying</h2><p>Production infrastructure, running under your logo and your domain.</p></div>
     <div class="g3">
-      <div class="f"><div class="ic"></div><h3>3-Skill Token Router</h3>
-        <p>Cost-aware routing across model providers so every task runs on the cheapest engine that can handle it.</p>
-        <ul><li>Model selection &amp; fallback</li><li>Token budgeting per workflow</li><li>Usage metering for billing</li></ul></div>
+      <div class="f"><div class="ic"></div><h3>Multi-Provider Failover Router</h3>
+        <p>Automatic failover across model providers, so one provider going down doesn't stop your client workflows.</p>
+        <ul><li>Gemini &rarr; OpenAI &rarr; Anthropic chain</li><li>Automatic retry on rate limits</li><li>Failover events logged and reported daily</li></ul></div>
       <div class="f"><div class="ic"></div><h3>9-Skill Agentic Engine</h3>
         <p>The workflow layer that does the actual work across your client operations.</p>
         <ul><li>Lead routing, enrichment, follow-up</li><li>Scheduling, summarization, escalation</li><li>Reporting, CRM sync, billing hooks</li></ul></div>
@@ -141,7 +141,7 @@
       <div><h4>What exactly is the $4,000?</h4><p>The $2,500 setup fee plus your first month, billed together at signing. After that it's a flat $1,500/month. No usage surcharges, no tiers.</p></div>
       <div><h4>Can I buy the codebase instead?</h4><p>A full IP buyout is $25,000 one-time. If you go that route later, your setup fee and paid license months are credited toward it.</p></div>
       <div><h4>What do you need from me?</h4><p>Logo, domain, inbox and CRM access, and your offer details. We handle the build.</p></div>
-      <div><h4>What happens to usage costs?</h4><p>The token router keeps model spend low and meters it per workspace so you can bill clients accurately.</p></div>
+      <div><h4>What happens if a model provider goes down?</h4><p>The router fails over to the next provider in the chain automatically, so a rate limit or outage at one vendor doesn't stall your client workflows.</p></div>
       <div><h4>Do you work with my stack?</h4><p>The engine integrates with mainstream CRMs, inboxes, and billing systems. Ask about anything unusual.</p></div>
     </div>
   </section>

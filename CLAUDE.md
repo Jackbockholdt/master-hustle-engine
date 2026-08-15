@@ -14,7 +14,12 @@ A rebrandable AI automation stack that agencies deploy under their own name: aut
 
 Core technical assets:
 
-- **3-skill token router** — cost-aware model routing across providers.
+- **3-provider failover router** — automatic failover across model providers
+  (Gemini → OpenAI → Anthropic), implemented in `agent.skills/intelligent-router.js`.
+  It fires on rate limits and transient errors, not on every request. It is a
+  reliability feature, not a token reducer: describe it as "automatic
+  multi-provider failover", never as "cost-aware routing" or "token savings".
+  A complexity classifier / cheap-model triage tier is deferred, not built.
 - **9-skill agentic engine** — the workflow layer (routing, enrichment, follow-up, scheduling, summarization, escalation, reporting, CRM sync, billing hooks).
 
 ## Pricing Model (canonical — do not deviate)
