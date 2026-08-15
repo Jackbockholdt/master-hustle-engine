@@ -1,8 +1,17 @@
-# QUICK HANDOFF — If Claude Runs Out of Tokens
+# ARCHIVED — Quick Handoff (July 2026)
 
-**Last Status:** System processing 16/20 leads ✅ LIVE  
-**Date:** 2026-07-02  
-**All systems deployed and running**
+> **Historical snapshot. URLs and status below are stale.**
+>
+> - `antigravity-orchestrator-kz94.onrender.com` is **not** the current engine.
+>   Use `https://master-hustle-engine.onrender.com`.
+> - The "16/20 leads" figure is a July 2026 note, not a current metric. Read live
+>   numbers from `GET /admin/status` instead — that is the only source that
+>   reflects what actually sent.
+> - Lead intake is `POST /webhook/lead` (alias `POST /api/ingest`). Required
+>   fields and the exact payload shape are in `GUMLOOP-SETUP-FOR-ANTIGRAVITY.md`.
+
+**Original status line (July 2026):** System processing 16/20 leads  
+**Date:** 2026-07-02
 
 ---
 
