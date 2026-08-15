@@ -206,7 +206,7 @@ async function sendEmailViaRelayOrSmtp(to, subject, htmlOrText) {
     return;
   }
   await transporter.sendMail({
-    from: FROM_EMAIL ? `"${FROM_NAME}" <${FROM_EMAIL}>` : `"Antigravity Master Engine" <${process.env.SMTP_USER}>`,
+    from: `"${FROM_NAME}" <${FROM_EMAIL || process.env.SMTP_USER}>`,
     to,
     subject,
     html: htmlOrText,
@@ -1550,7 +1550,7 @@ const TEMPLATE_CAMPAIGNS = {
           "Your clients get the AI services they're already asking for. You keep the margin. Zero dev work on your side — I handle the build and the hosting.\n\n" +
           'Agencies are charging clients around $500/mo for this and keeping most of it. Three clients and it pays for itself.\n\n' +
           'Worth 15 minutes to see it running under your brand?\n\n' +
-          'Jack Bockholdt\nAntigravity AI\n\n' +
+          'Jack Bockholdt\n\n' +
           'P.S. Not interested? Reply "unsubscribe" and you won\'t hear from me again.',
       },
       {
