@@ -51,7 +51,31 @@ Body (JSON):
 }
 ```
 
-`first_name` is optional — the greeting falls back to "Hi there," when it's missing. Leads WITHOUT the `campaign` field get the original AI-personalized white-label pitch. Both campaigns share one daily send cap (`DAILY_SEND_CAP` env var, default 50/day); leads over the cap are queued and sent on later batch runs, never dropped.
+`first_name` is optional — the greeting falls back to "Hi there," when it's missing. Leads WITHOUT the `campaign` field get the original AI-personalized white-label pitch. Both campaigns share one daily send cap (`DAILY_SEND_CAP` env var, **default 4/day** — see `server.js`); leads over the cap are queued and sent on later batch runs, never dropped.
+
+---
+
+## Required vs optional fields — read this before configuring the node
+
+Verified against the live handler by posting each shape at it.
+
+| Field | Required? | Notes |
+|---|---|---|
+| `company_name` | **Required** | 400s without it. There is no `business_name` alias. |
+| `website` | **Required** | 400s without it. |
+| `contact_email` | **Required** | `email` is accepted as an alias and mapped internally. |
+| `industry` | Optional | Used by the qualification filter. |
+| `first_name` | Optional | Greeting falls back to "Hi there,". |
+| `campaign` | Optional | Omit for the AI-personalized pitch; `antigravity-saas` selects the fixed 3-step template. |
+
+**Two field names that will silently break the pipeline:**
+
+- `business_name` is **not** recognized. The handler requires `company_name`.
+- `website` is required and easy to leave out of a scraper mapping.
+
+A payload missing either returns `400 {"error":"Missing required fields: ..."}` and the lead is dropped — it is not queued and not retried. If Gumloop reports successful runs but the queue stays empty at `GET /admin/status`, this is the first thing to check.
+
+`antigravity-saas` is a stored campaign **key**, not branding — renaming it in `server.js` without updating the Gumloop node breaks ingestion. Leave it as-is.
 
 ---
 

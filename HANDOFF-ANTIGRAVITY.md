@@ -1,8 +1,24 @@
-# Antigravity 2.0 — Live System Handoff
+# ARCHIVED — Historical System Handoff (July 2026)
 
-**Status:** ✅ DEPLOYED AND LIVE  
+> **This document is a historical snapshot. Do not treat its URLs or status
+> claims as current.**
+>
+> - Every `antigravity-orchestrator-kz94.onrender.com` URL below is **stale and
+>   unverified**. The current engine is `https://master-hustle-engine.onrender.com`.
+> - The "DEPLOYED AND LIVE" status line reflects July 2026, not today.
+> - The nine niche `/api/*` endpoints described here were **removed** in PR #78.
+>   Lead intake is `POST /webhook/lead` (alias `POST /api/ingest`); inbound call
+>   events are `POST /webhook/openphone` (alias `POST /api/inbound`).
+> - Canonical references: `CLAUDE.md` for positioning and pricing,
+>   `GUMLOOP-SETUP-FOR-ANTIGRAVITY.md` for the live ingestion payload contract.
+>
+> Kept for history because it records deploy IDs and setup decisions that are
+> still useful context. Nothing here should be copied forward without checking
+> it against the code first.
+
+**Original status line (July 2026):** ✅ DEPLOYED AND LIVE  
 **Last Updated:** 2026-07-02  
-**Orchestrator URL:** https://antigravity-orchestrator-kz94.onrender.com  
+**Orchestrator URL:** https://antigravity-orchestrator-kz94.onrender.com *(stale)*  
 **Frontend URL:** https://master-hustle-engine.onrender.com  
 **Repository:** jackbockholdt/master-hustle-engine (main branch)
 

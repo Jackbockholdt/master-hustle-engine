@@ -1,7 +1,7 @@
 """
 orchestrator.py
 ───────────────────────────────────────────────────────────────────────────────
-Antigravity 2.0 — Central API Orchestrator
+Master Hustle Engine — Central API Orchestrator
 FastAPI webhook server that receives payloads from Gumloop and Vapi,
 routes them to the correct SKILL.md execution handler, runs the skill logic,
 and writes every outcome to a local SQLite audit table before responding.
@@ -658,7 +658,7 @@ footer{{background:#111;color:#999;text-align:center;padding:24px;font-size:.88r
     <button type="submit">{copy.get('cta_label', 'Send Message')}</button>
   </form>
 </section>
-<footer><p>&copy; {yr} {brand_name}. Powered by Antigravity AI.</p></footer>
+<footer><p>&copy; {yr} {brand_name}.</p></footer>
 </body>
 </html>"""
 
@@ -1250,7 +1250,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Antigravity 2.0 — Central API Orchestrator",
+    title="Master Hustle Engine — Central API Orchestrator",
     version="1.0.0",
     description="Routes Gumloop and Vapi webhooks to the correct SKILL.md handler with full SQLite audit logging.",
     lifespan=lifespan,
