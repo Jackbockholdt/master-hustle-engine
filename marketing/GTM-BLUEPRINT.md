@@ -1,7 +1,7 @@
 ---
 name: "White-Label AI Infrastructure — Go-To-Market Blueprint"
 version: "2.0.0"
-description: "Production GTM assets for distributing the 9-skill agent framework to digital marketing and lead generation agencies as a white-label recurring retainer."
+description: "Production GTM assets for distributing the white-label outbound engine to digital marketing and lead generation agencies as a recurring retainer."
 author: "Jack Bockholdt"
 changelog:
   - version: "2.0.0"
@@ -188,15 +188,15 @@ Role addresses (`info@`, `hello@`, `contact@`) are usable but lower priority tha
 
 **Bullet 2 — What You're Actually Getting**
 
-> **9 production-ready AI skills. No dev team. No build time. No maintenance.**
-> You're getting a complete agentic backend — Call Catcher, Voice Agent, Web Page Creator, Lead Sorter, Email Handler, KDP Publisher, Vintage Appraiser, Hemp Content Engine, and Invention Outreach — fully built, hosted, and maintained. Building this stack in-house means months of engineering time you'd rather spend on clients. You're getting it live for $4,000 to start and $1,500/month with your logo on it.
+> **A complete outbound engine. No dev team. No build time. No maintenance.**
+> You're getting the full pipeline — lead ingestion, qualification and quality screening, AI-written pitch copy, email delivery, multi-step follow-up, opt-out compliance, a daily health digest, automatic model-provider failover, and persistent state so nothing is lost on a restart. Fully built, hosted, and maintained. Building this in-house means months of engineering time you'd rather spend on clients. You're getting it live for $4,000 to start and $1,500/month with your logo on it.
 
 ---
 
 **Bullet 3 — The Retention Lock-In**
 
 > **AI automation is among the stickiest services an agency can sell.**
-> Traditional agency services (ads, SEO, social) churn when results plateau. AI automation that runs a client's business operations — catching calls, sorting leads, creating content — becomes infrastructure. It's embedded in how they work, and embedded services are harder to cancel than campaigns. That's the kind of recurring revenue that compounds.
+> Traditional agency services (ads, SEO, social) churn when results plateau. An outbound engine that runs a client's pipeline — sourcing leads, qualifying them, and running the follow-up — becomes infrastructure. It's embedded in how they work, and embedded services are harder to cancel than campaigns. That's the kind of recurring revenue that compounds.
 
 ---
 
@@ -206,7 +206,7 @@ Role addresses (`info@`, `hello@`, `contact@`) are usable but lower priority tha
 > "The AI Backend Your Agency Should Have Built 18 Months Ago."
 
 **Subheadline:**
-> "White-label 9 AI skills. Resell to your clients. Keep the margin."
+> "White-label the outbound engine. Resell to your clients. Keep the margin."
 
 **CTA Button:**
 > "Start My License — $4,000 to start"
