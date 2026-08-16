@@ -181,8 +181,8 @@ Role addresses (`info@`, `hello@`, `contact@`) are usable but lower priority tha
 
 **Bullet 1 — The Math Does the Selling**
 
-> **Resell to 3 clients at $500/month each. You're profitable on day one.**
-> This isn't a cost — it's a revenue line. License the full 9-skill AI infrastructure under your brand and resell access to your local business clients. Three clients at $500/month covers your license and puts $0 net cost on your books. Every client after that is pure margin.
+> **Three clients covers the license. The fourth is profit.**
+> This isn't a cost — it's a revenue line. License the AI infrastructure under your brand and resell access to your own clients. Three clients at $500/month covers your recurring license exactly ($1,500/mo in, $1,500/mo out). Your fourth client is pure recurring margin, and every one after that compounds. If you charge your own clients an onboarding fee, that's what offsets the $2,500 setup on your side.
 
 ---
 
