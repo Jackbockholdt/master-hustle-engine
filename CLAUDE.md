@@ -20,7 +20,16 @@ Core technical assets:
   reliability feature, not a token reducer: describe it as "automatic
   multi-provider failover", never as "cost-aware routing" or "token savings".
   A complexity classifier / cheap-model triage tier is deferred, not built.
-- **9-skill agentic engine** — the workflow layer (routing, enrichment, follow-up, scheduling, summarization, escalation, reporting, CRM sync, billing hooks).
+- **Automated outbound engine** — the workflow layer actually deployed in
+  `server.js`: lead ingestion, qualification and quality screening, AI pitch
+  copy, email delivery, multi-step follow-up, opt-out/do-not-contact
+  enforcement, daily health digest, model failover, and persistent state
+  (queue, suppression list, send history).
+
+  Describe only these. **Scheduling, CRM sync, and contact enrichment are not
+  built** — they appeared in earlier copy and must not be reintroduced. The
+  nine legacy niche skills (vintage, KDP, voice, hemp, etc.) live in
+  `orchestrator.py`, which `render.yaml` does not deploy; do not sell them.
 
 ## Pricing Model (canonical — do not deviate)
 
