@@ -534,9 +534,30 @@ async function sendSms(to, body) {
   }
 }
 
+// ── Cold-outbound pause ──────────────────────────────────────────────────────
+// The engine stays fully up while cold sending is off: it keeps accepting leads,
+// Stripe webhooks, admin calls, and inbound events. The pause blocks exactly one
+// class of mail — cold pitches and the follow-ups they queue. Transactional mail
+// is untouched: admin alerts, purchase notifications, the buyer welcome email,
+// and the daily status digest all still send.
+//
+// Default is PAUSED (see config/env.js). Resume with OUTBOUND_PAUSED=false.
+const OUTBOUND_PAUSED = ENV_REPORT.outbound.paused;
+const PAUSE_REASON    = ENV_REPORT.outbound.reason;
+const PAUSE_MESSAGE   = `Cold outbound is paused${PAUSE_REASON ? ` — ${PAUSE_REASON}` : ''}. Set OUTBOUND_PAUSED=false to resume.`;
+
 // Send plain-text pitch email — routes through Gmail HTTPS relay first (bypasses Render's SMTP block),
 // falls back to direct SMTP only if relay is not configured.
 async function sendPitchEmail(toEmail, subject, body, campaignId = '') {
+  // Hard choke point. Every cold pitch and every follow-up in this process goes
+  // through here, so the pause is enforced at the send itself and not only at
+  // the callers — a send path added later inherits the switch for free. Typed
+  // like MAILER_NOT_CONFIGURED so schedulers leave work pending, not failed.
+  if (OUTBOUND_PAUSED) {
+    const err = new Error(PAUSE_MESSAGE);
+    err.code = 'OUTBOUND_PAUSED';
+    throw err;
+  }
   // No mailer configured — fail loudly but with a typed error the schedulers can
   // recognise, so a queued lead stays pending instead of being burned as 'failed'.
   if (!ENV_REPORT.features.outboundEmail) {
@@ -834,8 +855,14 @@ async function runInventionOutreach(payload) {
       console.log(`[Invention Outreach] Pitch sent + follow-ups queued for ${contactEmail}`);
     } catch (err) {
       emailError = err.message;
-      console.error('[Invention Outreach] Pitch email failed for', contactEmail, ':', err.message);
-      await sendAdminAlert(`Pitch email FAILED — ${contactEmail}`, err.stack || err.message);
+      // A paused engine is a deliberate state, not a failure — log it and move on
+      // rather than firing an admin alert for every lead that touches the switch.
+      if (err.code === 'OUTBOUND_PAUSED') {
+        console.log(`[Invention Outreach] Skipped ${contactEmail} — ${err.message}`);
+      } else {
+        console.error('[Invention Outreach] Pitch email failed for', contactEmail, ':', err.message);
+        await sendAdminAlert(`Pitch email FAILED — ${contactEmail}`, err.stack || err.message);
+      }
     }
   }
 
@@ -954,6 +981,12 @@ async function runCallCatcher(payload) {
 
 // Pull pending leads from SQLite and run invention outreach on each
 async function processLeadQueue(batchSize) {
+  // Return before fetching anything: pending leads must stay pending and
+  // unmarked, so resuming picks up exactly where the pause started.
+  if (OUTBOUND_PAUSED) {
+    console.log(`[Lead Queue] ${PAUSE_MESSAGE} — queue left untouched.`);
+    return { paused: true, reason: PAUSE_MESSAGE, processed: 0, sent: 0, disqualified: 0, suppressed: 0, failed: 0 };
+  }
   const leads = await fetchPendingLeads(batchSize || B2B_BATCH_SIZE);
   if (!leads.length) {
     console.log('[Lead Queue] No pending leads.');
@@ -1264,6 +1297,12 @@ app.post(['/webhook/lead', '/api/ingest'], wrapAsync(async (req, res) => {
   if (await isDoNotContact(body.contact_email)) {
     return res.json({ received: true, status: 'SUPPRESSED', reason: 'email is on the do-not-contact list' });
   }
+  // Capturing leads is still worth doing while sending is off — that's what the
+  // queue is for. Nothing is emailed until the pause is lifted.
+  if (OUTBOUND_PAUSED) {
+    await queueLeads([body]);
+    return res.json({ received: true, status: 'QUEUED', paused: true, reason: `${PAUSE_MESSAGE} Lead stored in the queue; no email was sent.` });
+  }
   if (!(await underDailyCap())) {
     await queueLeads([body]);
     return res.json({ received: true, status: 'QUEUED', reason: `daily send cap (${DAILY_SEND_CAP}) reached — lead queued for next batch` });
@@ -1311,7 +1350,9 @@ app.get('/', (req, res) => {
     // The single offer. Sourced from config/pricing.js — the buyout is a sales
     // anchor, not a purchasable option, so it is deliberately absent here.
     offer: quotableOffer(),
-    message: 'Lead ingestion and outbound dispatch active.'
+    message: OUTBOUND_PAUSED
+      ? 'Lead ingestion active. Cold outbound dispatch is PAUSED — leads queue, nothing sends.'
+      : 'Lead ingestion and outbound dispatch active.'
   });
 });
 
@@ -1325,6 +1366,9 @@ app.get('/health', (req, res) => {
     uptime_seconds: Math.round(process.uptime()),
     features: ENV_REPORT.features,
     mailer: ENV_REPORT.mailer,
+    // A pause is a deliberate operating state, so it is reported without
+    // flipping the status to degraded.
+    outbound: ENV_REPORT.outbound,
     missing_config: ENV_REPORT.missing,
     defaults_applied: ENV_REPORT.defaultsApplied,
     offer: quotableOffer(),
@@ -1360,6 +1404,10 @@ app.get('/admin/pitch', (req, res) => {
 </head>
 <body>
   <h1>Antigravity — Bulk Pitch Sender</h1>
+  ${OUTBOUND_PAUSED ? `<div style="background:#3f1d1d;border:1px solid #b91c1c;border-radius:8px;padding:14px 16px;margin-bottom:18px;color:#fecaca;font-size:14px;">
+    <strong style="color:#fff;">⏸ Cold outbound is paused.</strong><br>
+    Nothing sends from this form. ${PAUSE_REASON ? PAUSE_REASON + '<br>' : ''}Set <code>OUTBOUND_PAUSED=false</code> and redeploy to resume.
+  </div>` : ''}
   <p>Paste company names below (one per line). Add website after a comma if you have it. Engine finds emails and sends pitches automatically.</p>
   <form id="form">
     <label>Industry (used for qualification)</label>
@@ -1379,7 +1427,7 @@ app.get('/admin/pitch', (req, res) => {
     <textarea id="companies" placeholder="Acme Marketing Agency, acmemarketing.com&#10;Blue Ocean SEO&#10;Growth Lab Digital, growthlabdigital.com"></textarea>
     <label>Override contact email (optional — leave blank to auto-find from website)</label>
     <input type="text" id="override_email" placeholder="Leave blank to auto-find">
-    <button type="submit" id="btn">Send Pitches</button>
+    <button type="submit" id="btn"${OUTBOUND_PAUSED ? ' disabled' : ''}>${OUTBOUND_PAUSED ? 'Sending paused' : 'Send Pitches'}</button>
   </form>
   <div id="result"></div>
   <script>
@@ -1414,6 +1462,9 @@ app.get('/admin/pitch', (req, res) => {
 app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
   const { companies = [] } = req.body;
   if (!companies.length) return res.status(400).json({ error: 'No companies provided' });
+  if (OUTBOUND_PAUSED) {
+    return res.status(409).json({ paused: true, error: PAUSE_MESSAGE, summary: { total: companies.length, pitched: 0 }, results: [] });
+  }
   const results = [];
   for (const c of companies) {
     const companyName = (c.name || c.company_name || '').trim();
@@ -1518,6 +1569,7 @@ app.get('/admin/status', wrapAsync(async (req, res) => {
   res.json({
     queue,
     follow_ups,
+    outbound: ENV_REPORT.outbound,
     sends: { today: sent_today, daily_cap: DAILY_SEND_CAP },
     do_not_contact: dnc ? dnc.c : 0,
     config: { batch_size: B2B_BATCH_SIZE, interval_hours: B2B_BATCH_HOURS, campaigns: Object.keys(TEMPLATE_CAMPAIGNS) },
@@ -1567,6 +1619,8 @@ async function collectEngineStats() {
   for (const r of routerRows) router[r.outcome] = r.c || 0;
   return {
     date: new Date().toISOString().slice(0, 10),
+    outbound_paused: OUTBOUND_PAUSED,
+    pause_reason: PAUSE_REASON,
     sends: { today: sent_today, daily_cap: DAILY_SEND_CAP, remaining: Math.max(0, DAILY_SEND_CAP - sent_today) },
     queue,
     follow_ups,
@@ -1586,6 +1640,10 @@ function renderStatusEmailHtml(s) {
     <div style="font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;padding:25px;border:1px solid #e5e7eb;background:#ffffff;color:#111827;border-radius:12px;max-width:640px;margin:0 auto;">
       <h2 style="margin:0 0 4px;font-size:20px;font-weight:700;">📊 Antigravity Engine — Daily Status</h2>
       <p style="margin:0 0 18px;color:#6b7280;font-size:13px;">${s.date} · master-hustle-engine.onrender.com</p>
+      ${s.outbound_paused ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 14px;margin-bottom:18px;color:#991b1b;font-size:14px;">
+        <strong>⏸ Cold outbound is PAUSED.</strong> No pitches or follow-ups sent today by design.${s.pause_reason ? ` ${s.pause_reason}` : ''}
+        Zero sends below is the switch working, not a broken engine.
+      </div>` : ''}
       <table style="width:100%;border-collapse:collapse;">
         ${row('Emails sent today', `${s.sends.today} / ${s.sends.daily_cap} cap`)}
         ${row('Send capacity remaining', s.sends.remaining)}
@@ -1673,6 +1731,7 @@ const OUTBOUND_READY = ENV_REPORT.features.outboundEmail && ENV_REPORT.features.
 
 // Background: process lead queue every BATCH_INTERVAL_HOURS hours
 setInterval(async () => {
+  if (OUTBOUND_PAUSED) return;  // processLeadQueue also guards; skip early to keep the log quiet
   if (!OUTBOUND_READY) {
     console.warn('[Lead Scheduler] Skipped — outbound is degraded (see GET /health). Queue left untouched.');
     return;
@@ -1685,10 +1744,14 @@ setInterval(async () => {
     await sendAdminAlert('Lead Queue Batch Run Failed', err.stack || err.message);
   }
 }, B2B_BATCH_HOURS * 60 * 60 * 1000);
-console.log(`[Lead Scheduler] Armed — runs every ${B2B_BATCH_HOURS}h${OUTBOUND_READY ? '' : ' (IDLE — outbound degraded)'}`);
+const leadSchedulerNote = OUTBOUND_PAUSED
+  ? ' (IDLE — cold outbound paused)'
+  : OUTBOUND_READY ? '' : ' (IDLE — outbound degraded)';
+console.log(`[Lead Scheduler] Armed — runs every ${B2B_BATCH_HOURS}h${leadSchedulerNote}`);
 
 // Background: send due follow-ups every hour
 setInterval(async () => {
+  if (OUTBOUND_PAUSED) return;  // due follow-ups stay pending until sending resumes
   if (!OUTBOUND_READY) {
     console.warn('[Follow-up Scheduler] Skipped — outbound is degraded (see GET /health). Due follow-ups stay pending.');
     return;
@@ -1710,10 +1773,11 @@ setInterval(async () => {
         await markFollowUp(fu.id, 'sent');
         console.log(`[Follow-up Scheduler] Sent step ${fu.step} → ${fu.contact_email}`);
       } catch (err) {
-        // A config gap isn't this lead's fault — leave it pending so it goes out
-        // once the mailer is set, rather than marking it permanently failed.
-        if (err.code === 'MAILER_NOT_CONFIGURED') {
-          console.warn(`[Follow-up Scheduler] Mailer unconfigured — step ${fu.step} → ${fu.contact_email} stays pending.`);
+        // A config gap or a deliberate pause isn't this lead's fault — leave it
+        // pending so it goes out once sending is available again, rather than
+        // marking it permanently failed.
+        if (err.code === 'MAILER_NOT_CONFIGURED' || err.code === 'OUTBOUND_PAUSED') {
+          console.warn(`[Follow-up Scheduler] ${err.message} — step ${fu.step} → ${fu.contact_email} stays pending.`);
           break;
         }
         await markFollowUp(fu.id, 'failed');
@@ -1725,7 +1789,7 @@ setInterval(async () => {
     console.error('[Follow-up Scheduler] Error:', err.message);
   }
 }, 60 * 60 * 1000);
-console.log('[Follow-up Scheduler] Armed — checks every 1h');
+console.log(`[Follow-up Scheduler] Armed — checks every 1h${OUTBOUND_PAUSED ? ' (IDLE — cold outbound paused)' : ''}`);
 
 // Background: trigger Gumloop lead scraper every 6 hours if configured
 const GUMLOOP_API_KEY    = process.env.GUMLOOP_API_KEY;
@@ -1759,7 +1823,11 @@ async function triggerGumloopScraper() {
   }
 }
 
-if (GUMLOOP_API_KEY && GUMLOOP_USER_ID && GUMLOOP_ITEM_ID) {
+if (OUTBOUND_PAUSED && GUMLOOP_API_KEY && GUMLOOP_USER_ID && GUMLOOP_ITEM_ID) {
+  // Scraping while paused just piles up leads nobody may email, and burns
+  // Gumloop credits doing it. Lead building resumes with sending.
+  console.log('[Gumloop] Scraper auto-trigger NOT armed — cold outbound is paused.');
+} else if (GUMLOOP_API_KEY && GUMLOOP_USER_ID && GUMLOOP_ITEM_ID) {
   setInterval(triggerGumloopScraper, GUMLOOP_INTERVAL_H * 60 * 60 * 1000);
   console.log(`[Gumloop] Scraper auto-trigger armed — fires every ${GUMLOOP_INTERVAL_H}h`);
   // Fire once on startup after a short delay (let server fully init)
@@ -1771,4 +1839,7 @@ app.listen(PORT, () => {
   console.log(`[Server] Antigravity Master Engine running on port ${PORT}`);
   console.log(`[Server] Local: http://localhost:${PORT}  |  Health: http://localhost:${PORT}/health`);
   console.log(`[Offer]  ${PRICING.display.headline}`);
+  if (OUTBOUND_PAUSED) {
+    console.log('[Outbound] ⏸ PAUSED — cold pitches and follow-ups are blocked. Leads still queue; transactional mail still sends.');
+  }
 });

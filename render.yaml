@@ -93,3 +93,13 @@ services:
         value: "6"
       - key: BATCH_SIZE
         value: "4"
+
+      # Cold-outbound kill switch. Default (and the value pinned here) is PAUSED:
+      # no cold pitches, no follow-ups, no Gumloop lead pulls. Everything else —
+      # lead intake, Stripe, admin alerts, the status digest — keeps running.
+      # Set to "false" in the Render dashboard when you intend to send again.
+      - key: OUTBOUND_PAUSED
+        value: "true"
+      - key: OUTBOUND_PAUSE_REASON
+        sync: false
+        placeholder: "Why sending is paused (shown in /health and the digest)"

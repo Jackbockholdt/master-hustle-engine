@@ -47,6 +47,23 @@ function mailerStatus() {
   };
 }
 
+// ── Cold-outbound kill switch ────────────────────────────────────────────────
+// Not a missing key — a deliberate operational state, so it is reported as a
+// switch rather than as degraded config. The engine ships PAUSED: cold pitches
+// and their follow-ups only go out when someone sets OUTBOUND_PAUSED to an
+// explicit false. The fail-safe direction is the point — a forgotten or
+// mistyped variable means no cold mail leaves the mailbox, never an unattended
+// blast from a sender that is already carrying bounces.
+function outboundStatus() {
+  const raw = (process.env.OUTBOUND_PAUSED || '').trim().toLowerCase();
+  const resumed = ['false', '0', 'no', 'off'].includes(raw);
+  return {
+    paused: !resumed,
+    source: raw ? `OUTBOUND_PAUSED=${raw}` : 'OUTBOUND_PAUSED unset (default: paused)',
+    reason: (process.env.OUTBOUND_PAUSE_REASON || '').trim(),
+  };
+}
+
 /**
  * Inspect the environment and apply safe defaults. Call once at startup.
  * Returns a report the /health endpoint can serve, so the running config is
@@ -62,6 +79,7 @@ function auditEnv({ log = true } = {}) {
   }
 
   const mailer = mailerStatus();
+  const outbound = outboundStatus();
   if (!mailer.configured) {
     missing.push({
       key: 'GMAIL_HTTP_URL (or SMTP_USER + SMTP_PASS)',
@@ -103,17 +121,28 @@ function auditEnv({ log = true } = {}) {
     missing: missing.map((m) => ({ key: m.key, feature: m.feature, degraded: m.degraded })),
     defaultsApplied: applied,
     mailer,
+    outbound,
     // Feature switches the rest of the app reads instead of re-checking env vars.
     features: {
       ai: Boolean(process.env.GEMINI_API_KEY),
       stripe: Boolean(process.env.STRIPE_SECRET_KEY),
       outboundEmail: mailer.configured,
+      // Distinct from outboundEmail: the mailer can be perfectly configured and
+      // cold sending still be switched off on purpose.
+      coldOutbound: !outbound.paused,
       adminAlerts: Boolean(process.env.ADMIN_EMAIL),
     },
   };
 
   if (log) {
     if (applied.length) console.log(`[Env Audit] Safe defaults applied: ${applied.join(', ')}`);
+    if (outbound.paused) {
+      console.warn('[Env Audit] \u23f8  COLD OUTBOUND PAUSED — no pitches and no follow-ups will send.');
+      console.warn(`[Env Audit]      Source: ${outbound.source}`);
+      if (outbound.reason) console.warn(`[Env Audit]      Reason: ${outbound.reason}`);
+      console.warn('[Env Audit]      Transactional mail (admin alerts, purchase notices, status digest) is unaffected.');
+      console.warn('[Env Audit]      Set OUTBOUND_PAUSED=false and redeploy to resume cold sending.');
+    }
     if (report.ok) {
       console.log('[Env Audit] ✅ All critical keys present.');
     } else {
@@ -129,4 +158,4 @@ function auditEnv({ log = true } = {}) {
   return report;
 }
 
-module.exports = { auditEnv, mailerStatus, CRITICAL };
+module.exports = { auditEnv, mailerStatus, outboundStatus, CRITICAL };

@@ -25,6 +25,8 @@ see `CLAUDE.md` for positioning and pricing.
    - Do-not-contact check before every send.
 
 3. **Outbound dispatch**
+   - Gated by `OUTBOUND_PAUSED`, which **defaults to paused** — see
+     [Pausing outbound](#pausing-outbound).
    - Step 1 sends immediately; later steps are queued into `follow_ups` and
      dispatched by the hourly scheduler.
    - `DAILY_SEND_CAP` (default **4**) is enforced on every send path — the batch
@@ -65,6 +67,44 @@ see `CLAUDE.md` for positioning and pricing.
 > `/api/contractor-proposal`, …) and the 8am niche rotation cron were **removed**
 > in PR #78. `orchestrator.py` still contains those skills, but `render.yaml`
 > does not deploy it. Do not sell them.
+
+---
+
+## Pausing outbound
+
+Cold sending is behind a kill switch, and the switch **defaults to on (paused)**.
+Cold pitches and follow-ups go out only when `OUTBOUND_PAUSED` is set to an
+explicit `false`. A forgotten or mistyped value fails safe: nothing sends.
+
+What a pause stops:
+
+- Cold pitch emails and every queued follow-up step, blocked inside
+  `sendPitchEmail()` — the one function every cold send routes through.
+- The lead-batch scheduler and the hourly follow-up scheduler (both idle).
+- The Gumloop scraper auto-trigger — no point collecting leads nobody may email.
+- `POST /admin/bulk-pitch`, which returns **409** instead of half-sending a batch.
+
+What keeps running:
+
+- Lead intake. `POST /webhook/lead` still validates, qualifies, screens, and
+  **queues** — it returns `{"status":"QUEUED","paused":true}` rather than
+  sending. Nothing is lost; the queue drains when sending resumes.
+- Stripe webhooks, purchase notifications, and the buyer welcome email.
+- Admin alerts, `/health`, `/admin/status`, and the daily status digest.
+
+Pending leads and pending follow-ups are never marked failed by a pause — they
+stay pending and are picked up exactly where they left off.
+
+```bash
+OUTBOUND_PAUSED=true                       # paused (also the default when unset)
+OUTBOUND_PAUSE_REASON="Reputation hold."   # optional; shown in /health and the digest
+OUTBOUND_PAUSED=false                      # resume sending
+```
+
+The state is visible without reading logs — `GET /health` and `GET /admin/status`
+both report an `outbound` block, `/admin/pitch` shows a banner with its send
+button disabled, and the daily digest carries a paused banner so a row of zeros
+reads as the switch working rather than a broken engine.
 
 ---
 
