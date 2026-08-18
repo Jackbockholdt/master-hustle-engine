@@ -537,6 +537,15 @@ async function sendSms(to, body) {
 // Send plain-text pitch email — routes through Gmail HTTPS relay first (bypasses Render's SMTP block),
 // falls back to direct SMTP only if relay is not configured.
 async function sendPitchEmail(toEmail, subject, body, campaignId = '') {
+  // Last line of defence: no cold send leaves the process without the do-not-send
+  // list loaded, whatever path got here. Typed like MAILER_NOT_CONFIGURED so the
+  // schedulers leave the lead pending rather than burning it as 'failed'.
+  const blocked = blocklistGuard();
+  if (blocked) {
+    const err = new Error(`Refusing to send to ${toEmail}: ${blocked}`);
+    err.code = 'BLOCKLIST_UNAVAILABLE';
+    throw err;
+  }
   // No mailer configured — fail loudly but with a typed error the schedulers can
   // recognise, so a queued lead stays pending instead of being burned as 'failed'.
   if (!ENV_REPORT.features.outboundEmail) {
@@ -954,6 +963,15 @@ async function runCallCatcher(payload) {
 
 // Pull pending leads from SQLite and run invention outreach on each
 async function processLeadQueue(batchSize) {
+  // Fail closed. Without the do-not-send list we cannot tell a fresh prospect
+  // from an address that already bounced or blocked us, so the batch stops here
+  // and every lead stays pending — nothing is marked failed or disqualified.
+  const blocked = blocklistGuard({ revalidate: true });
+  if (blocked) {
+    console.error(`[Lead Queue] ❌ BATCH HALTED — ${blocked}. ` +
+                  `Restore ${BLOCKLIST_PATH} and re-run; no leads were touched.`);
+    return { processed: 0, sent: 0, disqualified: 0, suppressed: 0, failed: 0, halted: blocked };
+  }
   const leads = await fetchPendingLeads(batchSize || B2B_BATCH_SIZE);
   if (!leads.length) {
     console.log('[Lead Queue] No pending leads.');
@@ -1031,24 +1049,82 @@ const BLOCKED_DOMAINS    = new Set((process.env.BLOCKED_DOMAINS || '')
 // blocked by an admin, or whose domain is dead. Entries never come off. This is
 // the file the outbound history is written into; see config/blocklist.json.
 //
-// A missing or unreadable file must NOT take the process down, but it does mean
-// suppression is off, so it is logged loudly rather than swallowed. Sending to a
-// known blocker is a spam signal against the account.
+// FAIL CLOSED: if this file cannot be loaded, no cold outbound goes out at all.
+// Without it we cannot tell a fresh prospect from an address that already
+// hard-bounced or blocked us, and re-hitting a blocker is a spam signal against
+// the sending account. A stalled batch is recoverable; a burned domain is not.
+// Transactional mail (admin alerts, purchase fulfillment) is unaffected — it does
+// not go through sendPitchEmail.
 const BLOCKLIST_PATH = path.join(__dirname, 'config', 'blocklist.json');
-const { blocklistAddresses: BLOCKLIST_ADDRESSES, blocklistDomains: BLOCKLIST_DOMAINS } = (() => {
+let BLOCKLIST_ADDRESSES = new Map();
+let BLOCKLIST_DOMAINS   = new Map();
+let BLOCKLIST_READY     = false;
+let BLOCKLIST_ERROR     = '';
+
+// Safe to call repeatedly: once the file is restored, the next attempt picks it
+// up, so recovering does not require a process restart.
+const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+function loadBlocklist({ quiet = false } = {}) {
   try {
     const raw = JSON.parse(fs.readFileSync(BLOCKLIST_PATH, 'utf8'));
+    if (!isPlainObject(raw)) throw new Error('top level is not a JSON object');
+    // Absent is fine (one map may legitimately be empty); wrong type is not.
+    if (raw.addresses !== undefined && !isPlainObject(raw.addresses)) throw new Error('"addresses" is not a JSON object');
+    if (raw.domains   !== undefined && !isPlainObject(raw.domains))   throw new Error('"domains" is not a JSON object');
+
     const addresses = new Map(Object.entries(raw.addresses || {}).map(([k, v]) => [k.toLowerCase(), v]));
     const domains   = new Map(Object.entries(raw.domains   || {}).map(([k, v]) => [k.toLowerCase(), v]));
-    console.log(`[Blocklist] Loaded ${addresses.size} address(es), ${domains.size} domain(s) from config/blocklist.json`);
-    return { blocklistAddresses: addresses, blocklistDomains: domains };
+
+    // An empty list is treated as unusable, not as "nothing to suppress". This
+    // repo's blocklist is populated, so zero entries means the file was
+    // truncated, overwritten or half-written — and we cannot tell that apart
+    // from a legitimately empty one. Refuse rather than send unsuppressed.
+    if (addresses.size === 0 && domains.size === 0) {
+      throw new Error('file contains no entries — refusing to treat an empty blocklist as "nothing to suppress"');
+    }
+
+    BLOCKLIST_ADDRESSES = addresses;
+    BLOCKLIST_DOMAINS   = domains;
+    BLOCKLIST_READY = true;
+    BLOCKLIST_ERROR = '';
+    if (!quiet) {
+      console.log(`[Blocklist] Loaded ${BLOCKLIST_ADDRESSES.size} address(es), ${BLOCKLIST_DOMAINS.size} domain(s) from config/blocklist.json`);
+    }
   } catch (err) {
-    const why = err.code === 'ENOENT' ? 'file not found' : err.message;
-    console.warn(`[Blocklist] ⚠️  NOT LOADED (${why}) — suppression by blocklist is OFF. ` +
-                 `Known bad addresses will not be caught. Restore ${BLOCKLIST_PATH}.`);
-    return { blocklistAddresses: new Map(), blocklistDomains: new Map() };
+    BLOCKLIST_ADDRESSES = new Map();
+    BLOCKLIST_DOMAINS   = new Map();
+    BLOCKLIST_READY = false;
+    BLOCKLIST_ERROR = err.code === 'ENOENT' ? 'file not found' : err.message;
+    if (!quiet) {
+      console.error(`[Blocklist] ❌ NOT LOADED (${BLOCKLIST_ERROR}) — ALL COLD OUTBOUND IS HALTED. ` +
+                    `Restore ${BLOCKLIST_PATH} and re-run; queued leads stay pending.`);
+    }
   }
-})();
+  return BLOCKLIST_READY;
+}
+loadBlocklist();
+
+// null when outbound may proceed, else the reason it must not.
+//
+// `revalidate` re-reads the file from disk rather than trusting the copy loaded
+// at boot, so a blocklist deleted or corrupted while the process is running still
+// stops outbound. Batch entry points pass it; per-send checks do not, since the
+// batch that got there has already revalidated and re-reading per message would
+// turn a transient filesystem blip into a burned lead.
+//
+// Either way a previously failed load is retried, so restoring the file recovers
+// on the next batch without a restart.
+function blocklistGuard({ revalidate = false } = {}) {
+  if (revalidate || !BLOCKLIST_READY) {
+    const wasReady = BLOCKLIST_READY;
+    if (loadBlocklist({ quiet: true }) && !wasReady) {
+      console.log(`[Blocklist] Recovered — loaded ${BLOCKLIST_ADDRESSES.size} address(es), ${BLOCKLIST_DOMAINS.size} domain(s).`);
+    }
+  }
+  if (BLOCKLIST_READY) return null;
+  return `blocklist unavailable (${BLOCKLIST_ERROR}) — refusing to send without the do-not-send list`;
+}
 
 // Returns the matching blocklist entry (with how it matched), or null.
 function blocklistHit(email) {
@@ -1327,6 +1403,11 @@ app.get('/health', (req, res) => {
     mailer: ENV_REPORT.mailer,
     missing_config: ENV_REPORT.missing,
     defaults_applied: ENV_REPORT.defaultsApplied,
+    // Cold outbound fails closed on this — surface it so a halted batch is
+    // diagnosable without reading logs.
+    blocklist: BLOCKLIST_READY
+      ? { loaded: true, addresses: BLOCKLIST_ADDRESSES.size, domains: BLOCKLIST_DOMAINS.size }
+      : { loaded: false, error: BLOCKLIST_ERROR, effect: 'all cold outbound halted' },
     offer: quotableOffer(),
     timestamp: new Date().toISOString(),
   });
@@ -1691,6 +1772,13 @@ console.log(`[Lead Scheduler] Armed — runs every ${B2B_BATCH_HOURS}h${OUTBOUND
 setInterval(async () => {
   if (!OUTBOUND_READY) {
     console.warn('[Follow-up Scheduler] Skipped — outbound is degraded (see GET /health). Due follow-ups stay pending.');
+    return;
+  }
+  // Fail closed — a follow-up goes to someone already contacted once, so an
+  // address that has since bounced or blocked us must not be hit again.
+  const blockedFollowUps = blocklistGuard({ revalidate: true });
+  if (blockedFollowUps) {
+    console.error(`[Follow-up Scheduler] ❌ HALTED — ${blockedFollowUps}. Due follow-ups stay pending.`);
     return;
   }
   try {
