@@ -27,6 +27,7 @@ const path = require('path');
 const fs = require('fs');
 const Stripe = require('stripe');
 const https = require('https');
+const crypto = require('crypto');
 
 // Environment audit runs before anything else touches process.env so the safe
 // defaults it applies (PORT, send caps, batch sizing) are in place for the
@@ -48,6 +49,51 @@ app.use(express.json({
     if (req.originalUrl === '/api/stripe-webhook') req.rawBody = buf;
   }
 }));
+
+// ── Admin authentication ─────────────────────────────────────────────────────
+// Every /admin and /api/admin route can send mail as you, enqueue leads, or
+// dump the do-not-contact list, so none of them may answer to whoever guesses
+// the path. ADMIN_TOKEN is the gate.
+//
+// With no ADMIN_TOKEN set the routes still answer on loopback, so running the
+// engine locally is unchanged, but any request arriving over a network is
+// refused. That leaves a deployed instance closed by default rather than open
+// by default — the failure mode is a locked-out admin, not an open relay.
+const ADMIN_TOKEN = (process.env.ADMIN_TOKEN || '').trim();
+
+const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
+const isLoopback = (req) => LOOPBACK.has((req.socket && req.socket.remoteAddress) || '');
+
+// Constant-time compare so a wrong token leaks nothing through response timing.
+function tokenMatches(supplied) {
+  const a = Buffer.from(supplied);
+  const b = Buffer.from(ADMIN_TOKEN);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// The header is the normal form. ?token= exists only so /admin/pitch can be
+// opened in a browser, which cannot set a header on a navigation — query
+// strings land in access logs, so prefer the header everywhere else.
+function suppliedToken(req) {
+  const bearer = (req.get('authorization') || '').match(/^Bearer\s+(.+)$/i);
+  const raw = req.get('x-admin-token') || (bearer && bearer[1]) || req.query.token || '';
+  return String(raw).trim();
+}
+
+function requireAdmin(req, res, next) {
+  if (ADMIN_TOKEN) {
+    const supplied = suppliedToken(req);
+    if (supplied && tokenMatches(supplied)) return next();
+    return res.status(401).json({ error: 'admin authentication required' });
+  }
+  if (isLoopback(req)) return next();
+  return res.status(401).json({
+    error: 'admin authentication required',
+    detail: 'No ADMIN_TOKEN is configured, so admin routes answer on loopback only. Set ADMIN_TOKEN and send it as the x-admin-token header.',
+  });
+}
+
+app.use(['/admin', '/api/admin'], requireAdmin);
 
 const PORT = parseInt(process.env.PORT || '3005', 10);
 // SQLite lives on the Render persistent disk so the suppression list, queues,
@@ -1394,9 +1440,14 @@ app.get('/admin/pitch', (req, res) => {
         const parts = l.split(',').map(s => s.trim());
         return { name: parts[0], website: parts[1] || '', industry, override_email };
       });
+      // When ADMIN_TOKEN is set this page was opened as /admin/pitch?token=…
+      // Carry that same token into the API call, which wants the header form.
+      const adminToken = new URLSearchParams(location.search).get('token') || '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (adminToken) headers['x-admin-token'] = adminToken;
       const res = await fetch('/admin/bulk-pitch', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: headers,
         body: JSON.stringify({ companies })
       });
       const data = await res.json();
