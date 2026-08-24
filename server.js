@@ -188,28 +188,113 @@ const transporter = nodemailer.createTransport({
 const FROM_EMAIL = process.env.FROM_EMAIL || '';
 const FROM_NAME  = process.env.FROM_NAME  || 'Jack Bockholdt';
 
-// Send email via the Gmail HTTPS relay (Apps Script) if configured, else raw SMTP.
-// The relay always returns HTTP 200 with {"success": bool, ...} — check the body, not the status.
-async function sendEmailViaRelayOrSmtp(to, subject, htmlOrText) {
-  const relayUrl = process.env.GMAIL_HTTP_URL;
-  if (relayUrl) {
-    const payload = { key: process.env.GMAIL_HTTP_KEY, to, subject, body: htmlOrText };
-    if (FROM_EMAIL) { payload.from = FROM_EMAIL; payload.fromName = FROM_NAME; }
-    const res = await fetch(relayUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+// Helper to make HTTPS POST request (handles Google Apps Script redirects)
+function makeHttpsPost(urlStr, payload) {
+  return new Promise((resolve, reject) => {
+    try {
+      const url = new URL(urlStr);
+      const postData = JSON.stringify(payload);
+
+      const options = {
+        hostname: url.hostname,
+        port: url.port || 443,
+        path: url.pathname + url.search,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        // Google Apps Script Web Apps redirect with 302 Found to googleusercontent.com
+        if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location) {
+          const redirectUrl = res.headers.location;
+          https.get(redirectUrl, (redirectRes) => {
+            let data = '';
+            redirectRes.on('data', (chunk) => { data += chunk; });
+            redirectRes.on('end', () => {
+              try {
+                resolve(JSON.parse(data));
+              } catch (e) {
+                reject(new Error(`Failed to parse redirected response: ${e.message}. Data: ${data}`));
+              }
+            });
+          }).on('error', (e) => reject(e));
+          return;
+        }
+
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            reject(new Error(`Status Code: ${res.statusCode}, Data: ${data}`));
+            return;
+          }
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(new Error(`Failed to parse response: ${e.message}. Data: ${data}`));
+          }
+        });
+      });
+
+      req.on('error', (e) => reject(e));
+      req.write(postData);
+      req.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+// Unified Mailer function to send either via HTTP (Apps Script) or fallback to SMTP
+async function sendMailViaHttpOrSmtp({ to, subject, html, fromName }) {
+  const httpUrl = process.env.GMAIL_HTTP_URL;
+  const httpKey = process.env.GMAIL_HTTP_KEY;
+
+  if (httpUrl && httpKey) {
+    const payload = {
+      key: httpKey,
+      to,
+      subject,
+      html,
+      name: fromName || FROM_NAME,
+      replyTo: process.env.SMTP_USER || FROM_EMAIL
+    };
+    if (FROM_EMAIL) {
+      payload.from = FROM_EMAIL;
+    }
+    const result = await makeHttpsPost(httpUrl, payload);
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to send email via HTTPS Web App');
+    }
+    console.log(`[HTTP] Email sent successfully to ${to}`);
+    return true;
+  } else {
+    const fromHeader = fromName ? `"${fromName}" <${FROM_EMAIL || process.env.SMTP_USER}>` : `"${FROM_NAME}" <${FROM_EMAIL || process.env.SMTP_USER}>`;
+    await transporter.sendMail({
+      from: fromHeader,
+      to,
+      subject,
+      html,
     });
-    if (!res.ok) throw new Error(`Gmail relay HTTP ${res.status}: ${await res.text()}`);
-    const data = await res.json();
-    if (!data.success) throw new Error(`Gmail relay error: ${data.error || 'unknown'}`);
+    console.log(`[SMTP] Email sent successfully to ${to}`);
+    return true;
+  }
+}
+
+// Send email via the Gmail HTTPS relay (Apps Script) if configured, else raw SMTP.
+async function sendEmailViaRelayOrSmtp(to, subject, htmlOrText) {
+  if (!to || typeof to !== 'string' || !to.includes('@') || to.includes('__NODE_ID__') || to.startsWith('${')) {
+    console.warn(`[Mailer] Skipped sending email to invalid address: "${to}"`);
     return;
   }
-  await transporter.sendMail({
-    from: `"${FROM_NAME}" <${FROM_EMAIL || process.env.SMTP_USER}>`,
+  return sendMailViaHttpOrSmtp({
     to,
     subject,
     html: htmlOrText,
+    fromName: FROM_NAME
   });
 }
 
