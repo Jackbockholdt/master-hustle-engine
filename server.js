@@ -27,6 +27,7 @@ const path = require('path');
 const fs = require('fs');
 const Stripe = require('stripe');
 const https = require('https');
+const crypto = require('crypto');
 
 // Environment audit runs before anything else touches process.env so the safe
 // defaults it applies (PORT, send caps, batch sizing) are in place for the
@@ -48,6 +49,54 @@ app.use(express.json({
     if (req.originalUrl === '/api/stripe-webhook') req.rawBody = buf;
   }
 }));
+
+// ── Admin auth ────────────────────────────────────────────────────────────────
+// Prefix middleware on /admin and /api/admin, so any admin endpoint added later
+// is protected automatically. Fail-closed: no ADMIN_KEY → 503, not open.
+// Accepts X-Admin-Key, Authorization: Bearer, or ?key=. Query strings land in
+// access logs, browser history, and Referer — the header is the real path.
+const ADMIN_KEY = (process.env.ADMIN_KEY || '').trim();
+
+function timingSafeEqualStr(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  // Hash both sides so the compare is always 32 bytes — a length mismatch on
+  // the raw key cannot short-circuit and leak ADMIN_KEY's length.
+  const ha = crypto.createHash('sha256').update(a).digest();
+  const hb = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
+
+function readAdminKey(req) {
+  const header = req.get('x-admin-key');
+  if (header) return header.trim();
+  const auth = req.get('authorization') || '';
+  if (/^bearer\s+/i.test(auth)) return auth.replace(/^bearer\s+/i, '').trim();
+  if (typeof req.query.key === 'string') return req.query.key;
+  return '';
+}
+
+function requireAdminKey(req, res, next) {
+  res.set('Cache-Control', 'no-store');
+  res.set('Referrer-Policy', 'no-referrer');
+  if (!ADMIN_KEY) {
+    return res.status(503).json({
+      error: 'admin_locked',
+      message: 'ADMIN_KEY is not set. Admin routes are locked closed.',
+    });
+  }
+  const provided = readAdminKey(req);
+  if (!provided || !timingSafeEqualStr(provided, ADMIN_KEY)) {
+    return res.status(401).json({ error: 'unauthorized', message: 'Invalid or missing admin key.' });
+  }
+  next();
+}
+
+app.use(['/admin', '/api/admin'], requireAdminKey);
+if (!ADMIN_KEY) {
+  console.warn('[Admin] ADMIN_KEY is not set — /admin and /api/admin return 503 (fail closed). Set it before deploy.');
+} else {
+  console.log('[Admin] /admin and /api/admin gated by ADMIN_KEY');
+}
 
 const PORT = parseInt(process.env.PORT || '3005', 10);
 // SQLite lives on the Render persistent disk so the suppression list, queues,
@@ -248,7 +297,68 @@ function makeHttpsPost(urlStr, payload) {
   });
 }
 
-// Unified Mailer function to send either via HTTP (Apps Script) or fallback to SMTP
+function makeHttpsGet(urlStr, timeoutMs = 2500) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const done = (result) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+    let url;
+    try {
+      url = new URL(urlStr);
+    } catch (e) {
+      return done({ ok: false, status: 0, error: `invalid URL: ${e.message}` });
+    }
+    if (url.protocol !== 'https:') {
+      return done({ ok: false, status: 0, error: 'relay URL must be https' });
+    }
+    const req = https.get({
+      hostname: url.hostname,
+      port: url.port || 443,
+      path: url.pathname + url.search,
+      timeout: timeoutMs,
+    }, (res) => {
+      if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location) {
+        const location = res.headers.location;
+        res.resume();
+        let loc;
+        try { loc = new URL(location, url); } catch (e) {
+          return done({ ok: false, status: res.statusCode, error: `bad redirect: ${e.message}`, redirected: true });
+        }
+        const follow = https.get(loc, { timeout: timeoutMs }, (r2) => {
+          r2.resume();
+          done({ ok: r2.statusCode >= 200 && r2.statusCode < 400, status: r2.statusCode, redirected: true, location: loc.href });
+        });
+        follow.on('timeout', () => { follow.destroy(); done({ ok: false, status: 0, error: 'timeout', redirected: true }); });
+        follow.on('error', (e) => done({ ok: false, status: 0, error: e.message, redirected: true }));
+        return;
+      }
+      res.resume();
+      done({ ok: res.statusCode >= 200 && res.statusCode < 400, status: res.statusCode });
+    });
+    req.on('timeout', () => { req.destroy(); done({ ok: false, status: 0, error: 'timeout' }); });
+    req.on('error', (e) => done({ ok: false, status: 0, error: e.message }));
+  });
+}
+
+function smtpReady() {
+  return Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
+}
+
+async function sendViaSmtp({ to, subject, html, fromName }) {
+  const fromHeader = fromName
+    ? `"${fromName}" <${FROM_EMAIL || process.env.SMTP_USER}>`
+    : `"${FROM_NAME}" <${FROM_EMAIL || process.env.SMTP_USER}>`;
+  await transporter.sendMail({ from: fromHeader, to, subject, html });
+  console.log(`[SMTP] Email sent successfully to ${to}`);
+  return true;
+}
+
+// Unified Mailer: HTTPS relay first; on relay failure, retry over SMTP before
+// reporting failure. A relay 403 used to drop the message because fallback only
+// ran when the relay was unconfigured.
 async function sendMailViaHttpOrSmtp({ to, subject, html, fromName }) {
   const httpUrl = process.env.GMAIL_HTTP_URL;
   const httpKey = process.env.GMAIL_HTTP_KEY;
@@ -265,23 +375,88 @@ async function sendMailViaHttpOrSmtp({ to, subject, html, fromName }) {
     if (FROM_EMAIL) {
       payload.from = FROM_EMAIL;
     }
-    const result = await makeHttpsPost(httpUrl, payload);
-    if (!result.success) {
-      throw new Error(result.error || 'Failed to send email via HTTPS Web App');
+    try {
+      const result = await makeHttpsPost(httpUrl, payload);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to send email via HTTPS Web App');
+      }
+      console.log(`[HTTP] Email sent successfully to ${to}`);
+      return true;
+    } catch (relayErr) {
+      if (!smtpReady()) throw relayErr;
+      console.warn(`[HTTP] Relay send failed (${relayErr.message}) — retrying over SMTP`);
+      return sendViaSmtp({ to, subject, html, fromName });
     }
-    console.log(`[HTTP] Email sent successfully to ${to}`);
-    return true;
-  } else {
-    const fromHeader = fromName ? `"${fromName}" <${FROM_EMAIL || process.env.SMTP_USER}>` : `"${FROM_NAME}" <${FROM_EMAIL || process.env.SMTP_USER}>`;
-    await transporter.sendMail({
-      from: fromHeader,
-      to,
-      subject,
-      html,
-    });
-    console.log(`[SMTP] Email sent successfully to ${to}`);
-    return true;
   }
+  return sendViaSmtp({ to, subject, html, fromName });
+}
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)),
+  ]);
+}
+
+let mailerLiveCache = { at: 0, value: null };
+const MAILER_LIVE_TTL_MS = 60 * 1000;
+
+async function probeMailerLive(force = false) {
+  const now = Date.now();
+  if (!force && mailerLiveCache.value && (now - mailerLiveCache.at) < MAILER_LIVE_TTL_MS) {
+    return { ...mailerLiveCache.value, cached: true };
+  }
+  const httpUrl = (process.env.GMAIL_HTTP_URL || '').trim();
+  const httpKey = (process.env.GMAIL_HTTP_KEY || '').trim();
+  const hasRelay = Boolean(httpUrl && httpKey);
+  const hasSmtp = smtpReady();
+  const pathOnly = httpUrl.split('?')[0];
+
+  const relay = { configured: hasRelay, url_ok: null, reachable: null, status: null, diagnosis: null };
+  if (!httpUrl) {
+    relay.url_ok = false;
+    relay.diagnosis = 'GMAIL_HTTP_URL is not set';
+  } else if (!/\/exec\/?$/.test(pathOnly)) {
+    relay.url_ok = false;
+    relay.reachable = false;
+    relay.diagnosis = 'URL does not end in /exec — that is usually a deployment ID pasted instead of the web-app URL. In Apps Script: Deploy → Web app → copy the URL that ends with /exec.';
+  } else {
+    relay.url_ok = true;
+    const probe = await makeHttpsGet(httpUrl);
+    relay.status = probe.status;
+    relay.reachable = probe.ok;
+    if (probe.status === 403) {
+      relay.diagnosis = '403 = the Apps Script deployment is not shared with "Anyone". Deploy → Manage deployments → Web app → Who has access → Anyone.';
+    } else if (probe.redirected && probe.location && /accounts\.google\.com/i.test(probe.location)) {
+      relay.reachable = false;
+      relay.diagnosis = 'Redirected to Google login — the deployment is not shared with "Anyone".';
+    } else if (!probe.ok) {
+      relay.diagnosis = probe.error || `HTTP ${probe.status}`;
+    } else {
+      relay.diagnosis = 'reachable';
+    }
+  }
+
+  const smtp = { configured: hasSmtp, verified: null, error: null };
+  if (hasSmtp) {
+    try {
+      await withTimeout(transporter.verify(), 2500, 'smtp verify');
+      smtp.verified = true;
+    } catch (e) {
+      smtp.verified = false;
+      smtp.error = e.message;
+    }
+  }
+
+  const value = {
+    can_send: Boolean(relay.reachable === true || smtp.verified === true),
+    probed_at: new Date().toISOString(),
+    relay,
+    smtp,
+    cached: false,
+  };
+  mailerLiveCache = { at: Date.now(), value };
+  return { ...value };
 }
 
 // Send email via the Gmail HTTPS relay (Apps Script) if configured, else raw SMTP.
@@ -631,8 +806,12 @@ const OUTBOUND_PAUSED = ENV_REPORT.outbound.paused;
 const PAUSE_REASON    = ENV_REPORT.outbound.reason;
 const PAUSE_MESSAGE   = `Cold outbound is paused${PAUSE_REASON ? ` — ${PAUSE_REASON}` : ''}. Set OUTBOUND_PAUSED=false to resume.`;
 
+function isDeferrableSendError(err) {
+  return err && (err.code === 'OUTBOUND_PAUSED' || err.code === 'MAILER_NOT_CONFIGURED' || err.code === 'DAILY_CAP_REACHED');
+}
+
 // Send plain-text pitch email — routes through Gmail HTTPS relay first (bypasses Render's SMTP block),
-// falls back to direct SMTP only if relay is not configured.
+// falls back to direct SMTP if the relay is unconfigured OR if a relay send fails.
 async function sendPitchEmail(toEmail, subject, body, campaignId = '') {
   // Hard choke point. Every cold pitch and every follow-up in this process goes
   // through here, so the pause is enforced at the send itself and not only at
@@ -648,6 +827,13 @@ async function sendPitchEmail(toEmail, subject, body, campaignId = '') {
   if (!ENV_REPORT.features.outboundEmail) {
     const err = new Error('Outbound email is not configured (set GMAIL_HTTP_URL or SMTP_USER + SMTP_PASS).');
     err.code = 'MAILER_NOT_CONFIGURED';
+    throw err;
+  }
+  // Cap lives here, not only at the four callers, so a new send path cannot
+  // bypass it. Overflow stays pending (DAILY_CAP_REACHED) instead of sending.
+  if (!(await underDailyCap())) {
+    const err = new Error(`Daily send cap (${DAILY_SEND_CAP}) reached`);
+    err.code = 'DAILY_CAP_REACHED';
     throw err;
   }
   await sendEmailViaRelayOrSmtp(toEmail, subject, body);
@@ -940,10 +1126,11 @@ async function runInventionOutreach(payload) {
       console.log(`[Invention Outreach] Pitch sent + follow-ups queued for ${contactEmail}`);
     } catch (err) {
       emailError = err.message;
-      // A paused engine is a deliberate state, not a failure — log it and move on
-      // rather than firing an admin alert for every lead that touches the switch.
-      if (err.code === 'OUTBOUND_PAUSED') {
+      // A paused engine, a full cap, or a missing mailer is a deliberate hold —
+      // rethrow so the queue leaves the lead pending instead of marking it sent.
+      if (isDeferrableSendError(err)) {
         console.log(`[Invention Outreach] Skipped ${contactEmail} — ${err.message}`);
+        throw err;
       } else {
         console.error('[Invention Outreach] Pitch email failed for', contactEmail, ':', err.message);
         await sendAdminAlert(`Pitch email FAILED — ${contactEmail}`, err.stack || err.message);
@@ -1120,6 +1307,10 @@ async function processLeadQueue(batchSize) {
       await markLead(id, 'sent');
       sent++;
     } catch (err) {
+      if (isDeferrableSendError(err)) {
+        console.warn(`[Lead Queue] ${err.message} — leaving remaining leads pending`);
+        break;
+      }
       console.error(`[Lead Queue] Failed for ${contact_email}:`, err.message);
       await markLead(id, 'failed');
       failed++;
@@ -1410,7 +1601,7 @@ app.post(['/webhook/lead', '/api/ingest'], wrapAsync(async (req, res) => {
 
 // Build marker so a deploy can be verified from outside
 app.get('/version', (req, res) => {
-  res.json({ build: 'lead-quality-screen-persistent-db-2026-07-20' });
+  res.json({ build: 'lead-quality-screen-admin-auth-live-health-2026-08-28' });
 });
 
 // Public sales one-pager — text this URL to prospects
@@ -1443,14 +1634,24 @@ app.get('/', (req, res) => {
 
 // Machine-readable health check — reports which features are live vs degraded so
 // a missing key is visible from outside the box without reading deploy logs.
-app.get('/health', (req, res) => {
+app.get('/health', wrapAsync(async (req, res) => {
   const degraded = ENV_REPORT.missing.length > 0;
+  const force = req.query.probe === '1' || req.query.probe === 'true';
+  let mailer_live;
+  try {
+    mailer_live = await probeMailerLive(force);
+  } catch (err) {
+    mailer_live = { can_send: false, error: err.message, probed_at: new Date().toISOString() };
+  }
+  // mailer_live is informational and never flips this status code — a transient
+  // relay blip turning /health into 503 would put Render into a restart loop.
   res.status(degraded ? 503 : 200).json({
     status: degraded ? 'degraded' : 'ok',
     port: PORT,
     uptime_seconds: Math.round(process.uptime()),
     features: ENV_REPORT.features,
     mailer: ENV_REPORT.mailer,
+    mailer_live,
     // A pause is a deliberate operating state, so it is reported without
     // flipping the status to degraded.
     outbound: ENV_REPORT.outbound,
@@ -1459,7 +1660,7 @@ app.get('/health', (req, res) => {
     offer: quotableOffer(),
     timestamp: new Date().toISOString(),
   });
-});
+}));
 
 // Admin form — paste company names, engine finds emails and sends pitches
 app.get('/admin/pitch', (req, res) => {
@@ -1468,6 +1669,7 @@ app.get('/admin/pitch', (req, res) => {
 <head>
   <title>Antigravity — Send Pitches</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: system-ui, sans-serif; background: #0f0f0f; color: #eee; padding: 24px; }
@@ -1527,9 +1729,12 @@ app.get('/admin/pitch', (req, res) => {
         const parts = l.split(',').map(s => s.trim());
         return { name: parts[0], website: parts[1] || '', industry, override_email };
       });
+      const adminKey = new URLSearchParams(window.location.search).get('key') || '';
+      const headers = { 'Content-Type': 'application/json' };
+      if (adminKey) headers['X-Admin-Key'] = adminKey;
       const res = await fetch('/admin/bulk-pitch', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ companies })
       });
       const data = await res.json();
@@ -1606,7 +1811,13 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
       });
       results.push({ company: companyName, email, website, status: 'pitched' });
     } catch (err) {
-      results.push({ company: companyName, email, status: 'failed', error: err.message });
+      if (err.code === 'DAILY_CAP_REACHED') {
+        results.push({ company: companyName, email, status: 'capped', reason: err.message });
+      } else if (isDeferrableSendError(err)) {
+        results.push({ company: companyName, email, status: err.code.toLowerCase(), reason: err.message });
+      } else {
+        results.push({ company: companyName, email, status: 'failed', error: err.message });
+      }
     }
     await new Promise(r => setTimeout(r, 1500));
   }
@@ -1861,7 +2072,7 @@ setInterval(async () => {
         // A config gap or a deliberate pause isn't this lead's fault — leave it
         // pending so it goes out once sending is available again, rather than
         // marking it permanently failed.
-        if (err.code === 'MAILER_NOT_CONFIGURED' || err.code === 'OUTBOUND_PAUSED') {
+        if (isDeferrableSendError(err)) {
           console.warn(`[Follow-up Scheduler] ${err.message} — step ${fu.step} → ${fu.contact_email} stays pending.`);
           break;
         }

@@ -13,11 +13,19 @@ on:
 
 env:
   ENGINE: https://master-hustle-engine.onrender.com
+  ADMIN_KEY: ${{ secrets.ADMIN_KEY }}
 
 jobs:
   ops:
     runs-on: ubuntu-latest
     steps:
+      - name: Require ADMIN_KEY secret
+        run: |
+          if [ -z "$ADMIN_KEY" ]; then
+            echo "::error::GitHub secret ADMIN_KEY is not set. Add it under Settings → Secrets and variables → Actions, matching the Render ADMIN_KEY env var."
+            exit 1
+          fi
+
       # Suppression runs FIRST and unconditionally: it must succeed even when the
       # expected build isn't live, and it must precede any smoke test so test
       # addresses can never receive a real send from a stale build.
@@ -27,13 +35,20 @@ jobs:
           RAW_EMAILS: ${{ inputs.suppress_emails }}
         run: |
           EMAILS=$(printf '%s' "$RAW_EMAILS" | awk -v RS=, '{gsub(/^[ \n]+|[ \n]+$/,""); if (length($0)) printf "\"%s\",", $0}' | sed 's/,$//')
-          echo "Suppressing: [$EMAILS]"
+          echo "Suppression request received (addresses not logged — public repo)."
           curl -sS -X POST "$ENGINE/admin/do-not-contact" \
             -H 'Content-Type: application/json' \
-            -d "{\"emails\":[$EMAILS],\"reason\":\"bounced 2026-07-19\"}"
+            -H "X-Admin-Key: $ADMIN_KEY" \
+            -d "{\"emails\":[$EMAILS],\"reason\":\"bounced 2026-07-19\"}" \
+            | jq '{added}'
 
-      - name: Show do-not-contact list
-        run: curl -sS "$ENGINE/admin/do-not-contact"
+      # Counts only. The full endpoint returns {email, reason, added_at} for every
+      # suppressed address — that must not land in Actions logs on a public repo.
+      - name: Show do-not-contact count
+        run: |
+          curl -sS "$ENGINE/admin/do-not-contact" \
+            -H "X-Admin-Key: $ADMIN_KEY" \
+            | jq '{count}'
 
       # Hard gate: smoke tests fire real webhook leads, so they must never run
       # against a build without the lead quality screen — a stale build would
@@ -66,4 +81,7 @@ jobs:
           echo "$R" | grep -q DISQUALIFIED
 
       - name: Engine status snapshot
-        run: curl -sS "$ENGINE/admin/status"
+        run: |
+          curl -sS "$ENGINE/admin/status" \
+            -H "X-Admin-Key: $ADMIN_KEY" \
+            | jq '{queue, follow_ups, outbound, sends, do_not_contact, config}'
