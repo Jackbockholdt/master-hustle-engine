@@ -59,10 +59,11 @@ const ADMIN_KEY = (process.env.ADMIN_KEY || '').trim();
 
 function timingSafeEqualStr(a, b) {
   if (typeof a !== 'string' || typeof b !== 'string') return false;
-  const ba = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ba.length !== bb.length) return false;
-  return crypto.timingSafeEqual(ba, bb);
+  // Hash both sides so the compare is always 32 bytes — a length mismatch on
+  // the raw key cannot short-circuit and leak ADMIN_KEY's length.
+  const ha = crypto.createHash('sha256').update(a).digest();
+  const hb = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(ha, hb);
 }
 
 function readAdminKey(req) {

@@ -35,16 +35,20 @@ jobs:
           RAW_EMAILS: ${{ inputs.suppress_emails }}
         run: |
           EMAILS=$(printf '%s' "$RAW_EMAILS" | awk -v RS=, '{gsub(/^[ \n]+|[ \n]+$/,""); if (length($0)) printf "\"%s\",", $0}' | sed 's/,$//')
-          echo "Suppressing: [$EMAILS]"
+          echo "Suppression request received (addresses not logged — public repo)."
           curl -sS -X POST "$ENGINE/admin/do-not-contact" \
             -H 'Content-Type: application/json' \
             -H "X-Admin-Key: $ADMIN_KEY" \
-            -d "{\"emails\":[$EMAILS],\"reason\":\"bounced 2026-07-19\"}"
+            -d "{\"emails\":[$EMAILS],\"reason\":\"bounced 2026-07-19\"}" \
+            | jq '{added}'
 
-      - name: Show do-not-contact list
+      # Counts only. The full endpoint returns {email, reason, added_at} for every
+      # suppressed address — that must not land in Actions logs on a public repo.
+      - name: Show do-not-contact count
         run: |
           curl -sS "$ENGINE/admin/do-not-contact" \
-            -H "X-Admin-Key: $ADMIN_KEY"
+            -H "X-Admin-Key: $ADMIN_KEY" \
+            | jq '{count}'
 
       # Hard gate: smoke tests fire real webhook leads, so they must never run
       # against a build without the lead quality screen — a stale build would
@@ -79,4 +83,5 @@ jobs:
       - name: Engine status snapshot
         run: |
           curl -sS "$ENGINE/admin/status" \
-            -H "X-Admin-Key: $ADMIN_KEY"
+            -H "X-Admin-Key: $ADMIN_KEY" \
+            | jq '{queue, follow_ups, outbound, sends, do_not_contact, config}'
