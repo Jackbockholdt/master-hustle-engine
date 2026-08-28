@@ -47,6 +47,12 @@ services:
         sync: false
         placeholder: "admin@domain.com"
 
+      # Admin route gate. Fail-closed: unset → /admin and /api/admin return 503.
+      # Set this in the Render dashboard BEFORE the commit that adds the gate.
+      - key: ADMIN_KEY
+        sync: false
+        generateValue: true
+
       # Bottom Promo Link
       - key: PS_LINK
         value: https://jacksplugreviews.com
