@@ -1024,14 +1024,129 @@ function validateLeadFields(lead) {
   return null;
 }
 
-// Filter leads by target industry list
-function qualifyLead(companyName, industry) {
-  if (!industry) return { qualified: true, reason: 'industry not provided — passing through' };
-  const ind = industry.trim().toLowerCase();
-  for (const q of B2B_INDUSTRIES) {
-    if (q.includes(ind) || ind.includes(q)) return { qualified: true, reason: `matched: ${q}` };
+// Filter leads by target industry list.
+//
+// Fails CLOSED. A lead with no industry is no longer waved through: the
+// company name and website are inspected for agency signals, and anything
+// that cannot be positively identified as an agency is disqualified.
+//
+// Matching is deliberately asymmetric, because names and domains are
+// written differently:
+//   - company name  -> whole-word match ("Arizona Business Broker" flags
+//     'broker'; "BrokerBoost Marketing" does not)
+//   - domain        -> substring match, since domains run words together
+//     ("seoworks.co.uk" must still read as an SEO shop). The two most
+//     collision-prone tokens, 'ad' and 'ads', are held out of domain
+//     matching so "adsworth.com" is not mistaken for an ad agency.
+// Precedence follows from that asymmetry:
+//   1. negative in the NAME   — decisive. "Smith Insurance Agency" is an
+//      insurance firm; the word 'agency' must not rescue it.
+//   2. positive in the NAME   — qualifies, and outranks the domain check,
+//      which is what keeps "BrokerBoost Marketing" / brokerboost.com alive.
+//   3. negative in the DOMAIN — catches names that said nothing either way.
+//   4. positive in the DOMAIN — last resort.
+// Step 1 runs before the industry branch, so supplying `industry` later
+// cannot silently disarm the guard.
+//
+// Tunable without a deploy:
+//   TARGET_INDUSTRIES  — allowlist used when `industry` IS supplied (existing)
+//   AGENCY_SIGNALS     — positive name/domain tokens
+//   EXCLUDE_SIGNALS    — negative name/domain tokens
+const AGENCY_DEFAULTS =
+  'agency,agencies,marketing,seo,ppc,sem,adwords,advertising,ad,ads,digital,media,creative,brand,branding,growth,leadgen,lead gen,inbound,demand gen,web,web design,webdesign,web studio,studio,interactive,social,consulting,consultants';
+const EXCLUDE_DEFAULTS =
+  'broker,brokerage,realty,realtor,real estate,mortgage,lending,loans,insurance,law,legal,attorney,lawyer,dental,dentist,orthodont,clinic,medical,doctor,hospital,pharmacy,church,ministry,school,academy,university,restaurant,cafe,bakery,salon,barber,plumbing,hvac,roofing,landscaping,towing,auto repair,dealership,funeral,daycare,gym,fitness,franchise,capital,ventures,holdings,bank,credit union,accounting,cpa,bookkeeping,tax,travel,staffing,recruiting,recruitment,talent,employment,collection,security,cleaning,moving,storage';
+
+// A blank knob must not disarm the guard. `process.env.X || DEFAULT` already
+// catches an unset or empty var, but NOT a value that is truthy and still
+// parses to nothing — EXCLUDE_SIGNALS="," or "   " passes the `||` and then
+// filters down to an empty list, silently switching exclusion off. That is
+// the same failure as line 1029: a missing value read as "allow". So parse
+// first, and fall back to the defaults whenever the result is empty. Only a
+// deliberately-set, non-empty list overrides.
+function signalList(raw, fallback, label) {
+  const parse = v => String(v || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const set = parse(raw);
+  if (set.length) return set;
+  if (raw !== undefined && raw !== null && String(raw).trim() !== '') {
+    console.warn(`[qualifyLead] ${label} was set but parsed to nothing (${JSON.stringify(raw)}) — using built-in defaults.`);
   }
-  return { qualified: false, reason: `industry '${industry}' not in qualified list` };
+  return parse(fallback);
+}
+
+const AGENCY_SIGNALS  = signalList(process.env.AGENCY_SIGNALS,  AGENCY_DEFAULTS,  'AGENCY_SIGNALS');
+const EXCLUDE_SIGNALS = signalList(process.env.EXCLUDE_SIGNALS, EXCLUDE_DEFAULTS, 'EXCLUDE_SIGNALS');
+
+// Tokens too short/common to match safely inside a run-together domain.
+const DOMAIN_UNSAFE = new Set(['ad', 'ads']);
+
+function escapeTerm(term) {
+  return term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '[\\s\\-_]*');
+}
+// Whole-word-ish: term must not be flanked by other alphanumerics.
+function wordMatch(haystack, term) {
+  return new RegExp('(^|[^a-z0-9])' + escapeTerm(term) + '($|[^a-z0-9])', 'i').test(haystack);
+}
+function looseMatch(haystack, term) {
+  return new RegExp(escapeTerm(term), 'i').test(haystack);
+}
+
+function qualifyLead(companyName, industry, website) {
+  const name = (companyName || '').trim();
+  const ind  = (industry || '').trim().toLowerCase();
+
+  // Domain minus protocol, www, TLD and path — "philsellsbiz.com/x" -> "philsellsbiz"
+  const host = (website || '')
+    .replace(/^[a-z]+:\/\//i, '').replace(/^www\./i, '').split(/[/?#]/)[0];
+  const domain = host.replace(/\.[a-z]{2,}(\.[a-z]{2,})*$/i, '').replace(/[^a-z0-9]+/gi, '');
+
+  // Hoisted above the industry branch on purpose. A whole-word negative in
+  // the NAME is high-confidence and must apply on BOTH paths — otherwise the
+  // day Gumloop starts sending `industry`, every lead routes to Path 1 and
+  // this guard silently stops running. Fixing the data source must not
+  // disarm the filter.
+  const blockedName = name ? EXCLUDE_SIGNALS.find(t => wordMatch(name, t)) : null;
+  if (blockedName) {
+    return { qualified: false, reason: `'${blockedName}' in company name indicates non-agency` };
+  }
+
+  // Path 1 — industry supplied. Allowlist decides, as before.
+  if (ind) {
+    for (const q of B2B_INDUSTRIES) {
+      if (q.includes(ind) || ind.includes(q)) return { qualified: true, reason: `matched: ${q}` };
+    }
+    return { qualified: false, reason: `industry '${industry}' not in qualified list` };
+  }
+
+  // Path 2 — no industry. Infer from name + domain, and fail closed.
+  if (!name && !domain) {
+    return { qualified: false, reason: 'no industry, no company name, no website — cannot qualify' };
+  }
+
+  // Name and domain get different precedence because they have different
+  // match semantics. Whole-word on a name is high-confidence both ways, so
+  // the name's negative already ran above and outranks its positive
+  // ("Smith Insurance Agency" is an insurance firm, not an agency).
+  // Substring on a domain is lossy, so it loses to a clean name signal —
+  // that is what keeps brokerboost.com alive.
+  const strong = name ? AGENCY_SIGNALS.find(t => wordMatch(name, t)) : null;
+  if (strong) {
+    return { qualified: true, reason: `no industry; agency signal '${strong}' in company name` };
+  }
+
+  const blockedDomain = domain ? EXCLUDE_SIGNALS.find(t => looseMatch(domain, t)) : null;
+  if (blockedDomain) {
+    return { qualified: false, reason: `no industry; '${blockedDomain}' in domain indicates non-agency` };
+  }
+
+  const weak = domain
+    ? AGENCY_SIGNALS.find(t => !DOMAIN_UNSAFE.has(t) && t.length >= 3 && looseMatch(domain, t))
+    : null;
+  if (weak) {
+    return { qualified: true, reason: `no industry; agency signal '${weak}' in domain` };
+  }
+
+  return { qualified: false, reason: `no industry and no agency signal in '${name || host}'` };
 }
 
 // Generate AI cold pitch email copy for one company
@@ -1266,7 +1381,7 @@ async function processLeadQueue(batchSize) {
   }
   let sent = 0, disq = 0, supp = 0, failed = 0;
   for (const lead of leads) {
-    const { id, company_name, contact_email, industry } = lead;
+    const { id, company_name, contact_email, website, industry } = lead;
     try {
       const invalidLead = validateLeadFields(lead);
       if (invalidLead) {
@@ -1275,7 +1390,7 @@ async function processLeadQueue(batchSize) {
         console.warn(`[Lead Queue] Marked lead ${id} invalid: ${invalidLead}`);
         continue;
       }
-      const { qualified, reason } = qualifyLead(company_name, industry || '');
+      const { qualified, reason } = qualifyLead(company_name, industry || '', website || '');
       if (!qualified) {
         await markLead(id, 'disqualified');
         disq++;
@@ -1563,7 +1678,7 @@ app.post(['/webhook/lead', '/api/ingest'], wrapAsync(async (req, res) => {
     console.warn(`[Lead Intake] Rejected invalid payload: ${invalid}`);
     return res.status(400).json({ received: false, status: 'INVALID', error: invalid });
   }
-  const { qualified, reason } = qualifyLead(body.company_name, body.industry || '');
+  const { qualified, reason } = qualifyLead(body.company_name, body.industry || '', body.website || '');
   if (!qualified) return res.json({ received: true, status: 'DISQUALIFIED', reason });
   const lowQuality = screenLeadQuality(body);
   if (lowQuality) {
@@ -1759,8 +1874,8 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
   for (const c of companies) {
     const companyName = (c.name || c.company_name || '').trim();
     if (!companyName) continue;
-    const industry = c.industry || 'digital marketing agency';
-    const { qualified, reason } = qualifyLead(companyName, industry);
+    const industry = c.industry || '';
+    const { qualified, reason } = qualifyLead(companyName, industry, c.website || '');
     if (!qualified) {
       results.push({ company: companyName, status: 'disqualified', reason });
       continue;
