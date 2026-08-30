@@ -697,11 +697,17 @@ app.post(['/webhook/stripe', '/api/stripe-webhook'], async (req, res) => {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
-  } catch (err) {
-    console.error('[Stripe Webhook] Signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  if (webhookSecret && sig) {
+    try {
+      event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+    } catch (err) {
+      console.error('[Stripe Webhook] Signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+  } else if (!webhookSecret) {
+    event = req.body;
+  } else {
+    return res.status(400).send('Webhook Error: Missing stripe-signature header');
   }
 
   if (event.type === 'checkout.session.completed') {
