@@ -93,6 +93,12 @@ services:
       - key: STRIPE_PAYMENT_LINK
         sync: false
         placeholder: "https://buy.stripe.com/..."
+      - key: STRIPE_SETUP_LINK
+        sync: false
+        placeholder: "https://buy.stripe.com/..."
+      - key: STRIPE_RETAINER_LINK
+        sync: false
+        placeholder: "https://buy.stripe.com/..."
       - key: TARGET_INDUSTRIES
         value: "digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency"
       - key: BATCH_INTERVAL_HOURS

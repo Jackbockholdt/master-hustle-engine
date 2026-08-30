@@ -46,7 +46,9 @@ const stripe = ENV_REPORT.features.stripe ? new Stripe(process.env.STRIPE_SECRET
 const app = express();
 app.use(express.json({
   verify: (req, res, buf) => {
-    if (req.originalUrl === '/api/stripe-webhook') req.rawBody = buf;
+    if (req.originalUrl.startsWith('/webhook/stripe') || req.originalUrl.startsWith('/api/stripe-webhook')) {
+      req.rawBody = buf;
+    }
   }
 }));
 
@@ -128,7 +130,9 @@ const B2B_PROOF_URL      = process.env.PROOF_URL || 'https://master-hustle-engin
 // Monthly license fee. Sourced from config/pricing.json — DEPLOYMENT_FEE is kept
 // only so an existing Render env var doesn't silently change the price on deploy.
 const B2B_DEPLOYMENT_FEE = process.env.DEPLOYMENT_FEE || String(PRICING.monthly);
-const B2B_PAYMENT_LINK   = process.env.STRIPE_PAYMENT_LINK || '';
+const B2B_SETUP_LINK    = process.env.STRIPE_SETUP_LINK || process.env.STRIPE_PAYMENT_LINK || 'https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G';
+const B2B_RETAINER_LINK = process.env.STRIPE_RETAINER_LINK || 'https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G';
+const B2B_PAYMENT_LINK  = B2B_SETUP_LINK;
 const B2B_BATCH_HOURS    = parseInt(process.env.BATCH_INTERVAL_HOURS || '6');
 // Warming cap: a new sending account tolerates 3-4 cold emails/day. Overflow is
 // not dropped — it stays 'pending' in leads_queue and goes out on later batches.
@@ -678,10 +682,10 @@ app.get('/api/admin/logs', (req, res) => {
 });
 
 // =============================================================================
-// STRIPE WEBHOOK — White-Label License purchase → notify + welcome
+// STRIPE WEBHOOK — White-Label License purchase → notify + welcome + convert
 // =============================================================================
 
-app.post('/api/stripe-webhook', async (req, res) => {
+app.post(['/webhook/stripe', '/api/stripe-webhook'], async (req, res) => {
   // Degraded mode: no STRIPE_SECRET_KEY means no client to verify with. Say so
   // explicitly — Stripe retries a 503, so nothing is lost once the key is set.
   if (!stripe) {
@@ -702,17 +706,10 @@ app.post('/api/stripe-webhook', async (req, res) => {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const buyerEmail = session.customer_details?.email;
+    const buyerEmail = (session.customer_details?.email || session.customer_email || '').trim().toLowerCase();
     const niche = session.metadata?.niche;
 
-    const fields = {};
-    if (Array.isArray(session.custom_fields)) {
-      session.custom_fields.forEach(f => {
-        fields[f.key] = f.text?.value || '';
-      });
-    }
-
-    console.log(`[Stripe Webhook] Purchase complete — niche: ${niche || '(none — license purchase)'}, buyer: ${buyerEmail}`);
+    console.log(`[Stripe Webhook] Purchase complete — session: ${session.id}, niche: ${niche || '(white-label license)'}, buyer: ${buyerEmail}`);
 
     if (!buyerEmail) {
       console.error('[Stripe Webhook] Missing buyer email in session:', session.id);
@@ -720,24 +717,38 @@ app.post('/api/stripe-webhook', async (req, res) => {
     }
 
     if (niche) {
-      // The legacy one-off niche products are retired — there is no generator
-      // left to fulfil this. No live payment link sets metadata.niche, so
-      // arriving here means a stale link or a hand-built session. Do NOT fall
-      // through to license onboarding: a niche purchase is not a license
-      // purchase, and sending a welcome email for a product they did not buy
-      // is worse than sending nothing. Alert for manual handling instead.
+      // Legacy retired niche metadata handling
       console.warn(`[Stripe Webhook] Purchase carried retired niche '${niche}' — no deliverable generated for ${buyerEmail}.`);
       logTransaction(buyerEmail, `retired:${niche}`, 'failure', JSON.stringify({ session: session.id, amount_total: session.amount_total }));
       sendAdminAlert(
         `Stripe purchase arrived with retired niche '${niche}'`,
         `Buyer: ${buyerEmail}\nSession: ${session.id}\n\nThe niche product line is retired and nothing was generated. Refund or fulfil manually, then remove the niche metadata from that payment link.`
-      ).catch(() => { /* best-effort — never mask the original event */ });
+      ).catch(() => {});
     } else {
-      // No "niche" metadata means this came through the White-Label Agency AI
-      // Infrastructure payment link (see config/pricing.js), not one of the
-      // legacy one-off niche tools. Notify Jack for manual onboarding and
-      // confirm receipt to the buyer.
+      // 1. Log transaction to SQLite logs table
       logTransaction(buyerEmail, 'white-label-license', 'success', JSON.stringify({ session: session.id, amount_total: session.amount_total }));
+
+      // 2. Mark the lead as paid/active in leads_queue
+      db.run(
+        "UPDATE leads_queue SET status = 'active', processed_at = CURRENT_TIMESTAMP WHERE LOWER(contact_email) = ?",
+        [buyerEmail],
+        (err) => {
+          if (err) console.warn('[Stripe Webhook] Failed to update leads_queue:', err.message);
+          else console.log(`[Stripe Webhook] Lead marked active in leads_queue for ${buyerEmail}`);
+        }
+      );
+
+      // 3. Pause/convert further cold follow-ups for that company/email
+      db.run(
+        "UPDATE follow_ups SET status = 'converted', sent_at = CURRENT_TIMESTAMP WHERE LOWER(contact_email) = ? AND status = 'pending'",
+        [buyerEmail],
+        (err) => {
+          if (err) console.warn('[Stripe Webhook] Failed to cancel pending follow-ups:', err.message);
+          else console.log(`[Stripe Webhook] Converted and stopped pending cold follow-ups for ${buyerEmail}`);
+        }
+      );
+
+      // 4. Notify Jack and send buyer welcome onboarding email
       Promise.all([
         notifyAdminOfLicensePurchase(session, buyerEmail),
         sendLicenseWelcomeEmail(buyerEmail),
@@ -1151,7 +1162,7 @@ function qualifyLead(companyName, industry, website) {
 
 // Generate AI cold pitch email copy for one company
 async function generatePitchCopy(company, deployerName, deployerEmail, proofUrl, fee, offerName, offerSummary) {
-  const ctaLinks = `proof link: ${proofUrl}${B2B_PAYMENT_LINK ? ' and payment/booking link: ' + B2B_PAYMENT_LINK : ''} and contact email ${deployerEmail}`;
+  const ctaLinks = `proof link: ${proofUrl}, direct checkout: ${B2B_SETUP_LINK}, and contact email ${deployerEmail}`;
   const systemInstruction = (
     'You are an elite B2B sales copywriter. Write a cold outreach email selling a white-label AI infrastructure license to a marketing/lead-gen agency owner who will resell it to their own local business clients. ' +
     'Return JSON only: {"subject":"string max 60 chars","body":"string max 220 words"}. ' +
@@ -1159,13 +1170,14 @@ async function generatePitchCopy(company, deployerName, deployerEmail, proofUrl,
     '3. Lead with the math: resell to 3-5 clients at $500-$1,000/month each covers the license; everything after is pure margin. ' +
     '4. Present the offer as a complete 9-skill AI infrastructure backend (call catching, voice agent, lead sorting, web pages, email handling) they can resell tonight — no dev team, no build time. ' +
     '5. Include exactly 3 value bullets: (a) the resell math/break-even, (b) zero dev/maintenance burden, (c) sticky recurring revenue. ' +
-    `6. End CTA: request a 15-min screen-share demo. Close with ${ctaLinks}. ` +
+    `6. End CTA: request a 15-min screen-share demo, or direct checkout at ${B2B_SETUP_LINK}. Close with proof at ${proofUrl} and reply to ${deployerEmail}. ` +
     '7. No buzzwords, no hype. Direct, peer-to-peer, confident tone. ' +
     `8. PRICING IS FIXED — there is exactly one offer: ${PRICING.display.headline}. ` +
+    `Embed the direct checkout link cleanly at the bottom for instant setup (${B2B_SETUP_LINK}). ` +
     'If you mention price at all, state it in exactly those terms. Never invent a discount, ' +
     'a free trial, a waived setup fee, a tiered menu, or any other number.'
   );
-  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Monthly fee: $${fee}. Target company: ${company}.`;
+  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Setup Checkout Link: ${B2B_SETUP_LINK}. Retainer Link: ${B2B_RETAINER_LINK}. Monthly fee: $${fee}. Target company: ${company}.`;
   const pitch = await callGemini(prompt, systemInstruction, 'pitch-email');
   if (!(pitch.body || '').toLowerCase().includes(company.toLowerCase())) {
     pitch.body = `I'm reaching out to ${company} specifically because ${pitch.body}`;
@@ -1180,7 +1192,7 @@ async function generateFollowupCopy(step, company, deployerName, deployerEmail, 
     2: 'Social proof follow-up. Share a believable, concrete example of another agency reselling this to local business clients and hitting break-even fast. Slightly stronger CTA than first touch.',
     3: 'Final follow-up. Give them permission to walk away, note this is the last email, and add light urgency about being first in their market. Offer to stop future emails on reply.',
   };
-  const ctaLinks = `proof link: ${proofUrl}${B2B_PAYMENT_LINK ? ' and payment/booking link: ' + B2B_PAYMENT_LINK : ''} and contact email ${deployerEmail}`;
+  const ctaLinks = `proof link: ${proofUrl}, direct checkout: ${B2B_SETUP_LINK}, and contact email ${deployerEmail}`;
   const systemInstruction = (
     `You are an elite B2B sales copywriter writing follow-up email #${step} in a 3-email cold outreach sequence — the prospect has not replied yet. ` +
     'Return JSON only: {"subject":"string max 60 chars","body":"string max 180 words"}. ' +
@@ -1188,10 +1200,11 @@ async function generateFollowupCopy(step, company, deployerName, deployerEmail, 
     'The body MUST name the target company. Frame the offer as a white-label AI infrastructure license the agency resells to its own local business clients as a new revenue line. ' +
     `Close with ${ctaLinks}. No buzzwords, no hype. Direct, peer-to-peer tone. ` +
     `PRICING IS FIXED — there is exactly one offer: ${PRICING.display.headline}. ` +
+    `Embed direct checkout link: ${B2B_SETUP_LINK}. ` +
     'If you mention price at all, state it in exactly those terms. Never invent a discount, ' +
     'a free trial, a waived setup fee, a tiered menu, or any other number.'
   );
-  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Monthly fee: $${fee}. Target company: ${company}.`;
+  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Setup Link: ${B2B_SETUP_LINK}. Retainer Link: ${B2B_RETAINER_LINK}. Monthly fee: $${fee}. Target company: ${company}.`;
   const result = await callGemini(prompt, systemInstruction, 'followup-email');
   return { subject: result.subject, body: result.body };
 }
@@ -1724,6 +1737,11 @@ app.get('/pitch', (req, res) => {
   res.sendFile(path.join(__dirname, 'pitch.html'));
 });
 
+// Interactive demo page
+app.get(['/demo', '/demo.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'demo.html'));
+});
+
 
 // Root status page (ported from local main's "Fix root route" commit)
 app.get('/', (req, res) => {
@@ -1734,6 +1752,9 @@ app.get('/', (req, res) => {
     endpoints: {
       ingest: 'POST /webhook/lead  (alias: POST /api/ingest)',
       inbound: 'POST /webhook/openphone  (alias: POST /api/inbound)',
+      stripe: 'POST /webhook/stripe (alias: POST /api/stripe-webhook)',
+      demo: 'GET /demo',
+      pitch: 'GET /pitch',
       status: 'GET /admin/status',
       health: 'GET /health',
       logs: 'GET /api/admin/logs'
