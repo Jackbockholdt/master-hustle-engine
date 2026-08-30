@@ -1684,6 +1684,7 @@ app.post(['/webhook/openphone', '/api/inbound'], wrapAsync(async (req, res) => {
 app.post(['/webhook/lead', '/api/ingest'], wrapAsync(async (req, res) => {
   const body = req.body;
   if (!body.contact_email && body.email) body.contact_email = body.email;
+  if (!body.company_name && body.company) body.company_name = body.company;
   const missing = ['company_name', 'contact_email', 'website'].filter(f => !body[f]);
   if (missing.length) return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
   const invalid = validateLeadFields(body);
