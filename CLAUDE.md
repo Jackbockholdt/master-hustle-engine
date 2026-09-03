@@ -67,6 +67,21 @@ The following legacy positioning has been fully removed from this repository. Do
 
 If you find a reference to any of the above in this repo, delete it rather than updating it.
 
+## Lead Sourcing (canonical)
+
+- **Gumloop is retired** (paid-plan-only API since 2026-09-01). Do not add Gumloop
+  env vars, docs, or triggers back. The engine sources its own leads from
+  Outscraper (`lib/outscraper.js`, `lib/leadSourcing.js`, `POST /admin/scrape-now`)
+  and accepts bulk files through `tools/load-leads.js` → `POST /admin/leads`.
+- **Never send to an inferred address.** A `firstname@domain` guessed from a
+  founder's name is not a lead. Six of the 25 addresses in
+  `scripts/send_25_agencies.ps1` hard-bounced in one weekend (21%). Feeder
+  scripts that carry hand-guessed addresses must not be run again; the
+  bounced addresses are in `config/blocklist.json` permanently.
+- Every intake path (`/webhook/lead`, `/admin/leads`, `/admin/bulk-pitch`,
+  `/admin/scrape-now`) runs `alreadyContacted()` — one pitch per address, ever,
+  across `send_log`, `follow_ups` and `leads_queue`.
+
 ## Channel Rules
 
 - Outreach points to the landing page, never to a raw Stripe checkout link. Payment links in cold email damage deliverability and read as spam.
