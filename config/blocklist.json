@@ -1,10 +1,10 @@
 {
-  "_comment": "Permanent do-not-send list. Entries NEVER come off \u2014 a hard bounce, an admin block or a dead domain is final. Check contact_email against \"addresses\" and its domain against \"domains\" before every send. Both keys are lowercased.",
+  "_comment": "Permanent do-not-send list. Entries NEVER come off — a hard bounce, an admin block or a dead domain is final. Check contact_email against \"addresses\" and its domain against \"domains\" before every send. Both keys are lowercased.",
   "_source": "Gmail Delivery Status Notification (Failure) messages from mailer-daemon, read 2026-08-08",
-  "_coverage": "Bounces dated 2025-12-06 through 2026-08-08. Transient (Delay) notices are excluded \u2014 only permanent failures are listed.",
-  "generated_at": "2026-08-08",
+  "_coverage": "Bounces dated 2025-12-06 through 2026-09-03. Transient (Delay) notices are excluded — only permanent failures are listed.",
+  "generated_at": "2026-09-03",
   "counts": {
-    "addresses": 102,
+    "addresses": 108,
     "domains": 24
   },
   "domains": {
@@ -940,6 +940,48 @@
       "reason": "Address not found Your message wasn't delivered to test@example.com because the domain example.com couldn't be found. Check for typos or unnecessary spaces and ",
       "first_seen": "2026-08-08",
       "last_seen": "2026-08-08",
+      "bounce_events": 1
+    },
+    "john@silverbackstrategies.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found — mailer-daemon 550 5.1.1 (guessed first-name@ address from scripts/send_25_agencies.ps1; never send to inferred addresses)",
+      "first_seen": "2026-08-30",
+      "last_seen": "2026-08-30",
+      "bounce_events": 1
+    },
+    "david@straightnorth.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found — mailer-daemon 550 5.1.1 (guessed first-name@ address from scripts/send_25_agencies.ps1; never send to inferred addresses)",
+      "first_seen": "2026-08-30",
+      "last_seen": "2026-08-30",
+      "bounce_events": 1
+    },
+    "brian@gofishdigital.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found — mailer-daemon 550 5.1.1 (guessed first-name@ address from scripts/send_25_agencies.ps1; never send to inferred addresses)",
+      "first_seen": "2026-08-31",
+      "last_seen": "2026-08-31",
+      "bounce_events": 1
+    },
+    "nick@ftf.agency": {
+      "status": "hard_bounce",
+      "reason": "Address not found — mailer-daemon 550 5.1.1 (guessed first-name@ address from scripts/send_25_agencies.ps1; never send to inferred addresses)",
+      "first_seen": "2026-08-31",
+      "last_seen": "2026-08-31",
+      "bounce_events": 1
+    },
+    "ian@portent.com": {
+      "status": "hard_bounce",
+      "reason": "Address not found — mailer-daemon 550 5.1.1 (guessed first-name@ address from scripts/send_25_agencies.ps1; never send to inferred addresses)",
+      "first_seen": "2026-09-01",
+      "last_seen": "2026-09-01",
+      "bounce_events": 1
+    },
+    "patrick@level.agency": {
+      "status": "hard_bounce",
+      "reason": "Address not found — mailer-daemon 550 5.1.1 (guessed first-name@ address from scripts/send_25_agencies.ps1; never send to inferred addresses)",
+      "first_seen": "2026-09-01",
+      "last_seen": "2026-09-01",
       "bounce_events": 1
     }
   }

@@ -99,8 +99,22 @@ services:
       - key: STRIPE_RETAINER_LINK
         sync: false
         placeholder: "https://buy.stripe.com/..."
+      # Lead source — Outscraper direct (Gumloop retired 2026-09-01)
+      - key: OUTSCRAPER_API_KEY
+        sync: false
+      - key: OUTSCRAPER_QUERIES
+        sync: false
+        placeholder: "seo agency, Austin, TX|ppc agency, Denver, CO"
+      - key: OUTSCRAPER_LIMIT_PER_QUERY
+        value: "20"
+      - key: OUTSCRAPER_INTERVAL_HOURS
+        value: "24"
+      - key: OUTSCRAPER_VALIDATE_EMAILS
+        value: "true"
+      - key: PITCH_INCLUDE_CHECKOUT_LINK
+        value: "false"
       - key: TARGET_INDUSTRIES
-        value: "digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency"
+        value: "digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency,internet marketing service,marketing consultant"
       - key: BATCH_INTERVAL_HOURS
         value: "6"
       - key: BATCH_SIZE
