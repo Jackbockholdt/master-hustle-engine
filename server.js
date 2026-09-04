@@ -1520,6 +1520,7 @@ const GENERIC_EMAIL_PREFIXES = ['info', 'hello', 'contact', 'support', 'team', '
 // =============================================================================
 
 const ALLOW_FREEMAIL     = process.env.ALLOW_FREEMAIL === 'true';
+const ALLOW_ROLE_MAILBOX = process.env.ALLOW_ROLE_MAILBOXES === 'true';
 const MAX_EMPLOYEE_COUNT = parseInt(process.env.MAX_EMPLOYEE_COUNT || '50', 10);
 const BLOCKED_DOMAINS    = new Set((process.env.BLOCKED_DOMAINS || '')
   .split(',').map(d => d.trim().toLowerCase()).filter(Boolean));
@@ -1611,8 +1612,8 @@ function screenLeadQuality(lead) {
       : `blocklisted domain '${blocked.key}' — ${status || 'permanent failure'}${when}`;
   }
 
-  if (ROLE_MAILBOXES.has(prefix)) {
-    return `generic mailbox '${prefix}@' — needs a real person's address`;
+  if (!ALLOW_ROLE_MAILBOX && ROLE_MAILBOXES.has(prefix)) {
+    return `generic mailbox '${prefix}@' — needs a real person's address (set ALLOW_ROLE_MAILBOXES=true to allow)`;
   }
   if (BLOCKED_DOMAINS.has(domain) || BLOCKED_DOMAINS.has(rootDomain(domain))) {
     return `domain '${domain}' is on the blocked-domains list`;
