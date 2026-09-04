@@ -12,7 +12,8 @@ see `CLAUDE.md` for positioning and pricing.
 ## What it does
 
 1. **Lead ingestion**
-   - `POST /webhook/lead` (alias `POST /api/ingest`) — the path Gumloop posts to.
+   - `POST /webhook/lead` (alias `POST /api/ingest`) — generic lead intake for any external feeder.
+   - `POST /admin/scrape-now` — pull leads from Outscraper into the queue (see `docs/LEAD-SOURCING.md`).
    - `POST /admin/leads` for bulk import.
    - Required fields, aliases, and the exact payload contract are documented in
      `GUMLOOP-SETUP-FOR-ANTIGRAVITY.md`. A payload missing `company_name` or
@@ -81,7 +82,7 @@ What a pause stops:
 - Cold pitch emails and every queued follow-up step, blocked inside
   `sendPitchEmail()` — the one function every cold send routes through.
 - The lead-batch scheduler and the hourly follow-up scheduler (both idle).
-- The Gumloop scraper auto-trigger — no point collecting leads nobody may email.
+- The Outscraper auto-scrape — no point collecting leads nobody may email (manual `/admin/scrape-now` still works).
 - `POST /admin/bulk-pitch`, which returns **409** instead of half-sending a batch.
 
 What keeps running:
@@ -157,7 +158,7 @@ Two settings are load-bearing:
 
 - **`plan: starter`**, not free. The free tier spins down after ~15 minutes idle,
   which kills the in-process `setInterval` schedulers (lead batch, follow-ups,
-  Gumloop trigger) long before their 6-hour timers elapse.
+  Outscraper auto-scrape) long before their timers elapse.
 - **A persistent disk mounted at `/data`.** `pickDataDir()` (`server.js`) probes
   `/data` first. Without the disk, SQLite lands on the container filesystem and
   send history, the lead queue, pending follow-ups, and the runtime

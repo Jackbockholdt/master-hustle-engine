@@ -46,7 +46,9 @@ const stripe = ENV_REPORT.features.stripe ? new Stripe(process.env.STRIPE_SECRET
 const app = express();
 app.use(express.json({
   verify: (req, res, buf) => {
-    if (req.originalUrl === '/api/stripe-webhook') req.rawBody = buf;
+    if (req.originalUrl.startsWith('/webhook/stripe') || req.originalUrl.startsWith('/api/stripe-webhook')) {
+      req.rawBody = buf;
+    }
   }
 }));
 
@@ -128,13 +130,19 @@ const B2B_PROOF_URL      = process.env.PROOF_URL || 'https://master-hustle-engin
 // Monthly license fee. Sourced from config/pricing.json — DEPLOYMENT_FEE is kept
 // only so an existing Render env var doesn't silently change the price on deploy.
 const B2B_DEPLOYMENT_FEE = process.env.DEPLOYMENT_FEE || String(PRICING.monthly);
-const B2B_PAYMENT_LINK   = process.env.STRIPE_PAYMENT_LINK || '';
+const B2B_SETUP_LINK    = process.env.STRIPE_SETUP_LINK || process.env.STRIPE_PAYMENT_LINK || 'https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G';
+const B2B_RETAINER_LINK = process.env.STRIPE_RETAINER_LINK || 'https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G';
+const B2B_PAYMENT_LINK  = B2B_SETUP_LINK;
+// Raw Stripe links in COLD email hurt deliverability and read as spam (see
+// CLAUDE.md → Channel Rules: outreach points at the landing page / proof URL,
+// never at checkout). Off by default; flip on deliberately for a warm list.
+const PITCH_INCLUDE_CHECKOUT_LINK = process.env.PITCH_INCLUDE_CHECKOUT_LINK === 'true';
 const B2B_BATCH_HOURS    = parseInt(process.env.BATCH_INTERVAL_HOURS || '6');
 // Warming cap: a new sending account tolerates 3-4 cold emails/day. Overflow is
 // not dropped — it stays 'pending' in leads_queue and goes out on later batches.
 const B2B_BATCH_SIZE     = parseInt(process.env.BATCH_SIZE || '4');
 const B2B_INDUSTRIES     = (process.env.TARGET_INDUSTRIES ||
-  'digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency')
+  'digital marketing agency,lead generation agency,marketing agency,seo agency,ppc agency,social media agency,growth agency,advertising agency,internet marketing service,marketing consultant')
   .split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
 // Initialize SQLite database with the logs table
@@ -678,10 +686,10 @@ app.get('/api/admin/logs', (req, res) => {
 });
 
 // =============================================================================
-// STRIPE WEBHOOK — White-Label License purchase → notify + welcome
+// STRIPE WEBHOOK — White-Label License purchase → notify + welcome + convert
 // =============================================================================
 
-app.post('/api/stripe-webhook', async (req, res) => {
+app.post(['/webhook/stripe', '/api/stripe-webhook'], async (req, res) => {
   // Degraded mode: no STRIPE_SECRET_KEY means no client to verify with. Say so
   // explicitly — Stripe retries a 503, so nothing is lost once the key is set.
   if (!stripe) {
@@ -693,26 +701,34 @@ app.post('/api/stripe-webhook', async (req, res) => {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
-  } catch (err) {
-    console.error('[Stripe Webhook] Signature verification failed:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  if (webhookSecret && sig) {
+    try {
+      event = stripe.webhooks.constructEvent(req.rawBody, sig, webhookSecret);
+    } catch (err) {
+      console.error('[Stripe Webhook] Signature verification failed:', err.message);
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+  } else if (!webhookSecret) {
+    // Unsigned events are a LOCAL TEST convenience only. On a public URL an
+    // unsigned event lets anyone POST a fake checkout.session.completed, mark
+    // a lead 'active', cancel its follow-ups and trigger a welcome email. So
+    // it must be opted into explicitly, and never silently by a missing key.
+    if (process.env.STRIPE_ALLOW_UNSIGNED_TEST_EVENTS !== 'true') {
+      console.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET is not set — rejecting unsigned event. Set the secret (or STRIPE_ALLOW_UNSIGNED_TEST_EVENTS=true for local testing ONLY).');
+      return res.status(503).send('Stripe webhook secret not configured');
+    }
+    console.warn('[Stripe Webhook] ⚠️  Accepting UNSIGNED event — STRIPE_ALLOW_UNSIGNED_TEST_EVENTS=true. Never run this way on a public URL.');
+    event = req.body;
+  } else {
+    return res.status(400).send('Webhook Error: Missing stripe-signature header');
   }
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const buyerEmail = session.customer_details?.email;
+    const buyerEmail = (session.customer_details?.email || session.customer_email || '').trim().toLowerCase();
     const niche = session.metadata?.niche;
 
-    const fields = {};
-    if (Array.isArray(session.custom_fields)) {
-      session.custom_fields.forEach(f => {
-        fields[f.key] = f.text?.value || '';
-      });
-    }
-
-    console.log(`[Stripe Webhook] Purchase complete — niche: ${niche || '(none — license purchase)'}, buyer: ${buyerEmail}`);
+    console.log(`[Stripe Webhook] Purchase complete — session: ${session.id}, niche: ${niche || '(white-label license)'}, buyer: ${buyerEmail}`);
 
     if (!buyerEmail) {
       console.error('[Stripe Webhook] Missing buyer email in session:', session.id);
@@ -720,24 +736,38 @@ app.post('/api/stripe-webhook', async (req, res) => {
     }
 
     if (niche) {
-      // The legacy one-off niche products are retired — there is no generator
-      // left to fulfil this. No live payment link sets metadata.niche, so
-      // arriving here means a stale link or a hand-built session. Do NOT fall
-      // through to license onboarding: a niche purchase is not a license
-      // purchase, and sending a welcome email for a product they did not buy
-      // is worse than sending nothing. Alert for manual handling instead.
+      // Legacy retired niche metadata handling
       console.warn(`[Stripe Webhook] Purchase carried retired niche '${niche}' — no deliverable generated for ${buyerEmail}.`);
       logTransaction(buyerEmail, `retired:${niche}`, 'failure', JSON.stringify({ session: session.id, amount_total: session.amount_total }));
       sendAdminAlert(
         `Stripe purchase arrived with retired niche '${niche}'`,
         `Buyer: ${buyerEmail}\nSession: ${session.id}\n\nThe niche product line is retired and nothing was generated. Refund or fulfil manually, then remove the niche metadata from that payment link.`
-      ).catch(() => { /* best-effort — never mask the original event */ });
+      ).catch(() => {});
     } else {
-      // No "niche" metadata means this came through the White-Label Agency AI
-      // Infrastructure payment link (see config/pricing.js), not one of the
-      // legacy one-off niche tools. Notify Jack for manual onboarding and
-      // confirm receipt to the buyer.
+      // 1. Log transaction to SQLite logs table
       logTransaction(buyerEmail, 'white-label-license', 'success', JSON.stringify({ session: session.id, amount_total: session.amount_total }));
+
+      // 2. Mark the lead as paid/active in leads_queue
+      db.run(
+        "UPDATE leads_queue SET status = 'active', processed_at = CURRENT_TIMESTAMP WHERE LOWER(contact_email) = ?",
+        [buyerEmail],
+        (err) => {
+          if (err) console.warn('[Stripe Webhook] Failed to update leads_queue:', err.message);
+          else console.log(`[Stripe Webhook] Lead marked active in leads_queue for ${buyerEmail}`);
+        }
+      );
+
+      // 3. Pause/convert further cold follow-ups for that company/email
+      db.run(
+        "UPDATE follow_ups SET status = 'converted', sent_at = CURRENT_TIMESTAMP WHERE LOWER(contact_email) = ? AND status = 'pending'",
+        [buyerEmail],
+        (err) => {
+          if (err) console.warn('[Stripe Webhook] Failed to cancel pending follow-ups:', err.message);
+          else console.log(`[Stripe Webhook] Converted and stopped pending cold follow-ups for ${buyerEmail}`);
+        }
+      );
+
+      // 4. Notify Jack and send buyer welcome onboarding email
       Promise.all([
         notifyAdminOfLicensePurchase(session, buyerEmail),
         sendLicenseWelcomeEmail(buyerEmail),
@@ -879,6 +909,26 @@ async function isDoNotContact(email) {
   return !!row;
 }
 
+// Has this address already been pitched, or is it already in the pipeline?
+// Checked on EVERY intake path (webhook direct send, queue import, bulk-pitch).
+// Before this existed only queueLeads() deduped, and only against leads_queue —
+// so a lead that came in via /webhook/lead while under the cap was emailed
+// straight away with no record in leads_queue, and the same address could be
+// (and was — eric@singlegrain.com, three pitches in three days) hit again by
+// the next feeder run or a later queue import. send_log is the ground truth
+// for "we emailed this person"; follow_ups covers a sequence still in flight.
+async function alreadyContacted(email) {
+  const e = normalizeEmail(email);
+  if (!e) return null;
+  const sent = await dbGetOne('SELECT sent_at FROM send_log WHERE LOWER(sent_to) = ? ORDER BY id DESC LIMIT 1', [e]);
+  if (sent) return `already emailed (${sent.sent_at})`;
+  const fu = await dbGetOne("SELECT status FROM follow_ups WHERE LOWER(contact_email) = ? LIMIT 1", [e]);
+  if (fu) return `follow-up sequence exists (${fu.status})`;
+  const q = await dbGetOne('SELECT status FROM leads_queue WHERE LOWER(contact_email) = ? LIMIT 1', [e]);
+  if (q) return `already in leads_queue (${q.status})`;
+  return null;
+}
+
 async function addDoNotContact(email, reason) {
   const e = normalizeEmail(email);
   if (!e || !e.includes('@')) return { email: e, added: false, error: 'invalid email' };
@@ -940,8 +990,19 @@ async function queueLeads(leads) {
       console.warn(`[Lead Queue] Rejected lead on import (${email}): ${lowQuality}`);
       continue;
     }
-    const exists = await dbGetOne('SELECT 1 FROM leads_queue WHERE contact_email = ?', [email]);
-    if (exists) continue;
+    // ICP filter at the door too, not only at batch time — so "imported" in
+    // the /admin/leads response means "will be pitched", and a bad file shows
+    // its rejects immediately instead of days later in the batch log.
+    const { qualified, reason } = qualifyLead(lead.company_name || '', lead.industry || '', lead.website || '');
+    if (!qualified) {
+      console.warn(`[Lead Queue] Rejected lead on import (${lead.company_name || email}): ${reason}`);
+      continue;
+    }
+    const dup = await alreadyContacted(email);
+    if (dup) {
+      console.log(`[Lead Queue] Skipped ${email} on import: ${dup}`);
+      continue;
+    }
     await dbRun(
       'INSERT INTO leads_queue (company_name, contact_email, website, industry, phone, campaign, first_name) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [lead.company_name || '', email, lead.website || '', lead.industry || '', lead.phone || '', lead.campaign || '', lead.first_name || '']
@@ -976,12 +1037,65 @@ async function queueFollowUp(campaignId, companyName, contactEmail, step, subjec
   );
 }
 
+// One row per ADDRESS per run, never per campaign. An address that picked up two
+// campaigns (the pre-#86 intake race) had a pending sequence under each, and the
+// scheduler sent both — eric@singlegrain.com got two step-2 pitches four seconds
+// apart on 2026-09-03. MIN(id) keeps the earliest campaign; the loser stays
+// pending and is retired by retireDuplicateSequences() below.
 async function fetchDueFollowUps(limit) {
   const now = new Date().toISOString();
   return dbAll(
-    "SELECT id, campaign_id, company_name, contact_email, step, subject, body FROM follow_ups WHERE status = 'pending' AND due_at <= ? ORDER BY due_at ASC LIMIT ?",
-    [now, limit || 25]
+    `SELECT id, campaign_id, company_name, contact_email, step, subject, body
+       FROM follow_ups
+      WHERE status = 'pending' AND due_at <= ?
+        AND id IN (SELECT MIN(id) FROM follow_ups
+                    WHERE status = 'pending' AND due_at <= ?
+                    GROUP BY LOWER(contact_email))
+      ORDER BY due_at ASC LIMIT ?`,
+    [now, now, limit || 25]
   );
+}
+
+// Minimum hours between two emails to the same address, whatever queued them.
+const FOLLOWUP_MIN_GAP_HOURS = Number(process.env.FOLLOWUP_MIN_GAP_HOURS || 48);
+
+// send_log is ground truth for "we emailed this person". A pending follow-up
+// whose address was mailed inside the window is suppressed, not sent.
+async function mailedRecently(email) {
+  return dbGetOne(
+    `SELECT sent_at FROM send_log
+      WHERE LOWER(sent_to) = ? AND sent_at >= datetime('now', ?)
+      ORDER BY id DESC LIMIT 1`,
+    [normalizeEmail(email), `-${FOLLOWUP_MIN_GAP_HOURS} hours`]
+  );
+}
+
+// One-time repair at boot: for any address holding pending follow-ups under more
+// than one campaign, keep the earliest campaign and suppress the rest.
+async function retireDuplicateSequences() {
+  const dupes = await dbAll(
+    `SELECT LOWER(contact_email) AS email, COUNT(DISTINCT campaign_id) AS campaigns
+       FROM follow_ups WHERE status = 'pending'
+      GROUP BY LOWER(contact_email) HAVING campaigns > 1`
+  );
+  let retired = 0;
+  for (const d of dupes) {
+    const keep = await dbGetOne(
+      `SELECT campaign_id FROM follow_ups
+        WHERE status = 'pending' AND LOWER(contact_email) = ?
+        ORDER BY id ASC LIMIT 1`, [d.email]
+    );
+    if (!keep) continue;
+    const r = await dbRun(
+      `UPDATE follow_ups SET status = 'suppressed', sent_at = CURRENT_TIMESTAMP
+        WHERE status = 'pending' AND LOWER(contact_email) = ? AND campaign_id != ?`,
+      [d.email, keep.campaign_id]
+    );
+    retired += r.changes;
+    console.log(`[Follow-up Repair] ${d.email}: kept ${keep.campaign_id}, suppressed ${r.changes} duplicate step(s)`);
+  }
+  if (retired) console.log(`[Follow-up Repair] Retired ${retired} duplicate follow-up(s) across ${dupes.length} address(es)`);
+  return retired;
 }
 
 async function markFollowUp(id, status) {
@@ -1005,8 +1119,8 @@ function toE164(phone) {
   return phone;
 }
 
-// Payload validation — catches unresolved scraper merge variables (e.g. Gumloop's
-// "${Valid Emails__NODE_ID__:...}") and malformed addresses at the door, before
+// Payload validation — catches unresolved scraper merge variables (e.g. a
+// no-code tool's "${Valid Emails__NODE_ID__:...}") and malformed addresses at the door, before
 // any Gemini call or send attempt.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PLACEHOLDER_RE = /\$\{[^}]*\}|\{\{[^}]*\}\}/;
@@ -1102,7 +1216,7 @@ function qualifyLead(companyName, industry, website) {
 
   // Hoisted above the industry branch on purpose. A whole-word negative in
   // the NAME is high-confidence and must apply on BOTH paths — otherwise the
-  // day Gumloop starts sending `industry`, every lead routes to Path 1 and
+  // day the feeder starts sending `industry`, every lead routes to Path 1 and
   // this guard silently stops running. Fixing the data source must not
   // disarm the filter.
   const blockedName = name ? EXCLUDE_SIGNALS.find(t => wordMatch(name, t)) : null;
@@ -1151,7 +1265,10 @@ function qualifyLead(companyName, industry, website) {
 
 // Generate AI cold pitch email copy for one company
 async function generatePitchCopy(company, deployerName, deployerEmail, proofUrl, fee, offerName, offerSummary) {
-  const ctaLinks = `proof link: ${proofUrl}${B2B_PAYMENT_LINK ? ' and payment/booking link: ' + B2B_PAYMENT_LINK : ''} and contact email ${deployerEmail}`;
+  const checkoutCta = PITCH_INCLUDE_CHECKOUT_LINK ? `, or direct checkout at ${B2B_SETUP_LINK}` : '';
+  const checkoutRule = PITCH_INCLUDE_CHECKOUT_LINK
+    ? `Embed the direct checkout link cleanly at the bottom for instant setup (${B2B_SETUP_LINK}). `
+    : 'Do NOT include any payment or checkout link — the proof link and a reply are the only calls to action. ';
   const systemInstruction = (
     'You are an elite B2B sales copywriter. Write a cold outreach email selling a white-label AI infrastructure license to a marketing/lead-gen agency owner who will resell it to their own local business clients. ' +
     'Return JSON only: {"subject":"string max 60 chars","body":"string max 220 words"}. ' +
@@ -1159,13 +1276,15 @@ async function generatePitchCopy(company, deployerName, deployerEmail, proofUrl,
     '3. Lead with the math: resell to 3-5 clients at $500-$1,000/month each covers the license; everything after is pure margin. ' +
     '4. Present the offer as a complete 9-skill AI infrastructure backend (call catching, voice agent, lead sorting, web pages, email handling) they can resell tonight — no dev team, no build time. ' +
     '5. Include exactly 3 value bullets: (a) the resell math/break-even, (b) zero dev/maintenance burden, (c) sticky recurring revenue. ' +
-    `6. End CTA: request a 15-min screen-share demo. Close with ${ctaLinks}. ` +
+    `6. End CTA: request a 15-min screen-share demo${checkoutCta}. Close with proof at ${proofUrl} and reply to ${deployerEmail}. ` +
     '7. No buzzwords, no hype. Direct, peer-to-peer, confident tone. ' +
     `8. PRICING IS FIXED — there is exactly one offer: ${PRICING.display.headline}. ` +
+    checkoutRule +
     'If you mention price at all, state it in exactly those terms. Never invent a discount, ' +
     'a free trial, a waived setup fee, a tiered menu, or any other number.'
   );
-  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Monthly fee: $${fee}. Target company: ${company}.`;
+  const linkCtx = PITCH_INCLUDE_CHECKOUT_LINK ? ` Setup Checkout Link: ${B2B_SETUP_LINK}. Retainer Link: ${B2B_RETAINER_LINK}.` : '';
+  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}.${linkCtx} Monthly fee: $${fee}. Target company: ${company}.`;
   const pitch = await callGemini(prompt, systemInstruction, 'pitch-email');
   if (!(pitch.body || '').toLowerCase().includes(company.toLowerCase())) {
     pitch.body = `I'm reaching out to ${company} specifically because ${pitch.body}`;
@@ -1180,7 +1299,12 @@ async function generateFollowupCopy(step, company, deployerName, deployerEmail, 
     2: 'Social proof follow-up. Share a believable, concrete example of another agency reselling this to local business clients and hitting break-even fast. Slightly stronger CTA than first touch.',
     3: 'Final follow-up. Give them permission to walk away, note this is the last email, and add light urgency about being first in their market. Offer to stop future emails on reply.',
   };
-  const ctaLinks = `proof link: ${proofUrl}${B2B_PAYMENT_LINK ? ' and payment/booking link: ' + B2B_PAYMENT_LINK : ''} and contact email ${deployerEmail}`;
+  const ctaLinks = PITCH_INCLUDE_CHECKOUT_LINK
+    ? `proof link: ${proofUrl}, direct checkout: ${B2B_SETUP_LINK}, and contact email ${deployerEmail}`
+    : `proof link: ${proofUrl} and contact email ${deployerEmail}`;
+  const checkoutRuleFu = PITCH_INCLUDE_CHECKOUT_LINK
+    ? `Embed direct checkout link: ${B2B_SETUP_LINK}. `
+    : 'Do NOT include any payment or checkout link. ';
   const systemInstruction = (
     `You are an elite B2B sales copywriter writing follow-up email #${step} in a 3-email cold outreach sequence — the prospect has not replied yet. ` +
     'Return JSON only: {"subject":"string max 60 chars","body":"string max 180 words"}. ' +
@@ -1188,10 +1312,12 @@ async function generateFollowupCopy(step, company, deployerName, deployerEmail, 
     'The body MUST name the target company. Frame the offer as a white-label AI infrastructure license the agency resells to its own local business clients as a new revenue line. ' +
     `Close with ${ctaLinks}. No buzzwords, no hype. Direct, peer-to-peer tone. ` +
     `PRICING IS FIXED — there is exactly one offer: ${PRICING.display.headline}. ` +
+    checkoutRuleFu +
     'If you mention price at all, state it in exactly those terms. Never invent a discount, ' +
     'a free trial, a waived setup fee, a tiered menu, or any other number.'
   );
-  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}. Monthly fee: $${fee}. Target company: ${company}.`;
+  const linkCtxFu = PITCH_INCLUDE_CHECKOUT_LINK ? ` Setup Link: ${B2B_SETUP_LINK}. Retainer Link: ${B2B_RETAINER_LINK}.` : '';
+  const prompt = `Deployer: ${deployerName}. Offer: ${offerName}. Summary: ${offerSummary}. Price: ${PRICING.display.headline}.${linkCtxFu} Monthly fee: $${fee}. Target company: ${company}.`;
   const result = await callGemini(prompt, systemInstruction, 'followup-email');
   return { subject: result.subject, body: result.body };
 }
@@ -1665,12 +1791,13 @@ app.post(['/webhook/openphone', '/api/inbound'], wrapAsync(async (req, res) => {
 }));
 
 // Direct lead intake — qualify and pitch immediately.
-// /webhook/lead is the path Gumloop is configured to POST to; /api/ingest is an
-// alias on the same handler. Both must keep working — do not retire
-// /webhook/lead without updating the Gumloop pipeline first.
+// /webhook/lead is the generic intake for any external feeder (Gumloop used to
+// POST here; it is retired — see lib/outscraper.js). /api/ingest is an alias on
+// the same handler. Both keep working for scripts and third-party tools.
 app.post(['/webhook/lead', '/api/ingest'], wrapAsync(async (req, res) => {
   const body = req.body;
   if (!body.contact_email && body.email) body.contact_email = body.email;
+  if (!body.company_name && body.company) body.company_name = body.company;
   const missing = ['company_name', 'contact_email', 'website'].filter(f => !body[f]);
   if (missing.length) return res.status(400).json({ error: `Missing required fields: ${missing.join(', ')}` });
   const invalid = validateLeadFields(body);
@@ -1687,6 +1814,11 @@ app.post(['/webhook/lead', '/api/ingest'], wrapAsync(async (req, res) => {
   }
   if (await isDoNotContact(body.contact_email)) {
     return res.json({ received: true, status: 'SUPPRESSED', reason: 'email is on the do-not-contact list' });
+  }
+  const dup = await alreadyContacted(body.contact_email);
+  if (dup) {
+    console.log(`[Lead Intake] Duplicate ${body.contact_email}: ${dup}`);
+    return res.json({ received: true, status: 'DUPLICATE', reason: dup });
   }
   // Capturing leads is still worth doing while sending is off — that's what the
   // queue is for. Nothing is emailed until the pause is lifted.
@@ -1716,12 +1848,17 @@ app.post(['/webhook/lead', '/api/ingest'], wrapAsync(async (req, res) => {
 
 // Build marker so a deploy can be verified from outside
 app.get('/version', (req, res) => {
-  res.json({ build: 'lead-quality-screen-admin-auth-live-health-2026-08-28' });
+  res.json({ build: 'lead-quality-screen-outscraper-direct-dedupe-2026-09-03' });
 });
 
 // Public sales one-pager — text this URL to prospects
 app.get('/pitch', (req, res) => {
   res.sendFile(path.join(__dirname, 'pitch.html'));
+});
+
+// Interactive demo page
+app.get(['/demo', '/demo.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'demo.html'));
 });
 
 
@@ -1734,6 +1871,9 @@ app.get('/', (req, res) => {
     endpoints: {
       ingest: 'POST /webhook/lead  (alias: POST /api/ingest)',
       inbound: 'POST /webhook/openphone  (alias: POST /api/inbound)',
+      stripe: 'POST /webhook/stripe (alias: POST /api/stripe-webhook)',
+      demo: 'GET /demo',
+      pitch: 'GET /pitch',
       status: 'GET /admin/status',
       health: 'GET /health',
       logs: 'GET /api/admin/logs'
@@ -1914,6 +2054,11 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
       results.push({ company: companyName, email, status: 'suppressed', reason: 'email is on the do-not-contact list' });
       continue;
     }
+    const dupBulk = await alreadyContacted(email);
+    if (dupBulk) {
+      results.push({ company: companyName, email, status: 'duplicate', reason: dupBulk });
+      continue;
+    }
     try {
       const campaignId = `bulk-${companyName.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`;
       await runInventionOutreach({
@@ -1943,6 +2088,7 @@ app.post('/admin/bulk-pitch', wrapAsync(async (req, res) => {
     disqualified: results.filter(r => r.status === 'disqualified').length,
     capped: results.filter(r => r.status === 'capped').length,
     suppressed: results.filter(r => r.status === 'suppressed').length,
+    duplicate: results.filter(r => r.status === 'duplicate').length,
     failed: results.filter(r => r.status === 'failed').length,
   };
   res.json({ summary, results });
@@ -1956,6 +2102,32 @@ app.post('/admin/leads', wrapAsync(async (req, res) => {
   const inserted = await queueLeads(leads);
   const stats = await queueStats();
   res.json({ imported: inserted, skipped: leads.length - inserted, queue: stats });
+}));
+
+// Pull fresh leads from Outscraper into the queue (no email is sent here).
+// Body (all optional): {"queries":["seo agency, Austin, TX"], "limit":20,
+//   "dry_run":true, "validate":false}
+// dry_run returns what would be queued without writing or spending validator credits.
+app.post('/admin/scrape-now', wrapAsync(async (req, res) => {
+  const body = req.body || {};
+  const queries = Array.isArray(body.queries) ? body.queries.map(q => String(q).trim()).filter(Boolean)
+    : (typeof body.queries === 'string' ? body.queries.split(/\r?\n|\|/).map(q => q.trim()).filter(Boolean) : []);
+  const limit = body.limit ? Math.max(1, Math.min(100, parseInt(body.limit, 10) || 0)) : undefined;
+  try {
+    const summary = await runLeadScrape({
+      queries, limit,
+      dryRun: body.dry_run === true || body.dry_run === 'true',
+      validate: body.validate === undefined ? OUTSCRAPER_VALIDATE : (body.validate === true || body.validate === 'true'),
+      trigger: 'admin',
+    });
+    res.json(summary);
+  } catch (err) {
+    const status = err.code === 'OUTSCRAPER_NOT_CONFIGURED' ? 503
+      : err.code === 'NO_QUERIES' ? 400
+      : err.code === 'SCRAPE_IN_FLIGHT' ? 409
+      : (err instanceof OutscraperError && err.status) ? 502 : 500;
+    res.status(status).json({ error: err.message, code: err.code || (err instanceof OutscraperError ? 'OUTSCRAPER_ERROR' : undefined), detail: err.body });
+  }
 }));
 
 // Immediately process the next batch of pending leads
@@ -1984,6 +2156,15 @@ app.get('/admin/status', wrapAsync(async (req, res) => {
     sends: { today: sent_today, daily_cap: DAILY_SEND_CAP },
     do_not_contact: dnc ? dnc.c : 0,
     config: { batch_size: B2B_BATCH_SIZE, interval_hours: B2B_BATCH_HOURS, campaigns: Object.keys(TEMPLATE_CAMPAIGNS) },
+    lead_source: {
+      provider: 'outscraper',
+      configured: !!outscraper,
+      queries: OUTSCRAPER_QUERIES.length,
+      limit_per_query: OUTSCRAPER_LIMIT,
+      interval_hours: OUTSCRAPER_HOURS,
+      validate_emails: OUTSCRAPER_VALIDATE,
+      scrape_in_flight: !!scrapeInFlight,
+    },
   });
 }));
 
@@ -2179,6 +2360,12 @@ setInterval(async () => {
         console.log(`[Follow-up Scheduler] Suppressed step ${fu.step} → ${fu.contact_email} (do-not-contact list)`);
         continue;
       }
+      const recent = await mailedRecently(fu.contact_email);
+      if (recent) {
+        await markFollowUp(fu.id, 'suppressed');
+        console.log(`[Follow-up Scheduler] Suppressed step ${fu.step} → ${fu.contact_email} (mailed ${recent.sent_at}, inside ${FOLLOWUP_MIN_GAP_HOURS}h gap)`);
+        continue;
+      }
       try {
         await sendPitchEmail(fu.contact_email, fu.subject, fu.body, fu.campaign_id);
         await markFollowUp(fu.id, 'sent');
@@ -2200,49 +2387,178 @@ setInterval(async () => {
     console.error('[Follow-up Scheduler] Error:', err.message);
   }
 }, 60 * 60 * 1000);
+retireDuplicateSequences().catch(err => console.error('[Follow-up Repair] Failed:', err.message));
 console.log(`[Follow-up Scheduler] Armed — checks every 1h${OUTBOUND_PAUSED ? ' (IDLE — cold outbound paused)' : ''}`);
 
-// Background: trigger Gumloop lead scraper every 6 hours if configured
-const GUMLOOP_API_KEY    = process.env.GUMLOOP_API_KEY;
-const GUMLOOP_USER_ID    = process.env.GUMLOOP_USER_ID;
-const GUMLOOP_ITEM_ID    = process.env.GUMLOOP_SAVED_ITEM_ID;
-const GUMLOOP_INTERVAL_H = parseInt(process.env.GUMLOOP_INTERVAL_HOURS || '6');
+// =============================================================================
+// LEAD SOURCE — Outscraper direct (replaces the retired Gumloop pipeline)
+// =============================================================================
+// Gumloop went paid-plan-only on 2026-09-01 (every trigger since returned
+// {"error":"paid_plan_required"}), so the engine now scrapes its own leads:
+//   Google Maps search (Outscraper) → one decision-maker email per business
+//   → optional deliverability check → qualifyLead / screenLeadQuality →
+//   alreadyContacted dedupe → leads_queue.
+// Nothing here sends email. Sending stays on the existing batch scheduler,
+// behind OUTBOUND_PAUSED and DAILY_SEND_CAP exactly as before.
+//
+// Env:
+//   OUTSCRAPER_API_KEY          — required to arm anything below
+//   OUTSCRAPER_QUERIES          — '|' or newline separated Google Maps queries,
+//                                 e.g. "seo agency, Austin, TX|ppc agency, Denver, CO"
+//                                 (commas are inside queries, so they are NOT the separator)
+//   OUTSCRAPER_LIMIT_PER_QUERY  — places per query per run (default 20; keep small — each
+//                                 place with domains_service enrichment costs credits)
+//   OUTSCRAPER_INTERVAL_HOURS   — auto-run cadence (default 24; 0 = manual only via /admin/scrape-now)
+//   OUTSCRAPER_VALIDATE_EMAILS  — 'true' (default) runs Outscraper's email validator and keeps
+//                                 only OUTSCRAPER_ACCEPT_STATUSES (default 'RECEIVING')
+//   OUTSCRAPER_MAX_QUEUE        — skip auto-runs while pending leads >= this (default 200)
+const { OutscraperClient, OutscraperError } = require('./lib/outscraper');
+const leadSourcing = require('./lib/leadSourcing');
 
-async function triggerGumloopScraper() {
-  if (!GUMLOOP_API_KEY || !GUMLOOP_USER_ID || !GUMLOOP_ITEM_ID) return;
-  try {
-    const resp = await fetch('https://api.gumloop.com/api/v1/start_pipeline', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GUMLOOP_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id: GUMLOOP_USER_ID,
-        saved_item_id: GUMLOOP_ITEM_ID,
-        pipeline_inputs: [],
-      }),
+const OUTSCRAPER_API_KEY   = (process.env.OUTSCRAPER_API_KEY || '').trim();
+const OUTSCRAPER_QUERIES   = String(process.env.OUTSCRAPER_QUERIES || '')
+  .split(/\r?\n|\|/).map(q => q.trim()).filter(Boolean);
+const OUTSCRAPER_LIMIT     = Math.max(1, Math.min(100, parseInt(process.env.OUTSCRAPER_LIMIT_PER_QUERY || '20', 10) || 20));
+const OUTSCRAPER_HOURS     = Math.max(0, parseFloat(process.env.OUTSCRAPER_INTERVAL_HOURS || '24') || 0);
+const OUTSCRAPER_VALIDATE  = (process.env.OUTSCRAPER_VALIDATE_EMAILS || 'true') !== 'false';
+const OUTSCRAPER_ACCEPT    = new Set(String(process.env.OUTSCRAPER_ACCEPT_STATUSES || 'RECEIVING')
+  .split(',').map(x => x.trim().toUpperCase()).filter(Boolean));
+const OUTSCRAPER_MAX_QUEUE = parseInt(process.env.OUTSCRAPER_MAX_QUEUE || '200', 10) || 200;
+
+const outscraper = OUTSCRAPER_API_KEY
+  ? new OutscraperClient(OUTSCRAPER_API_KEY, { log: (m) => console.log(m) })
+  : null;
+
+let scrapeInFlight = null; // one scrape at a time — Outscraper bills per place
+
+/**
+ * Run one scrape → filter → queue pass. Returns a summary. dryRun returns the
+ * leads that WOULD be queued without touching the DB or spending the validator.
+ */
+async function runLeadScrape({ queries, limit, dryRun = false, validate = OUTSCRAPER_VALIDATE, trigger = 'manual' } = {}) {
+  if (!outscraper) {
+    const err = new Error('OUTSCRAPER_API_KEY is not set — lead scraping is off.');
+    err.code = 'OUTSCRAPER_NOT_CONFIGURED';
+    throw err;
+  }
+  const qs = (queries && queries.length ? queries : OUTSCRAPER_QUERIES).slice(0, 50);
+  if (!qs.length) {
+    const err = new Error('No queries. Set OUTSCRAPER_QUERIES or pass {"queries":[...]}.');
+    err.code = 'NO_QUERIES';
+    throw err;
+  }
+  if (scrapeInFlight) {
+    const err = new Error('A scrape is already running.');
+    err.code = 'SCRAPE_IN_FLIGHT';
+    throw err;
+  }
+  const started = Date.now();
+  const summary = {
+    trigger, dry_run: dryRun, queries: qs, limit: limit || OUTSCRAPER_LIMIT,
+    places: 0, with_email: 0, validated_out: 0, disqualified: 0, low_quality: 0,
+    duplicate: 0, suppressed: 0, queued: 0, skipped: [], sample: [],
+  };
+  scrapeInFlight = (async () => {
+    console.log(`[Lead Source] Scrape start (${trigger}) — ${qs.length} quer${qs.length === 1 ? 'y' : 'ies'} × ${summary.limit}`);
+    const places = await outscraper.googleMapsSearch(qs, {
+      limit: summary.limit,
+      enrichment: ['domains_service'], // pulls emails + names from each business site
     });
-    const data = await resp.json();
-    if (data.run_id) {
-      console.log(`[Gumloop] Pipeline triggered — run_id=${data.run_id}`);
-    } else {
-      console.error('[Gumloop] Trigger failed:', JSON.stringify(data));
+    summary.places = places.length;
+
+    const { leads, skipped } = leadSourcing.recordsToLeads(places);
+    summary.with_email = leads.length;
+    summary.skipped = skipped.slice(0, 50);
+
+    // Cheap local filters first so the paid validator only sees survivors.
+    const survivors = [];
+    for (const lead of leads) {
+      const invalid = validateLeadFields(lead);
+      if (invalid) { summary.low_quality++; continue; }
+      const { qualified, reason } = qualifyLead(lead.company_name, lead.industry || '', lead.website || '');
+      if (!qualified) { summary.disqualified++; summary.skipped.push({ company: lead.company_name, reason }); continue; }
+      const lowQuality = screenLeadQuality(lead);
+      if (lowQuality) { summary.low_quality++; summary.skipped.push({ company: lead.company_name, reason: lowQuality }); continue; }
+      if (await isDoNotContact(lead.contact_email)) { summary.suppressed++; continue; }
+      const dup = await alreadyContacted(lead.contact_email);
+      if (dup) { summary.duplicate++; continue; }
+      survivors.push(lead);
     }
-  } catch (err) {
-    console.error('[Gumloop] Trigger error:', err.message);
+
+    let accepted = survivors;
+    if (validate && survivors.length && !dryRun) {
+      try {
+        const results = await outscraper.validateEmails(survivors.map(l => l.contact_email));
+        const statusByEmail = new Map();
+        for (const r of results || []) {
+          const key = String(r.query || r.email || '').toLowerCase();
+          statusByEmail.set(key, String(r.status || '').toUpperCase());
+        }
+        accepted = survivors.filter(l => {
+          const st = statusByEmail.get(l.contact_email);
+          if (st === undefined) return true;        // validator returned nothing for it — don't lose the lead
+          const ok = OUTSCRAPER_ACCEPT.has(st);
+          if (!ok) { summary.validated_out++; summary.skipped.push({ company: l.company_name, reason: `email validator: ${st}` }); }
+          return ok;
+        });
+      } catch (err) {
+        // Validation is a quality boost, not a gate: a validator outage must not
+        // stall lead supply. Log it and queue unvalidated.
+        console.warn(`[Lead Source] Email validation failed (${err.message}) — queuing unvalidated`);
+        summary.validation_error = err.message;
+      }
+    }
+
+    summary.sample = accepted.slice(0, 25).map(l => ({
+      company: l.company_name, email: l.contact_email, website: l.website,
+      industry: l.industry, first_name: l.first_name, contact: l._source && l._source.contact_name,
+      city: l._source && l._source.city, state: l._source && l._source.state,
+    }));
+    if (!dryRun && accepted.length) {
+      summary.queued = await queueLeads(leadSourcing.toQueuePayload(accepted));
+    } else if (dryRun) {
+      summary.would_queue = accepted.length;
+    }
+    summary.seconds = Math.round((Date.now() - started) / 1000);
+    summary.queue = await queueStats();
+    console.log(`[Lead Source] Scrape done — places=${summary.places} with_email=${summary.with_email} queued=${summary.queued}${dryRun ? ` (dry run, would queue ${summary.would_queue})` : ''} in ${summary.seconds}s`);
+    return summary;
+  })();
+  try {
+    return await scrapeInFlight;
+  } finally {
+    scrapeInFlight = null;
   }
 }
 
-if (OUTBOUND_PAUSED && GUMLOOP_API_KEY && GUMLOOP_USER_ID && GUMLOOP_ITEM_ID) {
-  // Scraping while paused just piles up leads nobody may email, and burns
-  // Gumloop credits doing it. Lead building resumes with sending.
-  console.log('[Gumloop] Scraper auto-trigger NOT armed — cold outbound is paused.');
-} else if (GUMLOOP_API_KEY && GUMLOOP_USER_ID && GUMLOOP_ITEM_ID) {
-  setInterval(triggerGumloopScraper, GUMLOOP_INTERVAL_H * 60 * 60 * 1000);
-  console.log(`[Gumloop] Scraper auto-trigger armed — fires every ${GUMLOOP_INTERVAL_H}h`);
-  // Fire once on startup after a short delay (let server fully init)
-  setTimeout(triggerGumloopScraper, 30 * 1000);
+if (!outscraper) {
+  console.log('[Lead Source] OUTSCRAPER_API_KEY not set — automatic lead scraping is OFF. Leads can still be loaded via POST /admin/leads or tools/load-leads.js.');
+} else if (!OUTSCRAPER_QUERIES.length) {
+  console.log('[Lead Source] Outscraper key present but OUTSCRAPER_QUERIES is empty — manual runs only (POST /admin/scrape-now with {"queries":[...]}).');
+} else if (OUTSCRAPER_HOURS <= 0) {
+  console.log(`[Lead Source] Outscraper armed for manual runs only (OUTSCRAPER_INTERVAL_HOURS=0) — ${OUTSCRAPER_QUERIES.length} default quer${OUTSCRAPER_QUERIES.length === 1 ? 'y' : 'ies'}.`);
+} else if (OUTBOUND_PAUSED) {
+  // Same rule the Gumloop trigger had: scraping while paused piles up leads
+  // nobody may email and spends credits doing it. Lead building resumes with sending.
+  console.log('[Lead Source] Outscraper auto-run NOT armed — cold outbound is paused. POST /admin/scrape-now still works.');
+} else {
+  const autoScrape = async () => {
+    try {
+      const stats = await queueStats();
+      if ((stats.pending || 0) >= OUTSCRAPER_MAX_QUEUE) {
+        console.log(`[Lead Source] Auto-run skipped — ${stats.pending} pending leads already (OUTSCRAPER_MAX_QUEUE=${OUTSCRAPER_MAX_QUEUE}).`);
+        return;
+      }
+      await runLeadScrape({ trigger: 'scheduler' });
+    } catch (err) {
+      if (err.code === 'SCRAPE_IN_FLIGHT') return;
+      console.error('[Lead Source] Auto-run failed:', err.message);
+      await sendAdminAlert('Lead scrape failed', err.stack || err.message).catch(() => {});
+    }
+  };
+  setInterval(autoScrape, OUTSCRAPER_HOURS * 60 * 60 * 1000);
+  console.log(`[Lead Source] Outscraper auto-run armed — every ${OUTSCRAPER_HOURS}h, ${OUTSCRAPER_QUERIES.length} quer${OUTSCRAPER_QUERIES.length === 1 ? 'y' : 'ies'} × ${OUTSCRAPER_LIMIT}, first run in 2 min`);
+  setTimeout(autoScrape, 2 * 60 * 1000);
 }
 
 // Start Server
