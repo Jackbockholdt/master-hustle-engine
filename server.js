@@ -1274,6 +1274,11 @@ app.post('/api/demo/scrub', (req, res) => {
   });
 });
 
+// Explicit Homepage Route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Explicit Dashboard Route
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
