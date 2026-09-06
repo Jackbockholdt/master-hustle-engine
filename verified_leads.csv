@@ -1,0 +1,10 @@
+tier,email,domain,email_status,validator_detail,contact_type,company_cap,status,notes
+A,brynn@hookagency.com,hookagency.com,valid,DNS MX & Blocklist Verified,named person,hookagency.com,READY,"Company: Hook Agency | Industry: Digital Marketing Agency | Name: Brynn"
+A,lindsey@adcreations.com,adcreations.com,valid,DNS MX & Blocklist Verified,named person,adcreations.com,READY,"Company: Ad Creations | Industry: Digital Marketing Agency | Name: Lindsey"
+A,info@ux4sight.com,ux4sight.com,valid,DNS MX & Blocklist Verified,role inbox,ux4sight.com,READY,"Company: UX 4Sight | Industry: Digital Marketing Agency"
+A,awallace@marketingactivationsgroup.com,marketingactivationsgroup.com,valid,DNS MX & Blocklist Verified,role inbox,marketingactivationsgroup.com,READY,"Company: MAG | Industry: Digital Marketing Agency"
+A,contact@mediasagasocialseo.com,mediasagasocialseo.com,valid,DNS MX & Blocklist Verified,role inbox,mediasagasocialseo.com,READY,"Company: Media Saga Social SEO | Industry: Digital Marketing Agency"
+A,hello@lemonseedmarketing.com,lemonseedmarketing.com,valid,DNS MX & Blocklist Verified,role inbox,lemonseedmarketing.com,READY,"Company: Lemon Seed Marketing | Industry: Digital Marketing Agency"
+A,info@rightclickdigital.net,callrightclick.com,valid,DNS MX & Blocklist Verified,role inbox,callrightclick.com,READY,"Company: Right Click Digital | Industry: Digital Marketing Agency"
+A,info@cfx-inc.com,cfx-inc.com,valid,DNS MX & Blocklist Verified,role inbox,cfx-inc.com,READY,"Company: Cfx Inc. | Industry: Digital Marketing Agency"
+A,sales@blayzer.com,blayzer.com,valid,DNS MX & Blocklist Verified,role inbox,blayzer.com,READY,"Company: Blayzer Digital | Industry: Digital Marketing Agency"

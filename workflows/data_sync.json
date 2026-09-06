@@ -1,0 +1,34 @@
+{
+  "integration": "Gumloop Webhook & Data Pipeline Sync",
+  "webhook_endpoint": "/webhook/lead",
+  "sync_interval_cron": "0 */1 * * *",
+  "payload_mapping": {
+    "company_name": "company",
+    "contact_name": "contact_first_name",
+    "email": "work_email",
+    "phone": "direct_phone",
+    "website": "domain_url",
+    "industry": "category",
+    "website_text": "scraped_body_text"
+  },
+  "outbound_hooks": [
+    {
+      "channel": "email",
+      "status": "enabled",
+      "provider": "Gmail / SendGrid / Custom SMTP",
+      "fallback": "log_payload"
+    },
+    {
+      "channel": "sms",
+      "status": "enabled",
+      "provider": "Twilio SMS / Webhook Gateway",
+      "fallback": "log_payload"
+    },
+    {
+      "channel": "webhook",
+      "status": "enabled",
+      "provider": "Gumloop Return Webhook",
+      "endpoint_url": "https://api.gumloop.com/v1/webhook/sync"
+    }
+  ]
+}

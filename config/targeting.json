@@ -1,0 +1,97 @@
+{
+  "description": "Master Hustle Engine Outscraper Targeting Configuration for Agency Licensing",
+  "version": "2.0.0",
+  "targetBuyerCategories": [
+    "AI automation agency",
+    "GoHighLevel agency",
+    "marketing automation consultant",
+    "B2B growth agency",
+    "workflow automation agency"
+  ],
+  "tier1Markets": [
+    "Austin, TX",
+    "Miami, FL",
+    "New York, NY",
+    "Chicago, IL",
+    "Atlanta, GA",
+    "Denver, CO",
+    "Dallas, TX",
+    "Los Angeles, CA"
+  ],
+  "queryCombinations": [
+    "AI automation agency, Austin, TX",
+    "AI automation agency, Miami, FL",
+    "AI automation agency, New York, NY",
+    "AI automation agency, Chicago, IL",
+    "AI automation agency, Atlanta, GA",
+    "AI automation agency, Denver, CO",
+    "AI automation agency, Dallas, TX",
+    "AI automation agency, Los Angeles, CA",
+    "GoHighLevel agency, Austin, TX",
+    "GoHighLevel agency, Miami, FL",
+    "GoHighLevel agency, New York, NY",
+    "GoHighLevel agency, Chicago, IL",
+    "GoHighLevel agency, Atlanta, GA",
+    "GoHighLevel agency, Denver, CO",
+    "GoHighLevel agency, Dallas, TX",
+    "GoHighLevel agency, Los Angeles, CA",
+    "marketing automation consultant, Austin, TX",
+    "marketing automation consultant, Miami, FL",
+    "marketing automation consultant, New York, NY",
+    "marketing automation consultant, Chicago, IL",
+    "marketing automation consultant, Atlanta, GA",
+    "marketing automation consultant, Denver, CO",
+    "marketing automation consultant, Dallas, TX",
+    "marketing automation consultant, Los Angeles, CA",
+    "B2B growth agency, Austin, TX",
+    "B2B growth agency, Miami, FL",
+    "B2B growth agency, New York, NY",
+    "B2B growth agency, Chicago, IL",
+    "B2B growth agency, Atlanta, GA",
+    "B2B growth agency, Denver, CO",
+    "B2B growth agency, Dallas, TX",
+    "B2B growth agency, Los Angeles, CA",
+    "workflow automation agency, Austin, TX",
+    "workflow automation agency, Miami, FL",
+    "workflow automation agency, New York, NY",
+    "workflow automation agency, Chicago, IL",
+    "workflow automation agency, Atlanta, GA",
+    "workflow automation agency, Denver, CO",
+    "workflow automation agency, Dallas, TX",
+    "workflow automation agency, Los Angeles, CA"
+  ],
+  "intakeFilters": {
+    "requireWebsite": true,
+    "requireEmail": true,
+    "dropBlankEntries": true,
+    "dropRolePrefixes": true,
+    "rolePrefixList": [
+      "info", "support", "hello", "contact", "sales", "admin", "billing",
+      "help", "office", "marketing", "noreply", "team", "jobs", "careers",
+      "service", "enquiries", "inquiries", "press", "media", "general"
+    ],
+    "dropFreemail": true,
+    "freemailDomains": [
+      "gmail.com", "yahoo.com", "hotmail.com", "outlook.com", "aol.com", "icloud.com"
+    ],
+    "enforceBlocklist": true,
+    "blocklistPath": "config/blocklist.json",
+    "minQualificationScore": 50
+  },
+  "offer": {
+    "buyoutUSD": 25000,
+    "licenseSetupUSD": 4000,
+    "licenseMonthlyUSD": 1500,
+    "currency": "USD",
+    "coreCapabilities": [
+      "9 Pre-Built Enterprise Operational Engines (Gatekeeping, Entity Extraction, Validation, Failover)",
+      "Multi-Model Failover Pooling (Gemini -> Claude -> Grok -> OpenRouter) Zero Vendor Lock-in",
+      "100% White-Label Agency Brand Deployment to Resell to High-Ticket Clients"
+    ]
+  },
+  "safety": {
+    "outboundPaused": true,
+    "maxQueueIdleLeads": 200,
+    "dryRunDefault": true
+  }
+}
