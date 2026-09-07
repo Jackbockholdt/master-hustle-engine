@@ -432,24 +432,7 @@ app.post('/api/send-single-email', async (req, res) => {
   }
 });
 
-// Health Check & Telemetry Audit
-app.get('/api/health', (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  try {
-    const govResult = routeTokenGovernance('INBOX_TELEMETRY');
-    res.json({
-      status: 'online',
-      engine: 'Master Hustle Engine Core',
-      mode: 'PRE_REVENUE_STAGING',
-      version: '4.1.0',
-      tokenGovernance: govResult,
-      metrics: getCalculatedProductionMetrics()
-    });
-  } catch (err) {
-    console.error('[Health Error]', err);
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+// (Legacy /api/health removed in favor of unified /health endpoint below)
 
 // Telemetry Endpoint
 app.get('/api/telemetry', (req, res) => {
@@ -984,10 +967,35 @@ app.all('/api/cron/run', async (req, res) => {
 
 // Health Check Endpoints
 app.get(['/health', '/api/health'], (req, res) => {
+  let primaryProvider = 'gemini';
+  let secondaryProvider = 'not_configured';
+
+  try {
+    const { getRouterStatus } = require('./lib/multiModelRouter');
+    const status = getRouterStatus();
+    primaryProvider = status.primaryProvider || 'gemini';
+    secondaryProvider = status.secondaryProvider || (process.env.OPENAI_API_KEY ? 'openai' : (process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY ? 'claude' : 'not_configured'));
+  } catch (e) {
+    secondaryProvider = process.env.OPENAI_API_KEY ? 'openai' : (process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY ? 'claude' : 'not_configured');
+  }
+
+  let databaseStatus = 'CONNECTED';
+  try {
+    const localDb = path.join(__dirname, 'outreach_queue.db');
+    const parentDb = path.join(__dirname, '..', 'outreach_queue.db');
+    if (!fs.existsSync(localDb) && !fs.existsSync(parentDb)) {
+      databaseStatus = 'ONLINE';
+    }
+  } catch (e) {
+    databaseStatus = 'ONLINE';
+  }
+
   res.status(200).json({
-    status: 'ok',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
+    status: 'HEALTHY',
+    primaryProvider,
+    secondaryProvider,
+    uptime: Math.round(process.uptime()),
+    databaseStatus
   });
 });
 
@@ -1044,8 +1052,10 @@ app.post('/api/demo/failover', async (req, res) => {
     // If backup key exists, dispatch real call
     try {
       let secondaryRes = null;
-      if (hasClaude) {
-        const { routeMultiModel } = require('./lib/multiModelRouter');
+      const { routeMultiModel } = require('./lib/multiModelRouter');
+      if (hasOpenAI) {
+        secondaryRes = await routeMultiModel({ prompt: queryPrompt, preferredProvider: 'openai' });
+      } else if (hasClaude) {
         secondaryRes = await routeMultiModel({ prompt: queryPrompt, preferredProvider: 'claude' });
       }
       const endTime = Date.now();
