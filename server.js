@@ -1172,7 +1172,7 @@ app.post('/api/demo/failover', async (req, res) => {
 app.post('/api/demo/scrub', (req, res) => {
   // Load DNC registry from do-not-send-list.csv
   const dncPath = path.join(__dirname, 'do-not-send-list.csv');
-  const dncSet = new Set(['sabra@brittonmdg.com', 'tkucinsky@catalystgetsit.com', 'optout-client@competitor.com']);
+  const dncSet = new Set(['optout@example.agency', 'dnc@example.agency', 'dnc@example.com']);
   if (fs.existsSync(dncPath)) {
     try {
       const lines = fs.readFileSync(dncPath, 'utf8').split(/\r?\n/).slice(1);
@@ -1185,16 +1185,16 @@ app.post('/api/demo/scrub', (req, res) => {
 
   // Exact 10 Rows Required by Locked Specification
   const FIXTURE_ROWS = [
-    { row: 1, email: "jordan@directiveconsulting.com", name: "Jordan Ellis", company: "Directive Consulting", category: "valid agency email", fixtureLastSentHoursAgo: null },
-    { row: 2, email: "jordan@directiveconsulting.com", name: "Jordan Ellis", company: "Directive Consulting", category: "duplicate of #1", fixtureLastSentHoursAgo: null },
+    { row: 1, email: "ops@example.agency", name: "Alex Morgan", company: "Example Agency", category: "valid agency email", fixtureLastSentHoursAgo: null },
+    { row: 2, email: "ops@example.agency", name: "Alex Morgan", company: "Example Agency", category: "duplicate of #1", fixtureLastSentHoursAgo: null },
     { row: 3, email: "broken-email-no-domain", name: "Invalid User", company: "Unknown", category: "bad RFC syntax (no @)", fixtureLastSentHoursAgo: null },
-    { row: 4, email: "sabra@brittonmdg.com", name: "Sabra Garner", company: "Britton MDG", category: "address on DNC / do-not-send-list.csv", fixtureLastSentHoursAgo: null },
-    { row: 5, email: "info@directiveconsulting.com", name: "Info Desk", company: "Directive Consulting", category: "info@ role account", fixtureLastSentHoursAgo: null },
-    { row: 6, email: "agencyowner@gmail.com", name: "Agency Founder", company: "Founder Studio", category: "gmail.com freemail", fixtureLastSentHoursAgo: null },
-    { row: 7, email: "kaitlin@klientboost.com", name: "Kaitlin Thompson", company: "KlientBoost", category: "valid second agency email", fixtureLastSentHoursAgo: null },
-    { row: 8, email: "kaitlin@klientboost.com", name: "Kaitlin Thompson", company: "KlientBoost", category: "duplicate of #7", fixtureLastSentHoursAgo: null },
-    { row: 9, email: "derek@animalz.co", name: "Derek Gleason", company: "Animalz", category: "address inside 48-hour quiet window", fixtureLastSentHoursAgo: 14 },
-    { row: 10, email: "megan@singlegrain.com", name: "Megan Reynolds", company: "Single Grain", category: "valid third email", fixtureLastSentHoursAgo: null }
+    { row: 4, email: "optout@example.agency", name: "Opted Out", company: "Example Agency", category: "address on DNC / do-not-send-list.csv", fixtureLastSentHoursAgo: null },
+    { row: 5, email: "info@example.agency", name: "Info Desk", company: "Example Agency", category: "info@ role account", fixtureLastSentHoursAgo: null },
+    { row: 6, email: "founder@gmail.com", name: "Agency Founder", company: "Founder Studio", category: "gmail.com freemail", fixtureLastSentHoursAgo: null },
+    { row: 7, email: "growth@example.agency", name: "Sam Rivera", company: "Example Agency", category: "valid second agency email", fixtureLastSentHoursAgo: null },
+    { row: 8, email: "growth@example.agency", name: "Sam Rivera", company: "Example Agency", category: "duplicate of #7", fixtureLastSentHoursAgo: null },
+    { row: 9, email: "partner@example.agency", name: "Taylor Reed", company: "Example Agency", category: "address inside 48-hour quiet window", fixtureLastSentHoursAgo: 14 },
+    { row: 10, email: "owner@example.agency", name: "Jordan Casey", company: "Example Agency", category: "valid third email", fixtureLastSentHoursAgo: null }
   ];
 
   const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;

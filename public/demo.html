@@ -1170,16 +1170,16 @@
       if (!data) {
         // Deterministic client fallback matching the locked specification
         const FIXTURE_ROWS = [
-          { row: 1, email: "jordan@directiveconsulting.com", fixtureCategory: "valid agency email", action: "SEND", reason: "Passed syntax, deduping, domain MX, and DNC registry checks" },
-          { row: 2, email: "jordan@directiveconsulting.com", fixtureCategory: "duplicate of #1", action: "DROP", reason: "Duplicate recipient address detected within current dispatch cycle" },
+          { row: 1, email: "ops@example.agency", fixtureCategory: "valid agency email", action: "SEND", reason: "Passed syntax, deduping, domain MX, and DNC registry checks" },
+          { row: 2, email: "ops@example.agency", fixtureCategory: "duplicate of #1", action: "DROP", reason: "Duplicate recipient address detected within current dispatch cycle" },
           { row: 3, email: "broken-email-no-domain", fixtureCategory: "bad RFC syntax (no @)", action: "DROP", reason: "Failed RFC email syntax check (missing '@' or valid domain)" },
-          { row: 4, email: "sabra@brittonmdg.com", fixtureCategory: "address on DNC / do-not-send-list.csv", action: "DROP", reason: "Suppressed: Address matched active suppression list (do-not-send-list.csv)" },
-          { row: 5, email: "info@directiveconsulting.com", fixtureCategory: "info@ role account", action: "DROP", reason: "Role mailbox suppressed: Generic 'info@' distribution list" },
-          { row: 6, email: "agencyowner@gmail.com", fixtureCategory: "gmail.com freemail", action: "DROP", reason: "Freemail provider suppressed: '@gmail.com' rejected for enterprise B2B outreach" },
-          { row: 7, email: "kaitlin@klientboost.com", fixtureCategory: "valid second agency email", action: "SEND", reason: "Passed syntax, deduping, domain MX, and DNC registry checks" },
-          { row: 8, email: "kaitlin@klientboost.com", fixtureCategory: "duplicate of #7", action: "DROP", reason: "Duplicate recipient address detected within current dispatch cycle" },
-          { row: 9, email: "derek@animalz.co", fixtureCategory: "address inside 48-hour quiet window", action: "DROP", reason: "Suppressed: Contacted 14h ago (within mandatory 48-hour quiet window)" },
-          { row: 10, email: "megan@singlegrain.com", fixtureCategory: "valid third email", action: "SEND", reason: "Passed syntax, deduping, domain MX, and DNC registry checks" }
+          { row: 4, email: "optout@example.agency", fixtureCategory: "address on DNC / do-not-send-list.csv", action: "DROP", reason: "Suppressed: Address matched active suppression list (do-not-send-list.csv)" },
+          { row: 5, email: "info@example.agency", fixtureCategory: "info@ role account", action: "DROP", reason: "Role mailbox suppressed: Generic 'info@' distribution list" },
+          { row: 6, email: "founder@gmail.com", fixtureCategory: "gmail.com freemail", action: "DROP", reason: "Freemail provider suppressed: '@gmail.com' rejected for enterprise B2B outreach" },
+          { row: 7, email: "growth@example.agency", fixtureCategory: "valid second agency email", action: "SEND", reason: "Passed syntax, deduping, domain MX, and DNC registry checks" },
+          { row: 8, email: "growth@example.agency", fixtureCategory: "duplicate of #7", action: "DROP", reason: "Duplicate recipient address detected within current dispatch cycle" },
+          { row: 9, email: "partner@example.agency", fixtureCategory: "address inside 48-hour quiet window", action: "DROP", reason: "Suppressed: Contacted 14h ago (within mandatory 48-hour quiet window)" },
+          { row: 10, email: "owner@example.agency", fixtureCategory: "valid third email", action: "SEND", reason: "Passed syntax, deduping, domain MX, and DNC registry checks" }
         ];
         data = { totalSend: 3, totalDrop: 7, records: FIXTURE_ROWS };
       }
