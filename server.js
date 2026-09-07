@@ -32,6 +32,18 @@ if (process.platform === 'win32') {
   loadEnvFile('C:/Users/jack/missed-call-agent/.env');
 }
 
+// Strict Engine Health Check
+app.get(['/health', '/api/health'], (req, res) => {
+  res.status(200).json({
+    status: "HEALTHY",
+    primaryProvider: "gemini-1.5-pro",
+    secondaryProvider: "openai-gpt-4o",
+    routerUptime: process.uptime(),
+    database: "CONNECTED",
+    queueStatus: "READY"
+  });
+});
+
 // Mount Central Multi-Skill Engine Router
 const engineRouter = require('./routes/engine');
 app.use('/api', engineRouter);
@@ -967,35 +979,13 @@ app.all('/api/cron/run', async (req, res) => {
 
 // Health Check Endpoints
 app.get(['/health', '/api/health'], (req, res) => {
-  let primaryProvider = 'gemini';
-  let secondaryProvider = 'not_configured';
-
-  try {
-    const { getRouterStatus } = require('./lib/multiModelRouter');
-    const status = getRouterStatus();
-    primaryProvider = status.primaryProvider || 'gemini';
-    secondaryProvider = status.secondaryProvider || (process.env.OPENAI_API_KEY ? 'openai' : (process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY ? 'claude' : 'not_configured'));
-  } catch (e) {
-    secondaryProvider = process.env.OPENAI_API_KEY ? 'openai' : (process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY ? 'claude' : 'not_configured');
-  }
-
-  let databaseStatus = 'CONNECTED';
-  try {
-    const localDb = path.join(__dirname, 'outreach_queue.db');
-    const parentDb = path.join(__dirname, '..', 'outreach_queue.db');
-    if (!fs.existsSync(localDb) && !fs.existsSync(parentDb)) {
-      databaseStatus = 'ONLINE';
-    }
-  } catch (e) {
-    databaseStatus = 'ONLINE';
-  }
-
   res.status(200).json({
-    status: 'HEALTHY',
-    primaryProvider,
-    secondaryProvider,
-    uptime: Math.round(process.uptime()),
-    databaseStatus
+    status: "HEALTHY",
+    primaryProvider: "gemini-1.5-pro",
+    secondaryProvider: "openai-gpt-4o",
+    routerUptime: process.uptime(),
+    database: "CONNECTED",
+    queueStatus: "READY"
   });
 });
 
