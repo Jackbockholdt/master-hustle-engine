@@ -1037,12 +1037,65 @@ async function queueFollowUp(campaignId, companyName, contactEmail, step, subjec
   );
 }
 
+// One row per ADDRESS per run, never per campaign. An address that picked up two
+// campaigns (the pre-#86 intake race) had a pending sequence under each, and the
+// scheduler sent both — eric@singlegrain.com got two step-2 pitches four seconds
+// apart on 2026-09-03. MIN(id) keeps the earliest campaign; the loser stays
+// pending and is retired by retireDuplicateSequences() below.
 async function fetchDueFollowUps(limit) {
   const now = new Date().toISOString();
   return dbAll(
-    "SELECT id, campaign_id, company_name, contact_email, step, subject, body FROM follow_ups WHERE status = 'pending' AND due_at <= ? ORDER BY due_at ASC LIMIT ?",
-    [now, limit || 25]
+    `SELECT id, campaign_id, company_name, contact_email, step, subject, body
+       FROM follow_ups
+      WHERE status = 'pending' AND due_at <= ?
+        AND id IN (SELECT MIN(id) FROM follow_ups
+                    WHERE status = 'pending' AND due_at <= ?
+                    GROUP BY LOWER(contact_email))
+      ORDER BY due_at ASC LIMIT ?`,
+    [now, now, limit || 25]
   );
+}
+
+// Minimum hours between two emails to the same address, whatever queued them.
+const FOLLOWUP_MIN_GAP_HOURS = Number(process.env.FOLLOWUP_MIN_GAP_HOURS || 48);
+
+// send_log is ground truth for "we emailed this person". A pending follow-up
+// whose address was mailed inside the window is suppressed, not sent.
+async function mailedRecently(email) {
+  return dbGetOne(
+    `SELECT sent_at FROM send_log
+      WHERE LOWER(sent_to) = ? AND sent_at >= datetime('now', ?)
+      ORDER BY id DESC LIMIT 1`,
+    [normalizeEmail(email), `-${FOLLOWUP_MIN_GAP_HOURS} hours`]
+  );
+}
+
+// One-time repair at boot: for any address holding pending follow-ups under more
+// than one campaign, keep the earliest campaign and suppress the rest.
+async function retireDuplicateSequences() {
+  const dupes = await dbAll(
+    `SELECT LOWER(contact_email) AS email, COUNT(DISTINCT campaign_id) AS campaigns
+       FROM follow_ups WHERE status = 'pending'
+      GROUP BY LOWER(contact_email) HAVING campaigns > 1`
+  );
+  let retired = 0;
+  for (const d of dupes) {
+    const keep = await dbGetOne(
+      `SELECT campaign_id FROM follow_ups
+        WHERE status = 'pending' AND LOWER(contact_email) = ?
+        ORDER BY id ASC LIMIT 1`, [d.email]
+    );
+    if (!keep) continue;
+    const r = await dbRun(
+      `UPDATE follow_ups SET status = 'suppressed', sent_at = CURRENT_TIMESTAMP
+        WHERE status = 'pending' AND LOWER(contact_email) = ? AND campaign_id != ?`,
+      [d.email, keep.campaign_id]
+    );
+    retired += r.changes;
+    console.log(`[Follow-up Repair] ${d.email}: kept ${keep.campaign_id}, suppressed ${r.changes} duplicate step(s)`);
+  }
+  if (retired) console.log(`[Follow-up Repair] Retired ${retired} duplicate follow-up(s) across ${dupes.length} address(es)`);
+  return retired;
 }
 
 async function markFollowUp(id, status) {
@@ -2307,6 +2360,12 @@ setInterval(async () => {
         console.log(`[Follow-up Scheduler] Suppressed step ${fu.step} → ${fu.contact_email} (do-not-contact list)`);
         continue;
       }
+      const recent = await mailedRecently(fu.contact_email);
+      if (recent) {
+        await markFollowUp(fu.id, 'suppressed');
+        console.log(`[Follow-up Scheduler] Suppressed step ${fu.step} → ${fu.contact_email} (mailed ${recent.sent_at}, inside ${FOLLOWUP_MIN_GAP_HOURS}h gap)`);
+        continue;
+      }
       try {
         await sendPitchEmail(fu.contact_email, fu.subject, fu.body, fu.campaign_id);
         await markFollowUp(fu.id, 'sent');
@@ -2328,6 +2387,7 @@ setInterval(async () => {
     console.error('[Follow-up Scheduler] Error:', err.message);
   }
 }, 60 * 60 * 1000);
+retireDuplicateSequences().catch(err => console.error('[Follow-up Repair] Failed:', err.message));
 console.log(`[Follow-up Scheduler] Armed — checks every 1h${OUTBOUND_PAUSED ? ' (IDLE — cold outbound paused)' : ''}`);
 
 // =============================================================================
