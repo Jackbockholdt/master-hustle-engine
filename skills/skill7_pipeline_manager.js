@@ -276,6 +276,52 @@ function seedInitialPipeline(targets = []) {
 
 const FOLLOWUP_MIN_GAP_HOURS = Number(process.env.FOLLOWUP_MIN_GAP_HOURS || 48);
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const LIVE_DB_PATH = process.env.LIVE_DB_PATH || process.env.DB_PATH || path.join(__dirname, '..', 'transactions.sqlite');
+
+let liveDbInstance = null;
+
+function getLiveDatabase() {
+  if (liveDbInstance) return liveDbInstance;
+
+  try {
+    const { DatabaseSync } = require('node:sqlite');
+    liveDbInstance = new DatabaseSync(LIVE_DB_PATH);
+    liveDbInstance.exec(`
+      CREATE TABLE IF NOT EXISTS send_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sent_to TEXT NOT NULL,
+        campaign TEXT,
+        sent_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS follow_ups (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        campaign_id TEXT,
+        company_name TEXT,
+        contact_email TEXT,
+        step INTEGER,
+        subject TEXT,
+        body TEXT,
+        due_at TEXT,
+        status TEXT DEFAULT 'pending',
+        sent_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS leads_queue (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_name TEXT,
+        contact_email TEXT,
+        status TEXT DEFAULT 'pending',
+        added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        processed_at DATETIME
+      );
+    `);
+  } catch (err) {
+    console.error('[Live SQLite Init Error] Failed initializing live database:', err.message);
+    throw err;
+  }
+
+  return liveDbInstance;
+}
 
 function normalizeEmail(email) {
   return String(email || '').trim().toLowerCase();
@@ -285,8 +331,8 @@ function normalizeEmail(email) {
  * Evaluates whether a follow-up is eligible to be scheduled or dispatched.
  * Enforces:
  *  1. Syntax validation (RFC check)
- *  2. Duplicate suppression (active pending/processing task exists for this email)
- *  3. 48-Hour quiet gap (from lastContactedAt or previous dispatch records)
+ *  2. Duplicate suppression (active pending/processing task in pipeline_followups or live follow_ups/leads_queue)
+ *  3. 48-Hour quiet gap (from lastContactedAt, pipeline_followups sent records, or live send_log)
  */
 function evaluateFollowUpEligibility({ leadId = null, email = '', campaignId = 'default', step = 1, lastContactedAt = null } = {}) {
   const normalized = normalizeEmail(email);
@@ -300,8 +346,9 @@ function evaluateFollowUpEligibility({ leadId = null, email = '', campaignId = '
   }
 
   const db = getDatabase();
+  const liveDb = getLiveDatabase();
 
-  // 1. Check duplicate pending/processing tasks for this address
+  // 1. Check duplicate pending/processing tasks for this address in pipeline.db
   const checkDupeStmt = db.prepare(`
     SELECT id, campaign_id, step, status, created_at
       FROM pipeline_followups
@@ -318,6 +365,39 @@ function evaluateFollowUpEligibility({ leadId = null, email = '', campaignId = '
       email: normalized
     };
   }
+
+  // Check duplicate pending/processing sequences or queue in live store
+  try {
+    const liveFu = liveDb.prepare(`
+      SELECT id, status, step FROM follow_ups
+       WHERE LOWER(contact_email) = ? AND status IN ('pending', 'processing')
+       ORDER BY id ASC LIMIT 1
+    `).get(normalized);
+    if (liveFu) {
+      return {
+        eligible: false,
+        status: 'SUPPRESSED_DUPLICATE',
+        reason: `Duplicate recipient address detected in live follow_ups (Step ${liveFu.step || 1} already ${liveFu.status})`,
+        email: normalized
+      };
+    }
+  } catch (e) {}
+
+  try {
+    const liveQ = liveDb.prepare(`
+      SELECT id, status FROM leads_queue
+       WHERE LOWER(contact_email) = ? AND status IN ('pending', 'queued', 'processing')
+       ORDER BY id ASC LIMIT 1
+    `).get(normalized);
+    if (liveQ) {
+      return {
+        eligible: false,
+        status: 'SUPPRESSED_DUPLICATE',
+        reason: `Recipient address already queued in live leads_queue (${liveQ.status})`,
+        email: normalized
+      };
+    }
+  } catch (e) {}
 
   // 2. Check 48-Hour Quiet Gap
   let contactTimestamp = lastContactedAt;
@@ -336,9 +416,36 @@ function evaluateFollowUpEligibility({ leadId = null, email = '', campaignId = '
     const lastSent = sentStmt.get(normalized);
     if (lastSent && lastSent.sent_at) contactTimestamp = lastSent.sent_at;
   }
+  if (!contactTimestamp) {
+    // Check live send_log (ground truth for "we emailed this person")
+    try {
+      const liveSentStmt = liveDb.prepare(`
+        SELECT sent_at FROM send_log
+         WHERE LOWER(sent_to) = ?
+         ORDER BY id DESC LIMIT 1
+      `);
+      const liveSent = liveSentStmt.get(normalized);
+      if (liveSent && liveSent.sent_at) contactTimestamp = liveSent.sent_at;
+    } catch (e) {}
+  }
+  if (!contactTimestamp) {
+    // Check live follow_ups sent_at
+    try {
+      const liveFuSent = liveDb.prepare(`
+        SELECT sent_at FROM follow_ups
+         WHERE LOWER(contact_email) = ? AND status = 'sent' AND sent_at IS NOT NULL
+         ORDER BY id DESC LIMIT 1
+      `);
+      const liveFuSentRow = liveFuSent.get(normalized);
+      if (liveFuSentRow && liveFuSentRow.sent_at) contactTimestamp = liveFuSentRow.sent_at;
+    } catch (e) {}
+  }
 
   if (contactTimestamp) {
-    const contactedMs = new Date(contactTimestamp).getTime();
+    let contactedMs = new Date(contactTimestamp).getTime();
+    if (isNaN(contactedMs) && typeof contactTimestamp === 'string') {
+      contactedMs = new Date(contactTimestamp.replace(' ', 'T') + 'Z').getTime();
+    }
     if (!isNaN(contactedMs)) {
       const elapsedHours = (Date.now() - contactedMs) / (1000 * 60 * 60);
       if (elapsedHours < FOLLOWUP_MIN_GAP_HOURS) {
@@ -488,6 +595,8 @@ function retireDuplicateSequences() {
 
 module.exports = {
   getDatabase,
+  getLiveDatabase,
+  LIVE_DB_PATH,
   upsertLead,
   transitionStage,
   getPipelineSummary,

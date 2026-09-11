@@ -11,6 +11,7 @@ const fs = require('fs');
 
 const {
   getDatabase,
+  getLiveDatabase,
   upsertLead,
   evaluateFollowUpEligibility,
   queueFollowUpTask,
@@ -184,13 +185,57 @@ async function runTests() {
   assert.strictEqual(remainingPending[0].campaign_id, 'campaign_early', 'Earliest campaign must be kept');
   console.log(`✓ TEST 6 PASSED: Duplicate campaign retired, retained: ${remainingPending[0].campaign_id}`);
 
+  // ---------------------------------------------------------------------------
+  // TEST 7: Live send_log quiet gap enforcement (no pipeline.db history)
+  // ---------------------------------------------------------------------------
+  console.log('\n--- TEST 7: Live send_log Quiet Gap Enforcement (No pipeline.db History) ---');
+  const testEmail7 = 'virgin-outreach@external-agency.com';
+  const liveDb = getLiveDatabase();
+
+  // Ensure absolutely NO history in pipeline.db
+  db.exec(`DELETE FROM pipeline_followups WHERE email = '${testEmail7}';`);
+  db.exec(`DELETE FROM pipeline_leads WHERE email = '${testEmail7}';`);
+
+  // Verify zero rows in pipeline.db for this address
+  const checkLead = db.prepare(`SELECT 1 FROM pipeline_leads WHERE email = ?`).get(testEmail7);
+  const checkFu = db.prepare(`SELECT 1 FROM pipeline_followups WHERE email = ?`).get(testEmail7);
+  assert.strictEqual(checkLead, undefined, 'Must have zero rows in pipeline_leads');
+  assert.strictEqual(checkFu, undefined, 'Must have zero rows in pipeline_followups');
+
+  // Insert a row into live store send_log sent 12 hours ago
+  const twelveHoursAgoIso = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+  liveDb.prepare(`DELETE FROM send_log WHERE LOWER(sent_to) = ?`).run(testEmail7.toLowerCase());
+  liveDb.prepare(`
+    INSERT INTO send_log (sent_to, campaign, sent_at)
+    VALUES (?, ?, ?)
+  `).run(testEmail7, 'live_campaign_render', twelveHoursAgoIso);
+
+  // Attempt to queue follow-up via Skill 7
+  const queueResult7 = queueFollowUpTask({
+    email: testEmail7,
+    campaignId: 'agency_campaign_live',
+    step: 1,
+    subject: 'Follow-up attempt after live send',
+    body: 'Checking in regarding live outreach.'
+  });
+
+  console.log('Queue Result 7 (Live send_log check):', queueResult7);
+  assert.strictEqual(queueResult7.eligible, false, 'Address in live send_log < 48h must NOT be eligible');
+  assert.strictEqual(queueResult7.status, 'SUPPRESSED_QUIET_GAP', 'Status must be SUPPRESSED_QUIET_GAP');
+  assert(queueResult7.details.remainingGapHours > 30, 'Remaining gap hours should be ~36 hours');
+  console.log(`✓ TEST 7 PASSED: Address with no pipeline.db history suppressed via live send_log (${queueResult7.details.remainingGapHours}h remaining)`);
+
+  // Cleanup live send_log row
+  liveDb.prepare(`DELETE FROM send_log WHERE LOWER(sent_to) = ?`).run(testEmail7.toLowerCase());
+
   console.log('\n======================================================================');
-  console.log('           ALL 6 GUARDRAIL TESTS PASSED SUCCESSFULLY!                 ');
+  console.log('           ALL 7 GUARDRAIL TESTS PASSED SUCCESSFULLY!                 ');
   console.log('======================================================================\n');
 
   // Clean up test rows
   db.exec(`DELETE FROM pipeline_followups WHERE email LIKE '%@test-agency.com';`);
   db.exec(`DELETE FROM pipeline_leads WHERE email LIKE '%@test-agency.com';`);
+  db.exec(`DELETE FROM pipeline_followups WHERE email = '${testEmail7}';`);
 }
 
 runTests().catch(err => {
