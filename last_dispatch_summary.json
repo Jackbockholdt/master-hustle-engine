@@ -1,0 +1,112 @@
+[
+  {
+    "id": "AGENCY-MTFINQKG-1",
+    "name": "Brynn",
+    "company": "Hook Agency",
+    "email": "brynn@hookagency.com",
+    "monthlyBurn": "$3,800/mo",
+    "savingsEst": "$2,470/mo",
+    "subject": "Cutting Hook Agency's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "AGENCY-MTFINQNS-2",
+    "name": "Lindsey",
+    "company": "Ad Creations",
+    "email": "lindsey@adcreations.com",
+    "monthlyBurn": "$4,500/mo",
+    "savingsEst": "$2,925/mo",
+    "subject": "Cutting Ad Creations's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "AGENCY-MTFINQPN-3",
+    "name": "Alex",
+    "company": "UX 4Sight",
+    "email": "info@ux4sight.com",
+    "monthlyBurn": "$3,200/mo",
+    "savingsEst": "$2,080/mo",
+    "subject": "Cutting UX 4Sight's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "AGENCY-MTFINQSN-4",
+    "name": "Austin",
+    "company": "Marketing Activations Group",
+    "email": "awallace@marketingactivationsgroup.com",
+    "monthlyBurn": "$5,200/mo",
+    "savingsEst": "$3,380/mo",
+    "subject": "Cutting Marketing Activations Group's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "AGENCY-MTFINQVJ-5",
+    "name": "Ryan",
+    "company": "Media Saga Social SEO",
+    "email": "contact@mediasagasocialseo.com",
+    "monthlyBurn": "$4,100/mo",
+    "savingsEst": "$2,665/mo",
+    "subject": "Cutting Media Saga Social SEO's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "AGENCY-MTFINQXB-6",
+    "name": "Sarah",
+    "company": "Lemon Seed Marketing",
+    "email": "hello@lemonseedmarketing.com",
+    "monthlyBurn": "$2,900/mo",
+    "savingsEst": "$1,885/mo",
+    "subject": "Cutting Lemon Seed Marketing's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "AGENCY-MTFINQZ2-7",
+    "name": "Jason",
+    "company": "Right Click Digital",
+    "email": "info@rightclickdigital.net",
+    "monthlyBurn": "$6,000/mo",
+    "savingsEst": "$3,900/mo",
+    "subject": "Cutting Right Click Digital's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "AGENCY-MTFINR0Q-8",
+    "name": "Marcus",
+    "company": "Cfx Inc",
+    "email": "info@cfx-inc.com",
+    "monthlyBurn": "$3,500/mo",
+    "savingsEst": "$2,275/mo",
+    "subject": "Cutting Cfx Inc's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "AGENCY-MTFINR2F-9",
+    "name": "David",
+    "company": "Blayzer Digital",
+    "email": "sales@blayzer.com",
+    "monthlyBurn": "$4,800/mo",
+    "savingsEst": "$3,120/mo",
+    "subject": "Cutting Blayzer Digital's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  },
+  {
+    "id": "lead_verify_1788105297001",
+    "name": "Decision Maker",
+    "company": "Enterprise",
+    "email": "sarah@apexgrowthlabs.com",
+    "monthlyBurn": "$3,500/mo",
+    "savingsEst": "$2,275/mo",
+    "subject": "Cutting Enterprise's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "status": "DELIVERED (250 OK)",
+    "stage": "contacted"
+  }
+]

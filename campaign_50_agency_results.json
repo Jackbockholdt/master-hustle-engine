@@ -1,0 +1,136 @@
+{
+  "timestamp": "2026-09-04T14:33:46.310Z",
+  "totalFetched": 28,
+  "qualifiedCount": 16,
+  "disqualifiedCount": 12,
+  "dispatches": [
+    {
+      "status": "SUCCESS",
+      "company": "Software Orca - Mobile App Development Company Austin",
+      "email": "first@softwareorca.com",
+      "subject": "Software Orca - Mobile App Development Company Austin: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:10:41.548Z",
+      "serverReceipt": "250 2.0.0 OK  1788531041 586e51a60fabf-475543f5ac5sm2350170fac.8 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Digital Drew SEM",
+      "email": "drew@digitaldrewsem.com",
+      "subject": "Digital Drew SEM: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:12:13.048Z",
+      "serverReceipt": "250 2.0.0 OK  1788531133 586e51a60fabf-475541a7f37sm2103359fac.4 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Blackhawk Digital Marketing",
+      "email": "graham@blackhawkdm.com",
+      "subject": "Blackhawk Digital Marketing: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:13:44.735Z",
+      "serverReceipt": "250 2.0.0 OK  1788531224 006d021491bc7-6b6dd57198esm3318265eaf.11 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "JS Interactive, LLC",
+      "email": "justin@js-interactive.com",
+      "subject": "JS Interactive, LLC: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:15:22.447Z",
+      "serverReceipt": "250 2.0.0 OK  1788531322 46e09a7af769-7f9f1b06b7csm2867816a34.0 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "RG Agency",
+      "email": "jane@rgagencyusa.com",
+      "subject": "RG Agency: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:16:54.733Z",
+      "serverReceipt": "250 2.0.0 OK  1788531414 46e09a7af769-7f9f7adfaefsm3017713a34.23 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Fahrenheit Marketing",
+      "email": "mradzavich@fahrenheitmarketing.com",
+      "subject": "Fahrenheit Marketing: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:18:27.015Z",
+      "serverReceipt": "250 2.0.0 OK  1788531507 46e09a7af769-7f9f6da949asm2785584a34.12 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Direction",
+      "email": "chris@direction.com",
+      "subject": "Direction: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:19:58.933Z",
+      "serverReceipt": "250 2.0.0 OK  1788531599 46e09a7af769-7f9f6daa1ffsm2923195a34.11 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Blank Box Digital Marketing",
+      "email": "alexcrisan@blankboxdigital.com",
+      "subject": "Blank Box Digital Marketing: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:21:31.521Z",
+      "serverReceipt": "250 2.0.0 OK  1788531691 006d021491bc7-6b6dcb85657sm2851023eaf.7 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Idea Peddler",
+      "email": "townoftaos@ideapeddler.com",
+      "subject": "Idea Peddler: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:23:03.901Z",
+      "serverReceipt": "250 2.0.0 OK  1788531783 586e51a60fabf-475543fcaa9sm1954819fac.7 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Lingows",
+      "email": "matthias@lingows.com",
+      "subject": "Lingows: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:24:36.154Z",
+      "serverReceipt": "250 2.0.0 OK  1788531876 5614622812f47-4b971240f68sm2297198b6e.8 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Estes Media",
+      "email": "joshua@estesmedia.com",
+      "subject": "Estes Media: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:26:08.214Z",
+      "serverReceipt": "250 2.0.0 OK  1788531968 5614622812f47-4b970d1cf26sm2286691b6e.4 - gsmtp"
+    },
+    {
+      "status": "FAILED",
+      "company": "Peaks Digital Marketing | Denver SEO",
+      "email": "david@peaksdigitalmarketing.com",
+      "subject": "Peaks Digital Marketing | Denver SEO: 9-skill white-label AI backend + multi-model failover",
+      "error": "",
+      "attemptedAt": "2026-09-04T14:27:38.589Z"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "JH SEO Agency",
+      "email": "jimmy@jhseoagency.com",
+      "subject": "JH SEO Agency: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:29:10.299Z",
+      "serverReceipt": "250 2.0.0 OK  1788532150 006d021491bc7-6b6dcb85a61sm3236422eaf.8 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "CrownTV | Digital Signage Solution",
+      "email": "jacob@crowntv-us.com",
+      "subject": "CrownTV | Digital Signage Solution: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:30:42.754Z",
+      "serverReceipt": "250 2.0.0 OK  1788532242 46e09a7af769-7f9f6da949asm2812801a34.12 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "Tree Ring Digital",
+      "email": "bryanna@treeringdigital.com",
+      "subject": "Tree Ring Digital: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:32:14.726Z",
+      "serverReceipt": "250 2.0.0 OK  1788532334 46e09a7af769-7f9f7adfce8sm2835373a34.24 - gsmtp"
+    },
+    {
+      "status": "SUCCESS",
+      "company": "FASTSIGNS",
+      "email": "hank.ness@fastsigns.com",
+      "subject": "FASTSIGNS: 9-skill white-label AI backend + multi-model failover",
+      "sentAt": "2026-09-04T14:33:46.310Z",
+      "serverReceipt": "250 2.0.0 OK  1788532426 5614622812f47-4b971246d9csm2324444b6e.7 - gsmtp"
+    }
+  ]
+}

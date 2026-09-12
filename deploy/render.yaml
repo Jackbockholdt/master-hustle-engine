@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: margin-engine-core
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install
+    startCommand: node server.js
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: GEMINI_FLAGSHIP_MODEL
+        value: gemini-1.5-pro
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: GMAIL_HTTP_URL
+        sync: false
+      - key: GMAIL_HTTP_KEY
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_PAYMENT_LINK
+        sync: false
+      - key: STRIPE_BUYOUT_LINK
+        sync: false
+      - key: STRIPE_RETAINER_LINK
+        sync: false
+      - key: STRIPE_SETUP_LINK
+        sync: false

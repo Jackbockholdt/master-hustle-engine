@@ -1,0 +1,56 @@
+{
+  "system": "Master Hustle Engine Single-Source Token Router",
+  "version": "4.1.0",
+  "token_governance": {
+    "active": true,
+    "efficiency_pct": 87.6,
+    "baseline_tokens_per_lead": 2500,
+    "optimized_tokens_per_lead": 310,
+    "single_source_router_endpoint": "http://localhost:3005/api/model/route"
+  },
+  "routing_rules": [
+    {
+      "tier": 1,
+      "name": "ICP Fast Qualifier (Automated Background)",
+      "model": "gemini-1.5-flash",
+      "model_type": "FLASH_BUDGET",
+      "eval_conditions": {
+        "required_fields": ["company_name"],
+        "contact_fields": ["email", "phone"],
+        "target_industries": ["B2B SaaS", "E-commerce", "Plumbing & Trades", "Legal Services", "Marketing Agency", "Healthcare"]
+      },
+      "action_if_pass": "proceed_to_tier_2",
+      "action_if_fail": "drop_and_log"
+    },
+    {
+      "tier": 2,
+      "name": "Deep Researcher & Hook Extractor (Automated Background)",
+      "model": "gemini-1.5-flash",
+      "model_type": "FLASH_BUDGET",
+      "extract_fields": ["core_value_prop", "pain_point", "hook"],
+      "action": "proceed_to_tier_3"
+    },
+    {
+      "tier": 3,
+      "name": "Outreach Copywriter (Prepaid Grok Credits)",
+      "model": "grok-beta",
+      "model_type": "GROK_PREPAID",
+      "outputs": ["subject_line", "email_body", "sms_body"],
+      "dispatch_targets": ["email_smtp", "sms_gateway", "webhook_endpoint"]
+    }
+  ],
+  "flagship_access_control": {
+    "flagship_model": "gemini-1.5-pro",
+    "access": "STRICTLY_HUMAN_TRIGGERED_ONLY",
+    "header_required": "X-Human-Trigger: true",
+    "body_param_required": "humanTriggered: true",
+    "unauthorized_error": "ERR_FLAGSHIP_RESTRICTED_TO_HUMAN",
+    "unauthorized_http_status": 403
+  },
+  "disqualification_codes": {
+    "ERR_NO_CONTACT": "Missing email and phone number",
+    "ERR_OUT_OF_SCOPE": "Company does not match ICP parameters",
+    "ERR_DUPLICATE": "Lead already exists in CRM pipeline",
+    "ERR_FLAGSHIP_RESTRICTED_TO_HUMAN": "Flagship model blocked on automated calls without human trigger"
+  }
+}

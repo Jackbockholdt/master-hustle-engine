@@ -1,3 +1,9 @@
+> **RETIRED 2026-09-03.** Gumloop moved to a paid-plan-only API on 2026-09-01
+> (every trigger since returned `paid_plan_required`) and is no longer used.
+> Lead sourcing now runs inside the engine against Outscraper directly —
+> see `docs/LEAD-SOURCING.md`. `/webhook/lead` still exists as a generic
+> intake, so nothing below is *wrong*, it is just no longer the pipeline.
+
 # Gumloop Setup — Antigravity Master Hustle Engine
 
 ## Where We Are Right Now
