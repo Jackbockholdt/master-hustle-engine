@@ -13,14 +13,13 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { generateOutreachSequence } = require('./skills/skill4_outreach_copy');
 const { transitionStage } = require('./skills/skill7_pipeline_manager');
 
-const SMTP_USER = process.env.SMTP_USER || 'jbockholdt4@gmail.com';
-const SMTP_PASS = process.env.SMTP_PASS || 'bgbrkujgpgbijsep';
+const SMTP_USER = process.env.SMTP_USER;
+const SMTP_PASS = process.env.SMTP_PASS;
 const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
 const SMTP_PORT = 465;
 
-if (!SMTP_PASS) {
-  console.error('❌ Missing SMTP_PASS in environment.');
-  process.exit(1);
+if (!SMTP_USER || !SMTP_PASS) {
+  throw new Error('Missing SMTP_USER/SMTP_PASS');
 }
 
 const db = new DatabaseSync(path.join(__dirname, 'pipeline.db'));
