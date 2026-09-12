@@ -48,7 +48,17 @@ const { triageLead, verifyMxRecord } = require('../skills/skill3_lead_triage');
 const { generateOutreachSequence, extractOutreachHook } = require('../skills/skill4_outreach_copy');
 const { scrapeAndEnrichLead, estimateAgencyLLMBurn } = require('../skills/skill5_scrape_enrich');
 const { compileTelemetryReport, verifyDomainMX, recordDispatchEvent } = require('../skills/skill6_verify_telemetry');
-const { getPipelineSummary, upsertLead, transitionStage, seedInitialPipeline } = require('../skills/skill7_pipeline_manager');
+const {
+  getPipelineSummary,
+  upsertLead,
+  transitionStage,
+  seedInitialPipeline,
+  evaluateFollowUpEligibility,
+  queueFollowUpTask,
+  fetchDueFollowUps,
+  retireDuplicateSequences,
+  FOLLOWUP_MIN_GAP_HOURS
+} = require('../skills/skill7_pipeline_manager');
 const { generatePitchDeck } = require('../skills/skill8_asset_generator');
 const { provisionLicense, generateLicenseKey } = require('../skills/skill9_license_provisioner');
 
@@ -153,8 +163,34 @@ router.post('/engine', async (req, res) => {
       // -------------------------------------------------------------
       case 'scheduling':
       case 'schedule_dispatch':
-      case 'book_meeting': {
+      case 'book_meeting':
+      case 'queue_followup':
+      case 'evaluate_eligibility': {
+        if (payload.subAction === 'queue_followup' || action === 'queue_followup') {
+          const result = queueFollowUpTask(payload);
+          return res.status(result.eligible ? 200 : 409).json(result);
+        }
+        if (payload.subAction === 'evaluate_eligibility' || action === 'evaluate_eligibility') {
+          const result = evaluateFollowUpEligibility(payload);
+          return res.status(result.eligible ? 200 : 409).json(result);
+        }
+        if (payload.subAction === 'retire_duplicates' || action === 'retire_duplicates') {
+          const result = retireDuplicateSequences();
+          return res.status(200).json(result);
+        }
         if (payload.subAction === 'webhook' || payload.webhookUrl) {
+          if (payload.email) {
+            const eligibility = evaluateFollowUpEligibility(payload);
+            if (!eligibility.eligible) {
+              return res.status(409).json({
+                success: false,
+                suppressed: true,
+                status: eligibility.status,
+                reason: eligibility.reason,
+                details: eligibility
+              });
+            }
+          }
           const whResult = await dispatchWebhook(payload);
           return res.status(whResult.success ? 200 : 502).json(whResult);
         }
@@ -290,6 +326,22 @@ router.post('/engine', async (req, res) => {
         if (payload.subAction === 'upsert' || payload.lead) {
           const upserted = upsertLead(payload.lead || payload);
           return res.status(200).json({ success: true, lead: upserted });
+        }
+        if (payload.subAction === 'queue_followup' || payload.subAction === 'followup') {
+          const result = queueFollowUpTask(payload);
+          return res.status(result.eligible ? 200 : 409).json(result);
+        }
+        if (payload.subAction === 'evaluate_eligibility') {
+          const result = evaluateFollowUpEligibility(payload);
+          return res.status(result.eligible ? 200 : 409).json(result);
+        }
+        if (payload.subAction === 'fetch_due_followups') {
+          const due = fetchDueFollowUps(payload.limit);
+          return res.status(200).json({ success: true, count: due.length, due });
+        }
+        if (payload.subAction === 'retire_duplicates') {
+          const retired = retireDuplicateSequences();
+          return res.status(200).json(retired);
         }
         const summary = getPipelineSummary();
         return res.status(200).json(summary);
@@ -484,14 +536,51 @@ router.post('/skills/objection-handling', async (req, res) => {
   return res.status(200).json(result);
 });
 
-// Skill 7: Scheduling
+// Skill 7: Scheduling & Follow-up Guardrails
 router.post('/skills/scheduling', async (req, res) => {
-  if (req.body?.subAction === 'webhook' || req.body?.webhookUrl) {
-    const whResult = await dispatchWebhook(req.body);
+  const body = req.body || {};
+  if (body.subAction === 'queue_followup' || body.action === 'queue_followup') {
+    const result = queueFollowUpTask(body);
+    return res.status(result.eligible ? 200 : 409).json(result);
+  }
+  if (body.subAction === 'evaluate_eligibility' || body.action === 'evaluate_eligibility') {
+    const result = evaluateFollowUpEligibility(body);
+    return res.status(result.eligible ? 200 : 409).json(result);
+  }
+  if (body.subAction === 'webhook' || body.webhookUrl) {
+    if (body.email) {
+      const eligibility = evaluateFollowUpEligibility(body);
+      if (!eligibility.eligible) {
+        return res.status(409).json({
+          success: false,
+          suppressed: true,
+          status: eligibility.status,
+          reason: eligibility.reason,
+          details: eligibility
+        });
+      }
+    }
+    const whResult = await dispatchWebhook(body);
     return res.status(whResult.success ? 200 : 502).json(whResult);
   }
-  const result = prepareMeetingDispatch(req.body);
+  const result = prepareMeetingDispatch(body);
   return res.status(200).json(result);
+});
+
+router.post('/pipeline/queue-followup', (req, res) => {
+  const result = queueFollowUpTask(req.body);
+  return res.status(result.eligible ? 200 : 409).json(result);
+});
+
+router.post('/pipeline/evaluate-eligibility', (req, res) => {
+  const result = evaluateFollowUpEligibility(req.body);
+  return res.status(result.eligible ? 200 : 409).json(result);
+});
+
+router.get('/pipeline/due-followups', (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 25;
+  const due = fetchDueFollowUps(limit);
+  return res.status(200).json({ success: true, count: due.length, due });
 });
 
 // Skill 8: Schema Validation

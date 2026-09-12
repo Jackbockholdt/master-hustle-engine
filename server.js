@@ -382,6 +382,20 @@ app.post('/api/send-single-email', async (req, res) => {
         recipient: toEmail
       });
     }
+
+    // Pre-dispatch 48-Hour Quiet Gap & Duplicate Screening
+    const { evaluateFollowUpEligibility } = require('./skills/skill7_pipeline_manager');
+    const eligibility = evaluateFollowUpEligibility({ email: toEmail });
+    if (!eligibility.eligible) {
+      console.warn(`[SUPPRESSION REJECT] Refused send to ${toEmail}: ${eligibility.reason}`);
+      return res.status(422).json({
+        success: false,
+        error: "ERR_LEAD_SUPPRESSED",
+        status: eligibility.status,
+        reason: eligibility.reason,
+        recipient: toEmail
+      });
+    }
   } catch (err) {
     if (err.message.includes('ERR_BLOCKLIST_MISSING_FAIL_CLOSED')) {
       console.error(`[FAIL-CLOSED DISPATCH BLOCK] ${err.message}`);
@@ -415,6 +429,20 @@ app.post('/api/send-single-email', async (req, res) => {
       
       const realMessageId = relayRes.messageId || null;
       const isConfirmed = !!realMessageId && relayRes.success === true;
+
+      // Ground truth persistence: log to send_log in SQLite
+      if (isConfirmed) {
+        try {
+          const { getLiveDatabase } = require('./skills/skill7_pipeline_manager');
+          const liveDb = getLiveDatabase();
+          liveDb.prepare(`
+            INSERT INTO send_log (sent_to, campaign, sent_at)
+            VALUES (?, ?, datetime('now'))
+          `).run(toEmail.toLowerCase().trim(), b.campaignId || b.campaign || 'single_send');
+        } catch (dbErr) {
+          console.warn('[Live DB send_log Warning] Failed to log dispatch:', dbErr.message);
+        }
+      }
 
       return res.status(200).json({
         success: relayRes.success === true,
