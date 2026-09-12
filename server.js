@@ -682,7 +682,7 @@ app.get('/api/assets/pitch-deck', (req, res) => {
         <ul>
           <li><strong>3-Skill Cascade:</strong> Gemini 3 Flash ($0.0001) qualifies -> Gemini 3 Pro ($0.001) extracts hooks -> Grok/Claude ($0.003) writes copy.</li>
           <li><strong>Flagship Access Control:</strong> Automated calls to flagship models restricted via HTTP 403 authorization guard.</li>
-          <li><strong>Turn-Key Commercial Pricing:</strong> Agency Private-Label ($497 setup + $199/mo), Commercial Codebase License ($4,500 one-time).</li>
+          <li><strong>Turn-Key Commercial Pricing:</strong> Agency Private-Label ($4,000 setup + $1,500/mo), Commercial Codebase License ($25,000 one-time).</li>
         </ul>
       </div>
     </body>
