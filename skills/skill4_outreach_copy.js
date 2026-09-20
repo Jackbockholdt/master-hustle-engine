@@ -2,18 +2,14 @@
  * Skill 4: Multi-Agent Copy & Cold Outreach Generator
  * Pitches the Agency AI Infrastructure Layer: Zero-Downtime Failover & Safe Outreach Guardrails
  * 
- * - Offer URL: https://master-hustle-engine.onrender.com/demo
- * - Confirmed Private-Label SKU: https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G ($497 setup + $199/mo)
- * - Confirmed Codebase SKU: https://buy.stripe.com/bJecN4al44iL5C7bsX0000H ($4,500 one-time buyout)
+ * Cold outbound sends prospects to the public demo; it never embeds a Stripe
+ * checkout link. The quoted offer is $4,000 to start, then $1,500/month.
  */
 
-const { getStripePaymentLink } = require('./skill2_proposal_generator');
 const { optimizeTokenRoute } = require('./skill1_token_optimizer');
 
-const LIVE_LANDING_URL = 'https://master-hustle-engine.onrender.com';
+const LIVE_LANDING_URL = 'https://www.master-hustle-engine.com';
 const LIVE_DEMO_URL = 'https://master-hustle-engine.onrender.com/demo';
-const CONFIRMED_STRIPE_RETAINER = 'https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G';
-const CONFIRMED_STRIPE_BUYOUT = 'https://buy.stripe.com/bJecN4al44iL5C7bsX0000H';
 
 /**
  * Extracts a compelling, personalized hook based on agency niche and use case
@@ -46,9 +42,6 @@ function generateOutreachSequence(params = {}) {
     leadCount: 1
   });
 
-  const buyoutLink = CONFIRMED_STRIPE_BUYOUT;
-  const retainerLink = CONFIRMED_STRIPE_RETAINER;
-
   // Step 0: Initial Touch
   const step0 = {
     step: 0,
@@ -58,23 +51,14 @@ function generateOutreachSequence(params = {}) {
 
 I saw ${company}'s work in ${industry}. Most agencies scaling client AI bots hit two painful failure modes: upstream model outages causing silent bot downtime, and dirty queue data triggering spam blocks on client domains.
 
-We built and open-demonstrated the **Agency AI Infrastructure Layer** (test the interactive failover console and queue scrubber at [${LIVE_DEMO_URL}](${LIVE_DEMO_URL})).
+We built a white-label agency infrastructure layer for exactly that: multi-model failover plus outbound guardrails, deployed under your brand.
 
 ### Core Capabilities:
 * **Zero-Downtime Multi-LLM Failover**: If Gemini or OpenAI returns a 503 or 429, requests silently swap to backup providers in under 50ms.
 * **10-Point Delivery Guardrail Scrubber**: Automated RFC syntax checks, in-batch deduplication, active DNC suppression, and role/freemail blocking.
 * **48-Hour Quiet Window**: Prevents duplicate follow-ups and protects client sender domain reputations.
 
-### Commercial Licensing:
-* **Agency Private-Label ($497 setup + $199/mo)**
-  Turnkey deployment to your Render/custom domain, white-label dashboard, and 24/7 uptime monitoring.
-  👉 [Deploy Agency Private-Label ($497 + $199/mo)](${retainerLink})
-
-* **Commercial Codebase License ($4,500 one-time)**
-  Complete source code transfer (GitHub: Jackbockholdt/margin-engine-core), perpetual rights for unlimited client bots, zero monthly royalties.
-  👉 [Acquire Commercial License ($4,500)](${buyoutLink})
-
-You can test both the failover circuit and the queue scrubber right now in the live console:
+You can test both the failover circuit and the queue scrubber in the live console:
 👉 [${LIVE_DEMO_URL}](${LIVE_DEMO_URL})
 
 Open to a brief 5-minute technical review this week?
@@ -121,22 +105,19 @@ Jack Buckholdt
 Host: ${LIVE_LANDING_URL}`
   };
 
-  // Step 2: Closing & Direct Stripe Link (+72 Hours)
+  // Step 2: Closing (+72 Hours)
   const step2 = {
     step: 2,
     type: 'WHITE_LABEL_CLOSER_72H',
     delayHours: 72,
-    subject: `Final note: failover infrastructure & codebase license for ${company}`,
+    subject: `Final note: white-label AI infrastructure for ${company}`,
     body: `Hi ${name},
 
 Closing the loop on the agency AI infrastructure layer.
 
-If ${company} would like to deploy private-label failover for client bots or acquire the codebase:
+If ${company} would like to deploy private-label failover and guardrails for client bots, the license is $4,000 to start ($2,500 setup plus the first month), then $1,500/month. We build it, brand it, host it, and maintain it; you resell it under your own name.
 
-* **[Agency Private-Label ($497 setup + $199/mo)](${retainerLink})** — Hosted, monitored, and maintained for your agency.
-* **[Commercial Codebase License ($4,500 lifetime)](${buyoutLink})** — 100% source code transfer, self-hosting rights, and unlimited client sub-licensing.
-
-Inspect the complete architecture and test the live console at [${LIVE_DEMO_URL}](${LIVE_DEMO_URL}).
+Inspect the complete architecture and test the live console at [${LIVE_LANDING_URL}](${LIVE_LANDING_URL}).
 
 Best,
 Jack Buckholdt
@@ -155,8 +136,6 @@ Agency AI Infrastructure`
 module.exports = {
   LIVE_LANDING_URL,
   LIVE_DEMO_URL,
-  CONFIRMED_STRIPE_RETAINER,
-  CONFIRMED_STRIPE_BUYOUT,
   extractOutreachHook,
   generateOutreachSequence
 };
