@@ -5,14 +5,15 @@
 
 const fs = require('fs');
 const path = require('path');
+const { PRICING } = require('../config/pricing');
 
 const PRICING_PACKAGES = {
   retainer: {
     tierId: "retainer",
     title: "Agency Private-Label Setup & Managed Infrastructure",
-    dueAtSigningUSD: 696,
-    setupFeeUSD: 497,
-    monthlyPriceUSD: 199,
+    dueAtSigningUSD: PRICING.dueAtSigning,
+    setupFeeUSD: PRICING.setupFee,
+    monthlyPriceUSD: PRICING.monthly,
     scope: [
       "Turnkey Agency AI Infrastructure deployment on Render Cloud",
       "Zero-Downtime Multi-LLM Failover Router (Sub-50ms circuit breaker)",
@@ -26,7 +27,7 @@ const PRICING_PACKAGES = {
   buyout: {
     tierId: "buyout",
     title: "Commercial Codebase & Developer License Buyout",
-    oneTimePriceUSD: 4500,
+    oneTimePriceUSD: PRICING.buyout,
     monthlyPriceUSD: 0,
     scope: [
       "100% Full Source Code Transfer (GitHub Repo: Jackbockholdt/margin-engine-core)",
