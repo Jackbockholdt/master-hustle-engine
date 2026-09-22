@@ -15,7 +15,7 @@
 1. Send **Template A** to the **Top 8** (ranked below) first.
 2. Use **Template B** only for Ames / Stanley Black & Decker (and any other tool co. already cold-emailed twice).
 3. Prefer published invention portals / company emails over LinkedIn DMs when both exist.
-4. **Do not invent personal emails.** Where no public path exists, use the LinkedIn title search noted.
+4. Do **not** invent personal emails. Where no public path exists, use the LinkedIn title search noted.
 5. **Veritage Brands note:** Ames, True Temper, Razor-Back, UnionTools, Garant, Corona, Bellota, Burgon & Ball (and related) now sit under **Veritage Brands** (JV, HQ Orlando). If prior Ames emails went to brand staff only, a Veritage/Garant invention path can still be fresh — but treat Veritage portfolio brands as **possible overlap**, not pure cold.
 
 ---
@@ -212,7 +212,7 @@ jackbockholdt88@gmail.com
 - [ ] Submit Marshalltown invention form/LOU  
 - [ ] Email Template A to Bully, Radius, Wolverine, Fiskars (form + LinkedIn), Truper (form + LinkedIn)  
 - [ ] Template B to Ames/Veritage contact and SBD Open Innovation portal / submityouridea@sbdinc.com  
-- [ ] Log replies in a simple sheet: Company | Date sent | Path used | Reply | Next step  
+- [ ] Log replies in a simple sheet: Company | Date sent | Path used | Reply | Next step
 
 ---
 
@@ -226,6 +226,6 @@ jackbockholdt88@gmail.com
 - https://www.stanleyblackanddecker.com/submityouridea  
 - https://www.veritagebrands.com/  
 - https://www.spear-and-jackson.com/licensing-partners  
-- Brand contact pages listed above  
+- Brand contact pages listed above
 
 *No personal emails were invented. Where a named invention desk was not public, LinkedIn title searches are specified instead.*
