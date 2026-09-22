@@ -1,0 +1,14 @@
+Hi {agency} — {note}
+
+Most AI shops are still selling chatbots. Agencies that win next are selling a digital workforce under their own brand.
+
+I license a private-label 9-skill AI SDR/outreach layer: multi-LLM failover when providers flake, plus outbound reply guardrails so client domains stay clean.
+
+Overview + live console:
+https://www.master-hustle-engine.com/
+https://master-hustle-engine.onrender.com/demo
+
+Open to a quick look? Reply and I'll send two times that work.
+
+Jack Bockholdt
+Master Hustle Engine
