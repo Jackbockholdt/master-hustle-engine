@@ -1,0 +1,36 @@
+SENT=30 PENDING=0
+
+SENT:
+Corona Tools	sales@coronatoolsusa.com
+The Ames Companies	contactus@ames.com
+Garant	info@garant.com
+Truper	export@truper.com
+Bully Tools	sales@bullytools.com
+A.M. Leonard	sales@amleo.com
+Wolverine Products	sales@wolverineproducts.com
+Midwest Rake / Kenyon	sales@midwestrake.com
+Structron Tools	sales@seymourmidwest.com
+Razor-Back Professional	corporate@ames.com
+Jackson Professional Tools	service@ames.com
+Fiskars Americas	inquiries@fiskars.com
+Spear & Jackson	sales@spear-and-jackson.com
+Roamwild Products	info@roamwildproducts.com
+DeWit Garden Tools	info@dewit.eu
+Sneeboer	info@sneeboer.com
+Chapin International	sales@chapinmfg.com
+Emsco Group	sales@emscogroup.com
+Roughneck Tools	sales@roughnecktools.com
+Draper Tools	sales@drapertools.com
+Silverline Tools	sales@silverlinetools.com
+Hoselink USA	support@hoselink.com
+Greenworks Tools	info@greenworkstools.com
+Union Tools	support@ames.com
+Oregon Tool	inquiry@oregontool.com
+Kraft Tool Co.	sales@krafttool.com
+Bon Tool Co.	sales@bontool.com
+Radius Garden	contact@radiusgarden.com
+Garrett Wade	mail@garrettwade.com
+White Cap Supply	customerservice@whitecap.com
+
+PENDING:
+
