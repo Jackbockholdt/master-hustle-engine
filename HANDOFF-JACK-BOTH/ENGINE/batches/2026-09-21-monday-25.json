@@ -1,0 +1,159 @@
+{
+  "landing": "https://www.master-hustle-engine.com/",
+  "demo": "https://master-hustle-engine.onrender.com/demo",
+  "from": "hello@master-hustle-engine.com",
+  "scheduled_for": "2026-09-21+ staged",
+  "leads": [
+    {
+      "agency": "Pangolin",
+      "email": "hello@pangolinmarketing.com",
+      "note": "B2B/revenue marketing agency candidate with public hello@ contact; fit is growth and automation systems.",
+      "verify_method": "Published contact email on agency website; DNS MX present for pangolinmarketing.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Tron Digital",
+      "email": "info@trondigital.online",
+      "note": "Marketing automation agency focused on GHL, CRM, and workflows; published contact on https://trondigital.online/services/marketing-automation/.",
+      "verify_method": "Published contact email on agency service page; DNS MX present for trondigital.online (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Krolog",
+      "email": "info@krolog.com",
+      "note": "CRM, email, SMS, advertising, and multichannel marketing automation agency; published contact on https://krolog.com/marketing-automation-services/.",
+      "verify_method": "Published contact email on agency service page; DNS MX present for krolog.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "ThirdEye Automation",
+      "email": "info@thirdeyeautomation.com",
+      "note": "Marketing automation agency; published contact on https://thirdeyeautomation.com/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for thirdeyeautomation.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Lumina Studio Marketing",
+      "email": "info@luminastudiomarketing.com",
+      "note": "Marketing automation agency candidate with public info@ contact; fit is digital marketing systems.",
+      "verify_method": "Published contact email on agency website; DNS MX present for luminastudiomarketing.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "OptimaGrowth",
+      "email": "info@optimagrowth.agency",
+      "note": "SEO and marketing automation agency in South Africa; published contact on https://www.optimagrowth.agency/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for optimagrowth.agency (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Element AB",
+      "email": "info@element.se",
+      "note": "Marketing automation agency candidate with public info@ contact; fit is MarTech and automation.",
+      "verify_method": "Published contact email on agency website; DNS MX present for element.se (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "4Thought Marketing",
+      "email": "info@4thoughtmarketing.com",
+      "note": "Marketing automation and growth marketing agency candidate with public info@ contact.",
+      "verify_method": "Published contact email on agency website; DNS MX present for 4thoughtmarketing.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Beeancy",
+      "email": "hello@beeancy.com",
+      "note": "London AI-powered digital marketing agency; published contact on https://beeancy.com/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for beeancy.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Tack Media",
+      "email": "info@tackmedia.com",
+      "note": "Los Angeles AI digital marketing agency with automation and integration services; published contact on https://www.tackmedia.com/contact-us/.",
+      "verify_method": "Published contact email on agency contact page; DNS MX present for tackmedia.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Zero Theory",
+      "email": "hello@applore.in",
+      "note": "AI-first digital marketing agency with AI-powered growth services; published contact on https://zerotheory.ai/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for applore.in (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "ThinkPivot",
+      "email": "hello@thinkpivot.ai",
+      "note": "AI-first full-stack marketing agency for India, UAE, and UK; published contact on https://thinkpivot.ai/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for thinkpivot.ai (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Wroffle",
+      "email": "hello@wroffle.com",
+      "note": "AI-native marketing agency offering SEO, paid media, and AI agents; published contact on https://wroffle.com/contact.",
+      "verify_method": "Published contact email on agency contact page; DNS MX present for wroffle.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Pretzl",
+      "email": "hello@pretzl.com",
+      "note": "B2B marketing and customer-science agency with AI/data JourneyLab; published contact on https://www.pretzl.com/contact.",
+      "verify_method": "Published contact email on agency contact page; DNS MX present for pretzl.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "ORRJO",
+      "email": "hello@orrjo.com",
+      "note": "UK B2B brand, demand generation, lead generation, and outbound agency; published contact on https://orrjo.com/b2b-marketing-agency.",
+      "verify_method": "Published contact email on agency page; DNS MX present for orrjo.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "U (in) AI",
+      "email": "hello@u-in.ai",
+      "note": "MarTech AI lab; published contact on https://u-in.ai/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for u-in.ai (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "MarTech Authority",
+      "email": "hello@martechauthority.com",
+      "note": "MarTech strategic audits and marketing-systems consultancy; published contact on https://www.martechauthority.com/contact/.",
+      "verify_method": "Published contact email on agency contact page; DNS MX present for martechauthority.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Spanb2b",
+      "email": "hello@spanb2b.io",
+      "note": "Senior-led B2B agency connecting strategy, campaigns, media, and measurement; published contact on https://spanb2b.io/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for spanb2b.io (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Growthcurve",
+      "email": "hello@growthcurve.co",
+      "note": "Growth marketing agency for B2B and digital growth; published contact on https://growthcurve.co/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for growthcurve.co (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "V7 Growth",
+      "email": "hello@v7growth.com",
+      "note": "B2B tech growth marketing agency; published contact on https://v7growth.com/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for v7growth.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Smith Hunter AI Automation",
+      "email": "info@smithhunteraiautomation.com",
+      "note": "AI automation and website agency; published contact on https://smithhunteraiautomation.com/contact.",
+      "verify_method": "Published contact email on agency contact page; DNS MX present for smithhunteraiautomation.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "GoldenPath AI",
+      "email": "info@goldenpathai.com",
+      "note": "AI automation agency for businesses; published contact on https://www.goldenpathai.com/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for goldenpathai.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "BraivIQ",
+      "email": "contact@braiviq.com",
+      "note": "London specialist AI agency focused on agentic AI, automation, and generative AI; published contact on https://www.braiviq.com/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for braiviq.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Loopsera",
+      "email": "contact@loopsera.com",
+      "note": "AI automation agency built for revenue teams; published contact on https://www.loopsera.com/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for loopsera.com (checked 2026-09-19 CT)."
+    },
+    {
+      "agency": "Productist.ai",
+      "email": "contact@productist.ai",
+      "note": "AI automation agency for scaling businesses; published contact on https://productist.ai/.",
+      "verify_method": "Published contact email on agency website; DNS MX present for productist.ai (checked 2026-09-19 CT)."
+    }
+  ],
+  "note": "remainder after Sun 25"
+}
