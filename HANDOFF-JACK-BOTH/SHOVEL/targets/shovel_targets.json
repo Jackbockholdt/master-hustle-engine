@@ -252,12 +252,12 @@
     "domain": "drapertools.com",
     "contact_name": "Graham",
     "email": "sales@drapertools.com",
-    "queued_at": "2026-08-31T15:43:31.747Z",
-    "last_contacted_at": "2026-08-31T11:06:50.413481",
     "mx_status": "DNS_MX_VERIFIED",
     "outreach_status": "SENT",
     "notes": "Nationwide tool distribution & commercial contractor equipment",
-    "asset_link": "https://selfcleaningshovel.tiiny.site"
+    "asset_link": "https://selfcleaningshovel.tiiny.site",
+    "queued_at": "2026-08-31T15:43:31.747Z",
+    "last_contacted_at": "2026-08-31T11:06:50.413481"
   },
   {
     "id": "shovel-target-21",
