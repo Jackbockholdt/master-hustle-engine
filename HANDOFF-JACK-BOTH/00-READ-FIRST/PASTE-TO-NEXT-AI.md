@@ -38,7 +38,7 @@ You are taking over sales ops for Jack Bockholdt. Two SEPARATE brands — never 
 2. Confirm hello@ can send (Jack provides Hostinger password once in your tool/env)
 3. Run or schedule next Engine batch; check inbox for agency replies
 4. Continue shovel manufacturer portals from week1-targets (skip prior SENT)
-5. Report to Jack: what sent, what replied, what's blocked
+5. Report to Jack: what sent, what replied, what’s blocked
 
-Full pack path on Jack's Grok Bot computer: /workspace/HANDOFF-JACK-BOTH/
+Full pack path on Jack’s Grok Bot computer: /workspace/HANDOFF-JACK-BOTH/
 Archive: /workspace/HANDOFF-JACK-BOTH.tar.gz
