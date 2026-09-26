@@ -124,6 +124,13 @@ async function run() {
     }
     console.log(`  ✅ Failover Router Health verified (Active chain: ${failoverRouter.activeChain}).`);
 
+    // Assert inboxTriage
+    const { inboxTriage } = adminRes.data;
+    if (!inboxTriage || !inboxTriage.status || typeof inboxTriage.pendingDraftsCount !== 'number' || !inboxTriage.triagedBreakdown) {
+      throw new Error('Inbox triage telemetry missing or invalid structure in /admin/status');
+    }
+    console.log(`  ✅ Inbound Triage & Circuit Breaker Telemetry verified (Pending drafts: ${inboxTriage.pendingDraftsCount}, Circuit breakers: ${inboxTriage.circuitBreakersTripped}).`);
+
     console.log('\n===================================================================');
     console.log('  ALL ROUTE AND TELEMETRY TESTS PASSED (HTTP 200 OK)');
     console.log('===================================================================\n');

@@ -153,6 +153,15 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
     resetSchedule: "0 0 * * * (00:00 Midnight CST)"
   };
 
+  // 7. Inbox Triage & Circuit Breaker Telemetry
+  let inboxTriage = null;
+  try {
+    const { getInboxTriageTelemetry } = require('./lib/inboundReplyListener');
+    inboxTriage = getInboxTriageTelemetry();
+  } catch (tErr) {
+    inboxTriage = { status: "DEGRADED", error: tErr.message };
+  }
+
   return res.status(200).json({
     success: true,
     telemetry,
@@ -162,7 +171,8 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
     scheduler,
     threadsForReview,
     flaggedForReview: threadsForReview,
-    failoverRouter: failoverRouterHealth
+    failoverRouter: failoverRouterHealth,
+    inboxTriage
   });
 });
 
@@ -1772,9 +1782,10 @@ app.get('/api/daily-send-counter', (req, res) => {
 let midnightResetJob = null;
 let morningIntakeJob = null;
 let morningDispatchJob = null;
+let inboundPollerJob = null;
 
 function initScheduler() {
-  if (midnightResetJob || morningIntakeJob || morningDispatchJob) return;
+  if (midnightResetJob || morningIntakeJob || morningDispatchJob || inboundPollerJob) return;
 
   // 1. Midnight Reset Job: 00:00 midnight CST (0 0 * * *)
   midnightResetJob = cron.schedule('0 0 * * *', () => {
@@ -1844,7 +1855,25 @@ function initScheduler() {
     timezone: 'America/Chicago'
   });
 
-  console.log('[Scheduler] node-cron autonomous daily schedules initialized (6:00 AM CST intake, 8:00 AM CST dispatch & 00:00 midnight CST reset).');
+  // 4. Inbound Reply Listener & Triage Poller Job: Every 15 minutes (*/15 * * * *)
+  inboundPollerJob = cron.schedule('*/15 * * * *', async () => {
+    console.log('[Scheduler] Executing scheduled 15-minute Hostinger IMAP inbound reply poll...');
+    try {
+      const { pollInboundReplies } = require('./lib/inboundReplyListener');
+      pushUiAuditLog('INBOUND_POLL_START', '15-minute autonomous inbound reply poll triggered');
+      const pollRes = await pollInboundReplies();
+      console.log(`[Scheduler] Inbound reply poll complete: ${pollRes.processedCount || 0} replies processed, ${pollRes.circuitBreakersTripped || 0} circuit breakers tripped.`);
+      pushUiAuditLog('INBOUND_POLL_COMPLETE', `Inbound poll finished: ${pollRes.processedCount || 0} processed, ${pollRes.circuitBreakersTripped || 0} circuit breakers tripped.`);
+    } catch (err) {
+      console.error('[Scheduler Error] Inbound reply poller failed:', err.message);
+      pushUiAuditLog('INBOUND_POLL_ERROR', `Inbound poll failed: ${err.message}`);
+    }
+  }, {
+    scheduled: true,
+    timezone: 'America/Chicago'
+  });
+
+  console.log('[Scheduler] node-cron autonomous daily schedules initialized (6:00 AM CST intake, 8:00 AM CST dispatch, 15-min inbound triage & 00:00 midnight CST reset).');
 }
 
 function stopScheduler() {
@@ -1860,19 +1889,25 @@ function stopScheduler() {
     morningDispatchJob.stop();
     morningDispatchJob = null;
   }
+  if (inboundPollerJob) {
+    inboundPollerJob.stop();
+    inboundPollerJob = null;
+  }
 }
 
 function getSchedulerStatus() {
   return {
-    status: (morningDispatchJob && midnightResetJob && morningIntakeJob) ? "ACTIVE" : "STANDBY",
+    status: (morningDispatchJob && midnightResetJob && morningIntakeJob && inboundPollerJob) ? "ACTIVE" : "STANDBY",
     timezone: "America/Chicago (CST)",
     intakeSchedule: "0 6 * * * (6:00 AM CST)",
     dispatchSchedule: "0 8 * * * (8:00 AM CST)",
+    inboundSchedule: "*/15 * * * * (Every 15 min CST)",
     resetSchedule: "0 0 * * * (00:00 Midnight CST)",
     outboundPaused: process.env.OUTBOUND_PAUSED === 'true',
     jobsRunning: {
       morningIntake: !!morningIntakeJob,
       morningDispatch: !!morningDispatchJob,
+      inboundPoller: !!inboundPollerJob,
       midnightReset: !!midnightResetJob
     }
   };
@@ -1922,6 +1957,26 @@ app.post('/api/scheduler/reset', (req, res) => {
     const { resetDailySendCounter } = require('./skills/skill7_pipeline_manager');
     const result = resetDailySendCounter();
     res.json({ success: true, status: "COUNTER_RESET", result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Dedicated Inbound Reply Listener & Triage Endpoints
+app.post(['/api/inbound/poll', '/api/triage/poll'], async (req, res) => {
+  try {
+    const { pollInboundReplies } = require('./lib/inboundReplyListener');
+    const result = await pollInboundReplies(req.body || {});
+    res.json({ success: true, status: "INBOUND_POLL_EXECUTED", result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get(['/api/inbound/triage', '/api/triage/status', '/api/inbound/staged-drafts'], (req, res) => {
+  try {
+    const { getInboxTriageTelemetry } = require('./lib/inboundReplyListener');
+    res.json({ success: true, triage: getInboxTriageTelemetry() });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

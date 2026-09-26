@@ -10,7 +10,7 @@ const fs = require('fs');
 const DB_PATH = path.join(__dirname, '..', 'pipeline.db');
 const JSON_CRM_PATH = path.join(__dirname, '..', 'crm_leads_tracker.json');
 
-const VALID_STAGES = ['discovered', 'triaged', 'contacted', 'proposed', 'converted', 'disqualified', 'disqualified_invalid_mx'];
+const VALID_STAGES = ['discovered', 'triaged', 'contacted', 'contacted_replied', 'proposed', 'converted', 'disqualified', 'disqualified_invalid_mx'];
 
 let dbInstance = null;
 

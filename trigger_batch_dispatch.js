@@ -414,6 +414,17 @@ async function sendSingleEmail(lead) {
     return { lead, success: false, statusCode: 422, error: `ERR_THREAD_PAUSED: Thread ${lead.email} is paused for human review` };
   }
 
+  // OUTBOUND CIRCUIT BREAKER GATE (NON-BYPASSABLE)
+  try {
+    const { getDatabase } = require('./skills/skill7_pipeline_manager');
+    const db = getDatabase();
+    const leadRecord = db.prepare('SELECT stage FROM pipeline_leads WHERE LOWER(email) = ? LIMIT 1').get(emailLower);
+    if (leadRecord && leadRecord.stage === 'contacted_replied') {
+      console.log(`[CIRCUIT BREAKER] ${lead.email} — lead replied, outbound cold dispatch blocked`);
+      return { lead, success: false, statusCode: 422, error: `ERR_CIRCUIT_BREAKER_TRIPPED: Lead ${lead.email} has replied (contacted_replied). Outbound dispatch blocked.` };
+    }
+  } catch (cbErr) {}
+
   // HARD BLOCKLIST GATE (NON-BYPASSABLE)
   const blocklist = loadBlocklist();
   if (blocklist.emails.has(emailLower) || (domainLower && !FREEMAIL_DOMAINS.has(domainLower) && blocklist.domains.has(domainLower))) {
@@ -765,5 +776,6 @@ module.exports = {
   loadVerifiedLeads,
   getRandomStaggerMs,
   checkDailySendCounter,
+  sendSingleEmail,
   DAILY_CAP
 };
