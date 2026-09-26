@@ -116,14 +116,16 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
   }
 
   // 3. Daily Send Counter
+  const { getDailyDispatchState } = require('./skills/skill7_pipeline_manager');
+  const dispatchState = typeof getDailyDispatchState === 'function' ? getDailyDispatchState() : null;
   const dailyLimit = parseInt(process.env.DAILY_DISPATCH_LIMIT || '35', 10);
-  const sentToday = queueSummary.totalDispatched || productionMetrics.totalLiveDispatched || 0;
+  const sentToday = dispatchState ? dispatchState.sentToday : 0;
   const dailySendCounter = {
-    dailyLimit,
+    dailyLimit: dispatchState ? dispatchState.dailyLimit : dailyLimit,
     sentToday,
-    remainingToday: Math.max(0, dailyLimit - sentToday),
-    status: sentToday >= dailyLimit ? "CAP_REACHED" : "ACTIVE",
-    lastLiveDispatchAt: productionMetrics.lastLiveDispatchAt || new Date().toISOString()
+    remainingToday: dispatchState ? dispatchState.remainingToday : Math.max(0, dailyLimit - sentToday),
+    status: dispatchState ? dispatchState.status : (sentToday >= dailyLimit ? "CAP_REACHED" : "ACTIVE"),
+    lastLiveDispatchAt: dispatchState?.lastDispatchAt || productionMetrics.lastLiveDispatchAt || new Date().toISOString()
   };
 
   // 4. Failover Router Health
