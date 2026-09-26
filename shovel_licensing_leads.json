@@ -1,0 +1,327 @@
+{
+  "pipelineName": "Self-Cleaning Jobsite Shovel Commercial IP & Licensing Acquisition",
+  "patentRecord": {
+    "patentApplicationNumber": "64/035,114",
+    "patentTitle": "Self-Cleaning, Self-Standing Jobsite Shovel",
+    "patentFilingType": "U.S. Provisional Patent Application",
+    "inventor": "Jack Bockholdt",
+    "primaryLandingAndDemo": "https://selfcleaningshovel.tiiny.site",
+    "governanceRestrictions": "NO hardcoded payment links. All initial outreach must focus exclusively on mutual NDA execution and Outside Submission review calls."
+  },
+  "stagedTargetsCount": 10,
+  "stagedAt": "2026-09-10T16:31:12.056Z",
+  "targets": [
+    {
+      "id": "SHOVEL-LIC-BULLY-001",
+      "company": "Bully Tools Inc.",
+      "domain": "bullytools.com",
+      "brandCategory": "100% Made in USA Contractor-Grade Digging Tools",
+      "officialSubmissionContact": {
+        "name": "Mark Gracy",
+        "title": "Founder & CEO / Licensing Review",
+        "email": "sales@bullytools.com",
+        "department": "Bully Tools New Product Development & Licensing"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear Bully Tools New Product Development & Licensing,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like Bully Tools. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-09T17:02:05.174Z",
+      "dispatchedAt": "2026-09-09T17:40:13.091Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a087417e734a06d",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-RADIUS-002",
+      "company": "Radius Garden (American Lawn Mower Co.)",
+      "domain": "radiusgarden.com",
+      "brandCategory": "Ergonomic Hand & Digging Tool Innovator (O-Handle)",
+      "officialSubmissionContact": {
+        "name": "Bruce Baker",
+        "title": "Product Innovation & IP Licensing Lead",
+        "email": "contact@radiusgarden.com",
+        "department": "Radius Garden IP & New Concept Intake"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear Radius Garden Innovation & Licensing Intake,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like Radius Garden. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-09T17:02:05.174Z",
+      "dispatchedAt": "2026-09-09T17:40:21.935Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a087419cc541997",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-DMOS-003",
+      "company": "DMOS Collective Inc.",
+      "domain": "dmoscollective.com",
+      "brandCategory": "High-Performance Tactical, All-Terrain & Pro Shovels",
+      "officialSubmissionContact": {
+        "name": "Product Licensing Committee",
+        "title": "Outside Product Submissions & Technology Licensing",
+        "email": "info@dmoscollective.com",
+        "department": "DMOS Collective Innovation Lab"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear DMOS Collective Product Licensing Team,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like DMOS Collective. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-09T17:02:05.174Z",
+      "dispatchedAt": "2026-09-09T17:40:33.763Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a08741cfcadfc68",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-FISKARS-004",
+      "company": "Fiskars Americas (Fiskars Group)",
+      "domain": "fiskars.com",
+      "brandCategory": "Global Consumer Goods & Premium Ergonomic Garden/Yard Tools",
+      "officialSubmissionContact": {
+        "name": "James Robertson",
+        "title": "Corporate Licensing & Open Innovation Director",
+        "email": "inquiries@fiskars.com",
+        "department": "Fiskars Americas Outside Submission & IP Acquisition"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear Fiskars Americas Corporate Licensing Department,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like Fiskars Americas. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-09T17:02:05.174Z",
+      "dispatchedAt": "2026-09-09T17:40:46.131Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a087420053a3cb1",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-CORONA-005",
+      "company": "Corona Tools (Bellota / Venanpri Group)",
+      "domain": "coronatools.com",
+      "brandCategory": "Commercial Agricultural, Landscape & Digging Tools",
+      "officialSubmissionContact": {
+        "name": "Steve Hanson",
+        "title": "VP of Product Development & Innovation",
+        "email": "sales@coronatools.com",
+        "department": "Corona Tools Product Innovation"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear Corona Tools Product Development Team,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like Corona Tools. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-09T17:02:05.174Z",
+      "dispatchedAt": "2026-09-09T17:41:44.396Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a08742e4b081ca6",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-AMES-006",
+      "company": "The Ames Companies (Griffon Corporation)",
+      "domain": "ames.com",
+      "brandCategory": "Largest North American Non-Powered Lawn & Garden Manufacturer (True Temper, Razor-Back)",
+      "officialSubmissionContact": {
+        "name": "Corporate Licensing Committee",
+        "title": "New Product Development & External IP Submissions",
+        "email": "corporate@ames.com",
+        "department": "The Ames Companies Outside Submission Intake"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear The Ames Companies Corporate Licensing Team,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like The Ames Companies. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-09T17:02:05.174Z",
+      "dispatchedAt": "2026-09-09T17:41:17.795Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a087427fc3c2360",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-QEP-007",
+      "company": "Q.E.P. Co., Inc. / Nupla",
+      "domain": "qep.com",
+      "brandCategory": "Industrial Contractor Flooring, Digging & Nupla Composite Tools",
+      "officialSubmissionContact": {
+        "name": "Product Development & Licensing Intake",
+        "title": "New Product Development & External Submissions",
+        "email": "customer.service@qep.com",
+        "department": "Q.E.P. Corporate Product Innovation"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear Q.E.P. Corporate Product Innovation Team,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like Q.E.P. / Nupla. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-10T16:29:51.656Z",
+      "dispatchedAt": "2026-09-10T16:31:23.199Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a08c28d28df6374",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-TRUPER-008",
+      "company": "Truper Herramientas / Truper USA",
+      "domain": "truper.com",
+      "brandCategory": "Global Heavy-Duty Hardware & Contractor Shovel Manufacturer",
+      "officialSubmissionContact": {
+        "name": "Commercial Sales & Product Innovation",
+        "title": "Commercial Innovation & Licensing Review",
+        "email": "custserv@truper.com",
+        "department": "Truper Product Innovation & External Submissions"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear Truper Product Innovation & External Submissions,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like Truper. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-10T16:29:51.657Z",
+      "dispatchedAt": "2026-09-10T16:31:35.701Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a08c290320b195c",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-MIDWEST-009",
+      "company": "Midwest Rake / Kenyon Tools",
+      "domain": "midwestrake.com",
+      "brandCategory": "Specialty Commercial Ground Maintenance & Contractor Landscaping Tools",
+      "officialSubmissionContact": {
+        "name": "New Product Intake & IP Review",
+        "title": "Product Management & IP Intake",
+        "email": "info@midwestrake.com",
+        "department": "Midwest Rake / Kenyon Innovation Intake"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear Midwest Rake / Kenyon Innovation Intake,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like Midwest Rake / Kenyon. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-10T16:29:51.657Z",
+      "dispatchedAt": "2026-09-10T16:31:48.549Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a08c293a4a0ca3e",
+      "statusCode": 200
+    },
+    {
+      "id": "SHOVEL-LIC-WILCOX-010",
+      "company": "Wilcox All-Pro Tools",
+      "domain": "wilcoxallpro.com",
+      "brandCategory": "Heavy-Duty One-Piece Stainless Steel Digging & Trowel Tools",
+      "officialSubmissionContact": {
+        "name": "Engineering & Outside Submissions",
+        "title": "Engineering & Licensing Intake",
+        "email": "wilcox@wilcoxallpro.com",
+        "department": "Wilcox All-Pro Engineering & Product Development"
+      },
+      "patentProtection": {
+        "patentType": "U.S. Provisional Patent Application",
+        "patentNumber": "64/035,114",
+        "inventionTitle": "Self-Cleaning, Self-Standing Jobsite Shovel"
+      },
+      "status": "DISPATCHED_PENDING_REVIEW",
+      "demoUrl": "https://selfcleaningshovel.tiiny.site",
+      "licensingProposalType": "Exclusive Manufacturing License / Patent Buyout",
+      "ndaRequired": true,
+      "hardcodedPaymentLinks": false,
+      "outsideSubmissionPitch": {
+        "subject": "Outside Submission / Patent Licensing Review: Self-Cleaning Shovel (U.S. Prov. Pat. 64/035,114)",
+        "body": "Dear Wilcox All-Pro Engineering & Product Development,\n\nI am writing to submit an outside product licensing inquiry regarding a patented commercial hand tool innovation: the Self-Cleaning, Self-Standing Jobsite Shovel (protected under U.S. Provisional Patent Application No. 64/035,114).\n\nField trials on commercial jobsites confirm that mud, soil, and clay adhesion increases user fatigue and slows digging cycle times by over 20%. Our design incorporates a mechanical release geometry that completely eliminates soil adhesion without adding moving failure points, while retaining full structural contractor-grade durability.\n\nA complete technical demonstration, utility specifications, and field video can be reviewed directly at:\n👉 https://selfcleaningshovel.tiiny.site\n\nWe are currently evaluating outside submission agreements and exclusive manufacturing licensing / patent buyout opportunities with established tool brands like Wilcox All-Pro. We would welcome the opportunity to execute your standard Outside Submission Agreement or Mutual Non-Disclosure Agreement (NDA) and schedule a brief 15-minute technical review call with your engineering and product licensing team.\n\nPlease let me know your preferred procedure for outside submission review.\n\nSincerely,\nJack Bockholdt\nInventor & Patent Holder\nU.S. Provisional Patent No. 64/035,114\nMissed Call Project / Master Hustle Engine\nEmail: jbockholdt4@gmail.com\nDirect: (217) 609-1305\nInteractive Demo: https://selfcleaningshovel.tiiny.site"
+      },
+      "stagedAt": "2026-09-10T16:29:51.657Z",
+      "dispatchedAt": "2026-09-10T16:31:56.435Z",
+      "dispatchStatus": "DELIVERED (250 OK)",
+      "messageId": "1a08c2954e0f0d8d",
+      "statusCode": 200
+    }
+  ],
+  "lastDispatchedAt": "2026-09-10T16:31:56.435Z",
+  "dispatchedCount": 10
+}

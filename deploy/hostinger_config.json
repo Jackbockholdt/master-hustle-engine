@@ -1,0 +1,14 @@
+{
+  "provider": "Hostinger DNS & Web Hosting",
+  "primaryTarget": "misscallproject.com",
+  "domains": [
+    {
+      "domain": "misscallproject.com",
+      "type": "Primary Application Target",
+      "records": [
+        { "type": "A", "name": "@", "value": "212.1.208.188" },
+        { "type": "CNAME", "name": "www", "value": "misscallproject.com" }
+      ]
+    }
+  ]
+}

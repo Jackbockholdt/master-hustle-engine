@@ -1,0 +1,128 @@
+[
+  {
+    "path": "/v1/vps",
+    "status": 530,
+    "headers": {
+      "date": "Sun, 30 Aug 2026 15:41:22 GMT",
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": "17",
+      "connection": "keep-alive",
+      "cache-control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+      "expires": "Thu, 01 Jan 1970 00:00:01 GMT",
+      "referrer-policy": "same-origin",
+      "x-frame-options": "SAMEORIGIN",
+      "server": "cloudflare",
+      "cf-ray": "a334e6379b28f608-ORD",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "raw": "error code: 1016\n"
+  },
+  {
+    "path": "/v1/domains",
+    "status": 530,
+    "headers": {
+      "date": "Sun, 30 Aug 2026 15:41:22 GMT",
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": "17",
+      "connection": "keep-alive",
+      "cache-control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+      "expires": "Thu, 01 Jan 1970 00:00:01 GMT",
+      "referrer-policy": "same-origin",
+      "x-frame-options": "SAMEORIGIN",
+      "server": "cloudflare",
+      "cf-ray": "a334e6382ca1f608-ORD",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "raw": "error code: 1016\n"
+  },
+  {
+    "path": "/v1/dns/zones",
+    "status": 530,
+    "headers": {
+      "date": "Sun, 30 Aug 2026 15:41:22 GMT",
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": "17",
+      "connection": "keep-alive",
+      "cache-control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+      "expires": "Thu, 01 Jan 1970 00:00:01 GMT",
+      "referrer-policy": "same-origin",
+      "x-frame-options": "SAMEORIGIN",
+      "server": "cloudflare",
+      "cf-ray": "a334e6389dc7f608-ORD",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "raw": "error code: 1016\n"
+  },
+  {
+    "path": "/v1/hosting/accounts",
+    "status": 530,
+    "headers": {
+      "date": "Sun, 30 Aug 2026 15:41:22 GMT",
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": "17",
+      "connection": "keep-alive",
+      "cache-control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+      "expires": "Thu, 01 Jan 1970 00:00:01 GMT",
+      "referrer-policy": "same-origin",
+      "x-frame-options": "SAMEORIGIN",
+      "server": "cloudflare",
+      "cf-ray": "a334e6390ef5f608-ORD",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "raw": "error code: 1016\n"
+  },
+  {
+    "path": "/v1/webhooks",
+    "status": 530,
+    "headers": {
+      "date": "Sun, 30 Aug 2026 15:41:22 GMT",
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": "17",
+      "connection": "keep-alive",
+      "cache-control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+      "expires": "Thu, 01 Jan 1970 00:00:01 GMT",
+      "referrer-policy": "same-origin",
+      "x-frame-options": "SAMEORIGIN",
+      "server": "cloudflare",
+      "cf-ray": "a334e6397816f608-ORD",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "raw": "error code: 1016\n"
+  },
+  {
+    "path": "/v2/vps",
+    "status": 530,
+    "headers": {
+      "date": "Sun, 30 Aug 2026 15:41:22 GMT",
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": "17",
+      "connection": "keep-alive",
+      "cache-control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+      "expires": "Thu, 01 Jan 1970 00:00:01 GMT",
+      "referrer-policy": "same-origin",
+      "x-frame-options": "SAMEORIGIN",
+      "server": "cloudflare",
+      "cf-ray": "a334e639e958f608-ORD",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "raw": "error code: 1016\n"
+  },
+  {
+    "path": "/v2/domains",
+    "status": 530,
+    "headers": {
+      "date": "Sun, 30 Aug 2026 15:41:22 GMT",
+      "content-type": "text/plain; charset=UTF-8",
+      "content-length": "17",
+      "connection": "keep-alive",
+      "cache-control": "private, max-age=0, no-store, no-cache, must-revalidate, post-check=0, pre-check=0",
+      "expires": "Thu, 01 Jan 1970 00:00:01 GMT",
+      "referrer-policy": "same-origin",
+      "x-frame-options": "SAMEORIGIN",
+      "server": "cloudflare",
+      "cf-ray": "a334e63a5a53f608-ORD",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "raw": "error code: 1016\n"
+  }
+]
