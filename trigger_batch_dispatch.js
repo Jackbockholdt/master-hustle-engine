@@ -356,13 +356,50 @@ function loadVerifiedLeads() {
         company_cap: companyCap,
         status: status,
         tier: getVal('tier') || 'A',
-        phone: getVal('phone') || '',
-        location: getVal('location') || '',
-        industry: getVal('industry') || '',
-        intent: getVal('intent') || 'High'
+        phone: getVal('phone') || ''
       });
     }
   }
+
+  // Also load uncontacted, qualified leads from pipeline.db
+  try {
+    const { getDatabase } = require('./skills/skill7_pipeline_manager');
+    const db = getDatabase();
+    const rows = db.prepare(`
+      SELECT * FROM pipeline_leads 
+      WHERE stage IN ('discovered', 'triaged') 
+        AND (qualification_tier IS NULL OR qualification_tier NOT LIKE 'DISQUALIFIED%')
+    `).all();
+
+    const seenEmails = new Set(leads.map(l => l.email.toLowerCase()));
+
+    for (const r of rows) {
+      const email = (r.email || '').trim().toLowerCase();
+      if (!email || !email.includes('@') || seenEmails.has(email)) continue;
+      seenEmails.add(email);
+
+      const domain = (r.domain || email.split('@')[1] || '').trim().toLowerCase();
+      leads.push({
+        id: r.id,
+        company: r.company || domain,
+        first_name: r.name ? r.name.split(' ')[0] : '',
+        last_name: r.name ? r.name.split(' ').slice(1).join(' ') : '',
+        email: email,
+        email_status: 'valid',
+        domain: domain,
+        company_cap: domain,
+        status: 'READY',
+        tier: r.qualification_tier || 'A',
+        phone: '',
+        location: '',
+        industry: r.industry || 'Digital Marketing Agency',
+        intent: 'High'
+      });
+    }
+  } catch (err) {
+    // Non-fatal fallback
+  }
+
   return leads;
 }
 
@@ -452,6 +489,16 @@ function recordOutreachLog(lead, outcome = 'delivered awaiting reply', status = 
 
   try {
     recordDailySend(1);
+  } catch (e) {}
+
+  // Update pipeline.db stage to contacted if lead exists
+  try {
+    const { getDatabase, transitionStage } = require('./skills/skill7_pipeline_manager');
+    const db = getDatabase();
+    const existing = db.prepare('SELECT id FROM pipeline_leads WHERE LOWER(email) = ?').get(lead.email.toLowerCase().trim());
+    if (existing) {
+      transitionStage(existing.id, 'contacted', 'Dispatched live email via autonomous batch loop');
+    }
   } catch (e) {}
 }
 

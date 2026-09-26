@@ -82,24 +82,32 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
   let queueSummary = {
     database: "pipeline.db",
     status: "HEALTHY",
+    leadQueueDepth: 0,
+    uncontactedQualifiedLeads: 0,
     stageCounts: {
       discovered: 0,
       triaged: 0,
       contacted: 0,
       proposed: 0,
       converted: 0,
-      disqualified: 0
+      disqualified: 0,
+      disqualified_invalid_mx: 0
     },
     totalQueued: 0,
     totalDispatched: 0
   };
 
   try {
-    const { getPipelineSummary } = require('./skills/skill7_pipeline_manager');
+    const { getPipelineSummary, getLeadQueueDepth } = require('./skills/skill7_pipeline_manager');
     const summary = getPipelineSummary();
     if (summary && summary.stageCounts) {
       queueSummary.stageCounts = summary.stageCounts;
-      queueSummary.totalQueued = (summary.stageCounts.discovered || 0) + (summary.stageCounts.triaged || 0);
+      const depth = typeof getLeadQueueDepth === 'function'
+        ? getLeadQueueDepth()
+        : ((summary.stageCounts.discovered || 0) + (summary.stageCounts.triaged || 0));
+      queueSummary.leadQueueDepth = depth;
+      queueSummary.uncontactedQualifiedLeads = depth;
+      queueSummary.totalQueued = depth;
       queueSummary.totalDispatched = (summary.stageCounts.contacted || 0) + (summary.stageCounts.proposed || 0) + (summary.stageCounts.converted || 0);
     }
   } catch (qErr) {
@@ -138,6 +146,7 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
   const scheduler = typeof getSchedulerStatus === 'function' ? getSchedulerStatus() : {
     status: "ACTIVE",
     timezone: "America/Chicago (CST)",
+    intakeSchedule: "0 6 * * * (6:00 AM CST)",
     dispatchSchedule: "0 8 * * * (8:00 AM CST)",
     resetSchedule: "0 0 * * * (00:00 Midnight CST)"
   };
@@ -146,6 +155,7 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
     success: true,
     telemetry,
     outboundQueue: queueSummary,
+    leadQueueDepth: queueSummary.leadQueueDepth,
     dailySendCounter,
     scheduler,
     threadsForReview,
@@ -1758,10 +1768,11 @@ app.get('/api/daily-send-counter', (req, res) => {
 // ===================================================================
 
 let midnightResetJob = null;
+let morningIntakeJob = null;
 let morningDispatchJob = null;
 
 function initScheduler() {
-  if (midnightResetJob || morningDispatchJob) return;
+  if (midnightResetJob || morningIntakeJob || morningDispatchJob) return;
 
   // 1. Midnight Reset Job: 00:00 midnight CST (0 0 * * *)
   midnightResetJob = cron.schedule('0 0 * * *', () => {
@@ -1779,7 +1790,25 @@ function initScheduler() {
     timezone: 'America/Chicago'
   });
 
-  // 2. Morning Batch Dispatch Job: 8:00 AM CST (0 8 * * *)
+  // 2. Morning Automated Outscraper Lead Intake Job: 6:00 AM CST (0 6 * * *)
+  morningIntakeJob = cron.schedule('0 6 * * *', async () => {
+    console.log('[Scheduler] Triggering autonomous daily Outscraper lead intake at 6:00 AM CST...');
+    try {
+      const { runAutonomousDailyIntake } = require('./lib/autonomousLeadIntake');
+      pushUiAuditLog('INTAKE_START', 'Autonomous 6:00 AM CST Outscraper lead intake triggered');
+      const intakeRes = await runAutonomousDailyIntake({ limit: 15 });
+      console.log(`[Scheduler] 6:00 AM CST intake complete: staged ${intakeRes.stagedCount} clean leads. Lead queue depth: ${intakeRes.leadQueueDepth}.`);
+      pushUiAuditLog('INTAKE_COMPLETE', `Daily intake complete: ${intakeRes.stagedCount} staged, queue depth ${intakeRes.leadQueueDepth}`);
+    } catch (err) {
+      console.error('[Scheduler Error] Autonomous daily lead intake failed:', err.message);
+      pushUiAuditLog('INTAKE_ERROR', `Daily intake failed: ${err.message}`);
+    }
+  }, {
+    scheduled: true,
+    timezone: 'America/Chicago'
+  });
+
+  // 3. Morning Batch Dispatch Job: 8:00 AM CST (0 8 * * *)
   morningDispatchJob = cron.schedule('0 8 * * *', async () => {
     console.log('[Scheduler] Triggering autonomous daily batch dispatch at 8:00 AM CST...');
 
@@ -1813,13 +1842,17 @@ function initScheduler() {
     timezone: 'America/Chicago'
   });
 
-  console.log('[Scheduler] node-cron autonomous daily schedules initialized (8:00 AM CST dispatch & 00:00 midnight CST reset).');
+  console.log('[Scheduler] node-cron autonomous daily schedules initialized (6:00 AM CST intake, 8:00 AM CST dispatch & 00:00 midnight CST reset).');
 }
 
 function stopScheduler() {
   if (midnightResetJob) {
     midnightResetJob.stop();
     midnightResetJob = null;
+  }
+  if (morningIntakeJob) {
+    morningIntakeJob.stop();
+    morningIntakeJob = null;
   }
   if (morningDispatchJob) {
     morningDispatchJob.stop();
@@ -1829,12 +1862,14 @@ function stopScheduler() {
 
 function getSchedulerStatus() {
   return {
-    status: (morningDispatchJob && midnightResetJob) ? "ACTIVE" : "STANDBY",
+    status: (morningDispatchJob && midnightResetJob && morningIntakeJob) ? "ACTIVE" : "STANDBY",
     timezone: "America/Chicago (CST)",
+    intakeSchedule: "0 6 * * * (6:00 AM CST)",
     dispatchSchedule: "0 8 * * * (8:00 AM CST)",
     resetSchedule: "0 0 * * * (00:00 Midnight CST)",
     outboundPaused: process.env.OUTBOUND_PAUSED === 'true',
     jobsRunning: {
+      morningIntake: !!morningIntakeJob,
       morningDispatch: !!morningDispatchJob,
       midnightReset: !!midnightResetJob
     }
@@ -1842,6 +1877,23 @@ function getSchedulerStatus() {
 }
 
 // Dedicated Scheduler Management Endpoints
+app.post(['/api/scheduler/intake', '/api/intake/trigger'], async (req, res) => {
+  try {
+    const { runAutonomousDailyIntake } = require('./lib/autonomousLeadIntake');
+    const { query, limit, mock, dryRun, forceLive } = req.body || {};
+    const result = await runAutonomousDailyIntake({
+      query,
+      limit: parseInt(limit, 10) || 15,
+      mock: mock === true,
+      dryRun: dryRun === true,
+      forceLive: forceLive === true
+    });
+    res.json({ success: true, status: "INTAKE_EXECUTED", result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.post(['/api/scheduler/trigger', '/api/cron/run'], async (req, res) => {
   if (process.env.OUTBOUND_PAUSED === 'true') {
     return res.json({ success: false, reason: "OUTBOUND_PAUSED is set to true" });

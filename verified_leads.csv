@@ -9,3 +9,5 @@ A,info@rightclickdigital.net,callrightclick.com,valid,DNS MX & Blocklist Verifie
 A,info@cfx-inc.com,cfx-inc.com,valid,DNS MX & Blocklist Verified,role inbox,cfx-inc.com,READY,"Company: Cfx Inc. | Industry: Digital Marketing Agency"
 A,sales@blayzer.com,blayzer.com,valid,DNS MX & Blocklist Verified,role inbox,blayzer.com,READY,"Company: Blayzer Digital | Industry: Digital Marketing Agency"
 A,verify@testco.com,testco.com,valid,Gumloop Webhook Verified,role inbox,testco.com,READY,"Company: Test Verification Co | Ingested: 2026-09-25T16:51:35.322Z | Name: there"
+A,brett@lonestargrowth.com,lonestargrowth.com,valid,Outscraper & DNS MX Verified,named person,lonestargrowth.com,READY,"Company: Lone Star Growth Agency | Industry: digital marketing agency | Name: Brett"
+A,vanessa@sunsetdigitalmedia.com,sunsetdigitalmedia.com,valid,Outscraper & DNS MX Verified,named person,sunsetdigitalmedia.com,READY,"Company: Sunset Digital Media | Industry: paid media agency | Name: Vanessa"

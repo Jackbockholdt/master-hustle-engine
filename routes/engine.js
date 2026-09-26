@@ -589,13 +589,16 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
   let queueSummary = {
     database: "pipeline.db",
     status: "HEALTHY",
+    leadQueueDepth: 0,
+    uncontactedQualifiedLeads: 0,
     stageCounts: {
       discovered: 0,
       triaged: 0,
       contacted: 0,
       proposed: 0,
       converted: 0,
-      disqualified: 0
+      disqualified: 0,
+      disqualified_invalid_mx: 0
     },
     totalQueued: 0,
     totalDispatched: 0
@@ -605,7 +608,10 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
     const summary = getPipelineSummary();
     if (summary && summary.stageCounts) {
       queueSummary.stageCounts = summary.stageCounts;
-      queueSummary.totalQueued = (summary.stageCounts.discovered || 0) + (summary.stageCounts.triaged || 0);
+      const depth = (summary.stageCounts.discovered || 0) + (summary.stageCounts.triaged || 0);
+      queueSummary.leadQueueDepth = depth;
+      queueSummary.uncontactedQualifiedLeads = depth;
+      queueSummary.totalQueued = depth;
       queueSummary.totalDispatched = (summary.stageCounts.contacted || 0) + (summary.stageCounts.proposed || 0) + (summary.stageCounts.converted || 0);
     }
   } catch (qErr) {
@@ -643,6 +649,7 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
   const scheduler = {
     status: "ACTIVE",
     timezone: "America/Chicago (CST)",
+    intakeSchedule: "0 6 * * * (6:00 AM CST)",
     dispatchSchedule: "0 8 * * * (8:00 AM CST)",
     resetSchedule: "0 0 * * * (00:00 Midnight CST)",
     outboundPaused: process.env.OUTBOUND_PAUSED === 'true'
@@ -652,12 +659,31 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
     success: true,
     telemetry,
     outboundQueue: queueSummary,
+    leadQueueDepth: queueSummary.leadQueueDepth,
     dailySendCounter,
     scheduler,
     threadsForReview,
     flaggedForReview: threadsForReview,
     failoverRouter: failoverRouterHealth
   });
+});
+
+// Autonomous Lead Intake Trigger Route
+router.post(['/intake/run', '/api/intake/run', '/scheduler/intake', '/api/scheduler/intake'], async (req, res) => {
+  try {
+    const { runAutonomousDailyIntake } = require('../lib/autonomousLeadIntake');
+    const { query, limit, mock, dryRun, forceLive } = req.body || {};
+    const result = await runAutonomousDailyIntake({
+      query,
+      limit: parseInt(limit, 10) || 15,
+      mock: mock === true,
+      dryRun: dryRun === true,
+      forceLive: forceLive === true
+    });
+    return res.status(200).json(result);
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Daily Send Counter Dedicated Endpoint

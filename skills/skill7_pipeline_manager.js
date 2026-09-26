@@ -230,10 +230,13 @@ function getPipelineSummary() {
   const reviewThreadsStmt = db.prepare(`SELECT * FROM review_threads WHERE status = 'PAUSED_NEEDS_REVIEW' ORDER BY updated_at DESC`);
   const flaggedForReview = reviewThreadsStmt.all();
 
+  const leadQueueDepth = (stageCounts.discovered || 0) + (stageCounts.triaged || 0);
+
   return {
     success: true,
     database: "SQLite (node:sqlite)",
     dbPath: DB_PATH,
+    leadQueueDepth,
     stageCounts,
     totalLeads: Object.values(stageCounts).reduce((a, b) => a + b, 0),
     financials: {
@@ -243,6 +246,51 @@ function getPipelineSummary() {
     flaggedForReview,
     recentLeads
   };
+}
+
+/**
+ * Returns total count of uncontacted, qualified leads in pipeline.db.
+ */
+function getLeadQueueDepth() {
+  const db = getDatabase();
+  try {
+    const row = db.prepare(`
+      SELECT COUNT(*) as count 
+      FROM pipeline_leads 
+      WHERE stage IN ('discovered', 'triaged') 
+        AND (qualification_tier IS NULL OR qualification_tier NOT LIKE 'DISQUALIFIED%')
+    `).get();
+    return Number(row?.count || 0);
+  } catch (err) {
+    return 0;
+  }
+}
+
+/**
+ * Checks if a company, email, or domain already exists in pipeline_leads table.
+ */
+function isLeadInPipeline({ email = '', domain = '', company = '' } = {}) {
+  const db = getDatabase();
+  const cleanEmail = String(email || '').trim().toLowerCase();
+  const cleanDomain = String(domain || '').trim().toLowerCase();
+  const cleanCompany = String(company || '').trim().toLowerCase();
+
+  if (cleanEmail) {
+    const row = db.prepare('SELECT id, stage FROM pipeline_leads WHERE LOWER(email) = ?').get(cleanEmail);
+    if (row) return { exists: true, match: 'email', stage: row.stage, id: row.id };
+  }
+
+  if (cleanDomain) {
+    const row = db.prepare('SELECT id, stage FROM pipeline_leads WHERE LOWER(domain) = ?').get(cleanDomain);
+    if (row) return { exists: true, match: 'domain', stage: row.stage, id: row.id };
+  }
+
+  if (cleanCompany && cleanCompany.length > 2) {
+    const row = db.prepare('SELECT id, stage FROM pipeline_leads WHERE LOWER(company) = ?').get(cleanCompany);
+    if (row) return { exists: true, match: 'company', stage: row.stage, id: row.id };
+  }
+
+  return { exists: false };
 }
 
 /**
@@ -549,5 +597,7 @@ module.exports = {
   getDailyDispatchState,
   recordDailySend,
   resetDailySendCounter,
+  getLeadQueueDepth,
+  isLeadInPipeline,
   VALID_STAGES
 };
