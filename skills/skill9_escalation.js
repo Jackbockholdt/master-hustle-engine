@@ -31,7 +31,7 @@ function triggerEscalation({ triggerType = 'VIP_DEAL_DETECTED', details = {}, le
 
     case 'MULTI_MODEL_EXHAUSTION':
       resolvedSeverity = resolvedSeverity || SEVERITY_LEVELS.P1_CRITICAL;
-      actionRequired = 'Inspect API_POOL tokens, verify billing on Gemini/Claude/Grok/OpenRouter.';
+      actionRequired = 'Inspect API_POOL tokens, verify billing on Gemini/Claude/OpenRouter.';
       break;
 
     case 'SECURITY_THREAT_BLOCK':

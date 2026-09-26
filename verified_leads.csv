@@ -8,3 +8,4 @@ A,hello@lemonseedmarketing.com,lemonseedmarketing.com,valid,DNS MX & Blocklist V
 A,info@rightclickdigital.net,callrightclick.com,valid,DNS MX & Blocklist Verified,role inbox,callrightclick.com,READY,"Company: Right Click Digital | Industry: Digital Marketing Agency"
 A,info@cfx-inc.com,cfx-inc.com,valid,DNS MX & Blocklist Verified,role inbox,cfx-inc.com,READY,"Company: Cfx Inc. | Industry: Digital Marketing Agency"
 A,sales@blayzer.com,blayzer.com,valid,DNS MX & Blocklist Verified,role inbox,blayzer.com,READY,"Company: Blayzer Digital | Industry: Digital Marketing Agency"
+A,verify@testco.com,testco.com,valid,Gumloop Webhook Verified,role inbox,testco.com,READY,"Company: Test Verification Co | Ingested: 2026-09-25T16:51:35.322Z | Name: there"

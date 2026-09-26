@@ -34,8 +34,8 @@ The **Master Hustle 3-Tier Token Router** isolates tasks by compute complexity, 
                                     ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │  Tier 2: Deep Researcher & Copywriting Engine                          │
-│  Model: Grok API Path (Prepaid Credits / Fast Copy)                    │
-│  Cost: ~$0.00150 USD / lead                                            │
+│  Model: Low-Cost Fallback Chain (Gemini Flash / Claude)                │
+│  Cost: ~$0.00010 USD / lead                                            │
 │  Tasks: Value proposition extraction, 3-step outreach & follow-up copy │
 └───────────────────────────────────┬────────────────────────────────────┘
                                     │ (Requires Verified Human Override)

@@ -32,9 +32,9 @@
     },
     {
       "tier": 3,
-      "name": "Outreach Copywriter (Prepaid Grok Credits)",
-      "model": "grok-beta",
-      "model_type": "GROK_PREPAID",
+      "name": "Outreach Copywriter (Low-Cost Fallback Chain)",
+      "model": "gemini-1.5-flash",
+      "model_type": "LOW_COST_FALLBACK",
       "outputs": ["subject_line", "email_body", "sms_body"],
       "dispatch_targets": ["email_smtp", "sms_gateway", "webhook_endpoint"]
     }

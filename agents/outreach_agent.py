@@ -3,7 +3,7 @@ Master Hustle Engine - Outreach Agent
 Handles 3-Tier Token Reducer Router for written lead outreach (Email, SMS, Webhooks).
 Enforces Token Governance:
 - Automated background/telemetry calls -> Gemini Flash (gemini-1.5-flash) (87.6% token reduction efficiency)
-- Outreach copy generation -> Grok API path (grok-beta) (prepaid credits)
+- Outreach copy generation -> Primary Low-Cost Fallback Chain (Gemini Flash)
 - Flagship Pro models -> Restricted to manual, human-triggered calls (human_triggered=True)
 """
 
@@ -15,21 +15,20 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 
 # Environment / API Keys
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GROK_API_KEY = os.environ.get("GROK_API_KEY", os.environ.get("XAI_API_KEY", ""))
 
 
 class OutreachAgent:
     """
     3-Tier Token Reducer Router:
     - Tier 1 (Qualifier): Gemini Flash (gemini-1.5-flash). Fast ICP qualification.
-    - Tier 2 (Researcher): Flash / Grok path. Hook & value prop extraction.
-    - Tier 3 (Copywriter): Grok API path (grok-beta) using prepaid credits. Flagship Pro restricted to human-triggered calls.
+    - Tier 2 (Researcher): Low-cost Flash path. Hook & value prop extraction.
+    - Tier 3 (Copywriter): Low-cost Flash / Claude Haiku fallback path. Flagship Pro restricted to human-triggered calls.
     """
 
     def __init__(self):
         self.qualifier_model = "gemini-1.5-flash"
         self.researcher_model = "gemini-1.5-flash"
-        self.copywriter_model = "grok-beta"
+        self.copywriter_model = "gemini-1.5-flash"
         self.flagship_model = "gemini-1.5-pro"
 
     def qualify_lead(self, lead_data: dict) -> dict:
@@ -93,7 +92,7 @@ class OutreachAgent:
     def generate_outreach_copy(self, lead_data: dict, research_data: dict, human_triggered: bool = False, model_override: str = None) -> dict:
         """
         Tier 3: High-Converting Copy Generation
-        Routes via Grok API path (grok-beta) using prepaid credits.
+        Routes via Primary Low-Cost Fallback Chain (Gemini Flash).
         Restricts flagship models (gemini-1.5-pro) strictly to human-triggered calls.
         """
         company_name = lead_data.get("company_name", lead_data.get("name", "there"))
@@ -102,7 +101,7 @@ class OutreachAgent:
 
         # Token Governance Guard
         if model_override == self.flagship_model and not human_triggered:
-            logging.warning("[Governance Warning] Flagship model requested without human_triggered=True. Falling back to Grok prepaid API path.")
+            logging.warning("[Governance Warning] Flagship model requested without human_triggered=True. Falling back to low-cost Flash path.")
             selected_model = self.copywriter_model
         elif model_override:
             selected_model = model_override

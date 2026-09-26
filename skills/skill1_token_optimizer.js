@@ -2,7 +2,7 @@
  * Skill 1: Financial Margin & Token Burn Optimizer
  * 3-Tier Token Reducer Architecture:
  * - Tier 1: Qualifier / Background Telemetry (Gemini 1.5 Flash) -> 87.6% token cost reduction (~$0.0001/lead)
- * - Tier 2: Research & Copy Drafting (Grok / Claude / Flash path)
+ * - Tier 2: Research & Copy Drafting (Primary Low-Cost Fallback: Gemini Flash / Claude Haiku)
  * - Tier 3: Flagship Pro (Gemini 1.5 Pro) -> Strictly gated to verified human triggers (HTTP 403 enforcement)
  */
 
@@ -14,7 +14,7 @@ const tokenStats = {
   totalTokensSaved: 0,
   modelTiers: {
     FLASH: process.env.GEMINI_MODEL || "gemini-1.5-flash",
-    GROK: "grok-beta",
+    LOW_COST_COPY: process.env.COPY_MODEL || "gemini-1.5-flash",
     FLAGSHIP: process.env.GEMINI_FLAGSHIP_MODEL || "gemini-1.5-pro"
   },
   marginTiers: {
@@ -78,17 +78,17 @@ function optimizeTokenRoute(params = {}) {
     };
   }
 
-  // Copywriting Tier
+  // Copywriting Tier (Low-Cost Fallback Chain)
   const isCopy = normTask.includes('COPY') || normTask.includes('OUTREACH') || normTask.includes('SALES');
   if (isCopy) {
     return {
       success: true,
       statusCode: 200,
-      selectedModel: tokenStats.modelTiers.GROK,
-      tier: 'GROK_PREPAID',
-      estimatedCostPerUnitUSD: 0.0015,
+      selectedModel: tokenStats.modelTiers.LOW_COST_COPY,
+      tier: 'LOW_COST_FALLBACK',
+      estimatedCostPerUnitUSD: 0.0001,
       cleanedPrompt,
-      marginTierRecommended: tokenStats.marginTiers.GROWTH
+      marginTierRecommended: tokenStats.marginTiers.RETAINER
     };
   }
 

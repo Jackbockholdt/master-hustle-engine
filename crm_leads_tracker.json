@@ -1,8 +1,8 @@
 {
   "pipelineName": "Master Hustle Engine 9-Skill Agency Licensing",
-  "lastRunAt": "2026-08-30T09:39:08.105Z",
-  "totalTargets": 9,
-  "qualifiedCount": 9,
+  "lastRunAt": "2026-09-10T16:30:11.200Z",
+  "totalTargets": 19,
+  "qualifiedCount": 19,
   "disqualifiedCount": 0,
   "leads": [
     {
@@ -13,32 +13,35 @@
       "domain": "hookagency.com",
       "email": "brynn@hookagency.com",
       "industry": "Digital Marketing & SEO Agency",
-      "stage": "proposed",
+      "stage": "contacted_step1",
       "qualificationScore": 100,
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAUM1",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting Hook Agency's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi Brynn,\n\nI saw Hook Agency's work in Digital Marketing & SEO Agency. If your team is running high-volume LLM workflows (High-volume SEO content generation, automated client reporting & LLM client workflows), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Hook Agency:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi Brynn,\n\nI saw Hook Agency's work in Digital Marketing & SEO Agency. If your team is running high-volume LLM workflows (High-volume SEO content generation, automated client reporting & LLM client workflows), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Hook Agency:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting Hook Agency's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi Brynn,\n\nFollowing up on my previous note regarding LLM margin recovery for Hook Agency.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi Brynn,\n\nFollowing up on my previous note regarding LLM margin recovery for Hook Agency.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt",
+          "dispatchedAt": "2026-09-08T17:03:57.227Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a081f9efc0052e5"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for Hook Agency",
-          "body": "Hi Brynn,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Hook Agency's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi Brynn,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Hook Agency's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     },
@@ -50,32 +53,35 @@
       "domain": "adcreations.com",
       "email": "lindsey@adcreations.com",
       "industry": "Performance Ad & Creative Studio",
-      "stage": "proposed",
+      "stage": "contacted_step1",
       "qualificationScore": 100,
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAUQB",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting Ad Creations's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi Lindsey,\n\nI saw Ad Creations's work in Performance Ad & Creative Studio. If your team is running high-volume LLM workflows (Multi-channel ad copywriting, automated creative angles & client onboarding), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Ad Creations:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi Lindsey,\n\nI saw Ad Creations's work in Performance Ad & Creative Studio. If your team is running high-volume LLM workflows (Multi-channel ad copywriting, automated creative angles & client onboarding), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Ad Creations:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting Ad Creations's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi Lindsey,\n\nFollowing up on my previous note regarding LLM margin recovery for Ad Creations.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi Lindsey,\n\nFollowing up on my previous note regarding LLM margin recovery for Ad Creations.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt",
+          "dispatchedAt": "2026-09-08T17:01:20.864Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a081f7b03e6fbb5"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for Ad Creations",
-          "body": "Hi Lindsey,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Ad Creations's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi Lindsey,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Ad Creations's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     },
@@ -92,27 +98,27 @@
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAUUJ",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting UX 4Sight's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi Alex,\n\nI saw UX 4Sight's work in Digital Product & UI/UX Agency. If your team is running high-volume LLM workflows (User research summarization, UX copy generation & proposal synthesis), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for UX 4Sight:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi Alex,\n\nI saw UX 4Sight's work in Digital Product & UI/UX Agency. If your team is running high-volume LLM workflows (User research summarization, UX copy generation & proposal synthesis), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for UX 4Sight:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting UX 4Sight's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi Alex,\n\nFollowing up on my previous note regarding LLM margin recovery for UX 4Sight.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi Alex,\n\nFollowing up on my previous note regarding LLM margin recovery for UX 4Sight.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for UX 4Sight",
-          "body": "Hi Alex,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into UX 4Sight's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi Alex,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into UX 4Sight's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     },
@@ -124,32 +130,35 @@
       "domain": "marketingactivationsgroup.com",
       "email": "awallace@marketingactivationsgroup.com",
       "industry": "B2B Marketing & Lead Gen Agency",
-      "stage": "proposed",
+      "stage": "contacted_step1",
       "qualificationScore": 100,
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAUZL",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting Marketing Activations Group's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi Austin,\n\nI saw Marketing Activations Group's work in B2B Marketing & Lead Gen Agency. If your team is running high-volume LLM workflows (Outbound lead qualification, cold email generation & multi-tenant CRM sync), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Marketing Activations Group:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi Austin,\n\nI saw Marketing Activations Group's work in B2B Marketing & Lead Gen Agency. If your team is running high-volume LLM workflows (Outbound lead qualification, cold email generation & multi-tenant CRM sync), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Marketing Activations Group:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting Marketing Activations Group's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi Austin,\n\nFollowing up on my previous note regarding LLM margin recovery for Marketing Activations Group.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi Austin,\n\nFollowing up on my previous note regarding LLM margin recovery for Marketing Activations Group.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt",
+          "dispatchedAt": "2026-09-08T17:01:20.864Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a081f7c541f9fdb"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for Marketing Activations Group",
-          "body": "Hi Austin,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Marketing Activations Group's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi Austin,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Marketing Activations Group's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     },
@@ -166,27 +175,27 @@
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAV54",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting Media Saga Social SEO's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi Ryan,\n\nI saw Media Saga Social SEO's work in AI Social & Search Agency. If your team is running high-volume LLM workflows (Autonomous social post syndication, token-heavy Gemini/GPT workflows), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Media Saga Social SEO:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi Ryan,\n\nI saw Media Saga Social SEO's work in AI Social & Search Agency. If your team is running high-volume LLM workflows (Autonomous social post syndication, token-heavy Gemini/GPT workflows), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Media Saga Social SEO:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting Media Saga Social SEO's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi Ryan,\n\nFollowing up on my previous note regarding LLM margin recovery for Media Saga Social SEO.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi Ryan,\n\nFollowing up on my previous note regarding LLM margin recovery for Media Saga Social SEO.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for Media Saga Social SEO",
-          "body": "Hi Ryan,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Media Saga Social SEO's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi Ryan,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Media Saga Social SEO's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     },
@@ -203,27 +212,27 @@
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAV9O",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting Lemon Seed Marketing's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi Sarah,\n\nI saw Lemon Seed Marketing's work in Full-Service Creative Marketing. If your team is running high-volume LLM workflows (Client proposal generation, content calendars & marketing automation), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Lemon Seed Marketing:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi Sarah,\n\nI saw Lemon Seed Marketing's work in Full-Service Creative Marketing. If your team is running high-volume LLM workflows (Client proposal generation, content calendars & marketing automation), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Lemon Seed Marketing:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting Lemon Seed Marketing's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi Sarah,\n\nFollowing up on my previous note regarding LLM margin recovery for Lemon Seed Marketing.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi Sarah,\n\nFollowing up on my previous note regarding LLM margin recovery for Lemon Seed Marketing.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for Lemon Seed Marketing",
-          "body": "Hi Sarah,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Lemon Seed Marketing's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi Sarah,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Lemon Seed Marketing's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     },
@@ -240,27 +249,27 @@
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAVE7",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting Right Click Digital's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi Jason,\n\nI saw Right Click Digital's work in Web Development & Digital Strategy. If your team is running high-volume LLM workflows (Custom client web apps, API token management & backend microservices), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Right Click Digital:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi Jason,\n\nI saw Right Click Digital's work in Web Development & Digital Strategy. If your team is running high-volume LLM workflows (Custom client web apps, API token management & backend microservices), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Right Click Digital:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting Right Click Digital's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi Jason,\n\nFollowing up on my previous note regarding LLM margin recovery for Right Click Digital.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi Jason,\n\nFollowing up on my previous note regarding LLM margin recovery for Right Click Digital.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for Right Click Digital",
-          "body": "Hi Jason,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Right Click Digital's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi Jason,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Right Click Digital's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     },
@@ -277,27 +286,27 @@
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAVM1",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting Cfx Inc's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi Marcus,\n\nI saw Cfx Inc's work in Brand Strategy & Interactive Agency. If your team is running high-volume LLM workflows (Brand voice generation, campaign pitch decks & automated client intake), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Cfx Inc:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi Marcus,\n\nI saw Cfx Inc's work in Brand Strategy & Interactive Agency. If your team is running high-volume LLM workflows (Brand voice generation, campaign pitch decks & automated client intake), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Cfx Inc:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting Cfx Inc's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi Marcus,\n\nFollowing up on my previous note regarding LLM margin recovery for Cfx Inc.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi Marcus,\n\nFollowing up on my previous note regarding LLM margin recovery for Cfx Inc.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for Cfx Inc",
-          "body": "Hi Marcus,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Cfx Inc's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi Marcus,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Cfx Inc's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     },
@@ -314,27 +323,517 @@
       "qualificationTier": "HIGH_VALUE_ICP",
       "tokenSavingsPct": "87.6%",
       "proposalId": "PROP-MTFMAVSA",
-      "stripePaymentLink": "https://buy.stripe.com/engine_full_ip_buyout",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
       "outreachSequence": {
         "step0_initial": {
           "step": 0,
           "type": "INITIAL_PITCH",
           "subject": "Cutting Blayzer Digital's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
-          "body": "Hi David,\n\nI saw Blayzer Digital's work in E-Commerce & Digital Marketing. If your team is running high-volume LLM workflows (Product review automation, SEO content pipelines & multi-channel triage), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Blayzer Digital:\n\n* **Option 1: Complete IP Buyout ($25,000 one-time)**\n  Full source code transfer (GitHub repo + Render backend), self-hosting rights, and unlimited client sub-licensing.\n  👉 [Initiate Full IP Buyout ($25k)](https://buy.stripe.com/engine_full_ip_buyout)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://buy.stripe.com/agency_retainer_setup)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://buy.stripe.com/engine_setup_signoff)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
+          "body": "Hi David,\n\nI saw Blayzer Digital's work in E-Commerce & Digital Marketing. If your team is running high-volume LLM workflows (Product review automation, SEO content pipelines & multi-channel triage), OpenAI/Anthropic token burn is likely eating a huge chunk of your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure that cuts agency LLM API costs by **50% to 70%+ (up to 87.6% on background tasks)** without quality degradation:\n\n1. **3-Tier Token Reducer Router**: Dynamically routes qualification and telemetry to Gemini Flash ($0.0001/lead) while gating high-cost flagship models strictly to human triggers.\n2. **Multi-Agent Lead Triage**: Autonomous webhook ingestion, fail-closed DNS MX validation, and ICP scoring.\n3. **White-Label Proposal & Stripe Generator**: Instantly produces branded client service agreements with embedded Stripe checkout links.\n\n### Commercial Licensing Options for Blayzer Digital:\n\n  👉 [Initiate Full IP Buyout ($25k)](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's Render cloud with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine"
         },
         "step1_followup_48h": {
           "step": 1,
           "type": "TECHNICAL_BREAKDOWN_48H",
           "delayHours": 48,
           "subject": "Re: Cutting Blayzer Digital's LLM API token burn by 50-70% (Technical Breakdown)",
-          "body": "Hi David,\n\nFollowing up on my previous note regarding LLM margin recovery for Blayzer Digital.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Grok API path / $0.0015 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nWould Thursday or Friday work for a quick demo of the dashboard?\n\nBest,\nJack Buckholdt"
+          "body": "Hi David,\n\nFollowing up on my previous note regarding LLM margin recovery for Blayzer Digital.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
         },
         "step2_followup_72h": {
           "step": 2,
           "type": "WHITE_LABEL_CLOSER_72H",
           "delayHours": 72,
           "subject": "Final follow-up: White-label licensing for Blayzer Digital",
-          "body": "Hi David,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Blayzer Digital's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option A: Full IP Buyout ($25,000)](https://buy.stripe.com/engine_full_ip_buyout)** — Full code transfer & unlimited agency reuse.\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://buy.stripe.com/agency_retainer_setup)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+          "body": "Hi David,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Blayzer Digital's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-FRESH-MTUCHXQ1-1",
+      "name": "Joel",
+      "fullName": "Joel Gross",
+      "title": "Founder & CEO",
+      "company": "Coalition Technologies",
+      "domain": "coalitiontechnologies.com",
+      "email": "joel@coalitiontechnologies.com",
+      "industry": "Digital Marketing & SEO Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-FRESH-MTUCHXQ1-1",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-09T17:01:15.385Z",
+        "roleMailboxCheck": "PASSED (no role prefix)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not in suppression sets)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting Coalition Technologies's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Joel,\n\nI saw Coalition Technologies's work in Digital Marketing & SEO Agency. If your team is running high-volume LLM workflows (High-volume SEO content automation, technical client reporting & campaign synthesis), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial Licensing Options for Coalition Technologies:\n\n* **Option 1: Commercial Codebase Buyout ($25k / $4,500 core)**\n  Complete source code transfer, perpetual rights for unlimited client deployments, zero monthly royalties.\n  👉 [Initiate Commercial Codebase Buyout](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-09T17:01:30.182Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a0871e0e2990733",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting Coalition Technologies's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Joel,\n\nFollowing up on my previous note regarding LLM margin recovery for Coalition Technologies.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for Coalition Technologies",
+          "body": "Hi Joel,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Coalition Technologies's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-FRESH-MTUCHZBY-2",
+      "name": "Jacob",
+      "fullName": "Jacob Baadsgaard",
+      "title": "CEO",
+      "company": "Disruptive Advertising",
+      "domain": "disruptiveadvertising.com",
+      "email": "jacob@disruptiveadvertising.com",
+      "industry": "Performance Marketing & Paid Search/Social Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-FRESH-MTUCHZBY-2",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-09T17:01:17.470Z",
+        "roleMailboxCheck": "PASSED (no role prefix)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not in suppression sets)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting Disruptive Advertising's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Jacob,\n\nI saw Disruptive Advertising's work in Performance Marketing & Paid Search/Social Agency. If your team is running high-volume LLM workflows (PPC ad variation generation, automated creative copy & client onboarding audits), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial Licensing Options for Disruptive Advertising:\n\n* **Option 1: Commercial Codebase Buyout ($25k / $4,500 core)**\n  Complete source code transfer, perpetual rights for unlimited client deployments, zero monthly royalties.\n  👉 [Initiate Commercial Codebase Buyout](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-09T17:01:37.850Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a0871e2aa3bd4b3",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting Disruptive Advertising's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Jacob,\n\nFollowing up on my previous note regarding LLM margin recovery for Disruptive Advertising.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for Disruptive Advertising",
+          "body": "Hi Jacob,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Disruptive Advertising's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-FRESH-MTUCI0WO-3",
+      "name": "Arsham",
+      "fullName": "Arsham Mirshah",
+      "title": "Co-Founder",
+      "company": "WebMechanix",
+      "domain": "webmechanix.com",
+      "email": "arsham@webmechanix.com",
+      "industry": "Performance Marketing & Growth Automation Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-FRESH-MTUCI0WO-3",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-09T17:01:19.512Z",
+        "roleMailboxCheck": "PASSED (no role prefix)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not in suppression sets)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting WebMechanix's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Arsham,\n\nI saw WebMechanix's work in Performance Marketing & Growth Automation Agency. If your team is running high-volume LLM workflows (B2B client automation, landing page optimization & LLM query routing), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial Licensing Options for WebMechanix:\n\n* **Option 1: Commercial Codebase Buyout ($25k / $4,500 core)**\n  Complete source code transfer, perpetual rights for unlimited client deployments, zero monthly royalties.\n  👉 [Initiate Commercial Codebase Buyout](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-09T17:01:43.693Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a0871e47081e052",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting WebMechanix's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Arsham,\n\nFollowing up on my previous note regarding LLM margin recovery for WebMechanix.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for WebMechanix",
+          "body": "Hi Arsham,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into WebMechanix's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-FRESH-MTUCI2T2-4",
+      "name": "Eric",
+      "fullName": "Eric Siu",
+      "title": "Chairman",
+      "company": "Single Grain",
+      "domain": "singlegrain.com",
+      "email": "eric@singlegrain.com",
+      "industry": "Digital Marketing & Growth Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-FRESH-MTUCI2T2-4",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-09T17:01:21.974Z",
+        "roleMailboxCheck": "PASSED (no role prefix)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not in suppression sets)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting Single Grain's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Eric,\n\nI saw Single Grain's work in Digital Marketing & Growth Agency. If your team is running high-volume LLM workflows (Growth marketing content scaling, podcast/media repurposing & client intelligence), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial Licensing Options for Single Grain:\n\n* **Option 1: Commercial Codebase Buyout ($25k / $4,500 core)**\n  Complete source code transfer, perpetual rights for unlimited client deployments, zero monthly royalties.\n  👉 [Initiate Commercial Codebase Buyout](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-09T17:01:55.666Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a0871e6dbe0e12c",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting Single Grain's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Eric,\n\nFollowing up on my previous note regarding LLM margin recovery for Single Grain.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for Single Grain",
+          "body": "Hi Eric,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Single Grain's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-FRESH-MTUCI3Z7-5",
+      "name": "Garrett",
+      "fullName": "Garrett Mehrguth",
+      "title": "CEO",
+      "company": "Directive Consulting",
+      "domain": "directiveconsulting.com",
+      "email": "garrett@directiveconsulting.com",
+      "industry": "Customer Generation & B2B Tech Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-FRESH-MTUCI3Z7-5",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-09T17:01:23.491Z",
+        "roleMailboxCheck": "PASSED (no role prefix)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not in suppression sets)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting Directive Consulting's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Garrett,\n\nI saw Directive Consulting's work in Customer Generation & B2B Tech Agency. If your team is running high-volume LLM workflows (SaaS pipeline intelligence, account-based messaging & LLM attribution modeling), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial Licensing Options for Directive Consulting:\n\n* **Option 1: Commercial Codebase Buyout ($25k / $4,500 core)**\n  Complete source code transfer, perpetual rights for unlimited client deployments, zero monthly royalties.\n  👉 [Initiate Commercial Codebase Buyout](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Agency Growth Retainer ($2,500 setup + $1,500/mo)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Retainer Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-09T17:02:05.164Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a0871e8c43a6aaa",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting Directive Consulting's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Garrett,\n\nFollowing up on my previous note regarding LLM margin recovery for Directive Consulting.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for Directive Consulting",
+          "body": "Hi Garrett,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Directive Consulting's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-B2-MTVQTI3F-1",
+      "name": "Johnathan",
+      "fullName": "Johnathan Dane",
+      "title": "Founder & CEO",
+      "company": "KlientBoost",
+      "domain": "klientboost.com",
+      "email": "johnathan@klientboost.com",
+      "industry": "Performance Marketing & PPC/CRO Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-B2-MTVQTI3F-1",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-10T16:29:55.803Z",
+        "roleMailboxCheck": "PASSED (personal inbox only)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not suppressed)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting KlientBoost's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Johnathan,\n\nI saw KlientBoost's work in Performance Marketing & PPC/CRO Agency. If your team is running high-volume LLM workflows (High-velocity ad creative generation, landing page copy variants & automated client CRO audits), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial White-Label Licensing Options for KlientBoost:\n\n* **Option 1: Agency Private-Label Retainer ($497 setup + $199/mo or $2,500 + $1,500/mo enterprise)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Private-Label Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Commercial Codebase License ($4,500 one-time buyout / $25k full IP)**\n  Complete source code transfer (GitHub: Jackbockholdt/margin-engine-core), perpetual rights for unlimited client bots, zero monthly royalties.\n  👉 [Acquire Commercial License](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-10T16:30:19.730Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a08c27e144d662c",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting KlientBoost's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Johnathan,\n\nFollowing up on my previous note regarding LLM margin recovery for KlientBoost.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for KlientBoost",
+          "body": "Hi Johnathan,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into KlientBoost's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-B2-MTVQTL7D-2",
+      "name": "Grayson",
+      "fullName": "Grayson Lafrenz",
+      "title": "Chairman",
+      "company": "Power Digital Marketing",
+      "domain": "powerdigital.com",
+      "email": "grayson@powerdigital.com",
+      "industry": "Full-Service Tech-Enabled Growth Marketing Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-B2-MTVQTL7D-2",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-10T16:29:59.833Z",
+        "roleMailboxCheck": "PASSED (personal inbox only)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not suppressed)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting Power Digital Marketing's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Grayson,\n\nI saw Power Digital Marketing's work in Full-Service Tech-Enabled Growth Marketing Agency. If your team is running high-volume LLM workflows (Multi-channel media reporting, content syndication & proprietary growth intelligence pipelines), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial White-Label Licensing Options for Power Digital Marketing:\n\n* **Option 1: Agency Private-Label Retainer ($497 setup + $199/mo or $2,500 + $1,500/mo enterprise)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Private-Label Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Commercial Codebase License ($4,500 one-time buyout / $25k full IP)**\n  Complete source code transfer (GitHub: Jackbockholdt/margin-engine-core), perpetual rights for unlimited client bots, zero monthly royalties.\n  👉 [Acquire Commercial License](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-10T16:30:30.768Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a08c280ca716a05",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting Power Digital Marketing's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Grayson,\n\nFollowing up on my previous note regarding LLM margin recovery for Power Digital Marketing.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for Power Digital Marketing",
+          "body": "Hi Grayson,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Power Digital Marketing's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-B2-MTVQTO9L-3",
+      "name": "John",
+      "fullName": "John Lincoln",
+      "title": "CEO",
+      "company": "Ignite Visibility",
+      "domain": "ignitevisibility.com",
+      "email": "john@ignitevisibility.com",
+      "industry": "Digital Marketing & SEO/Paid Media Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-B2-MTVQTO9L-3",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-10T16:30:03.801Z",
+        "roleMailboxCheck": "PASSED (personal inbox only)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not suppressed)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting Ignite Visibility's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi John,\n\nI saw Ignite Visibility's work in Digital Marketing & SEO/Paid Media Agency. If your team is running high-volume LLM workflows (Enterprise SEO analysis, multi-location content localization & automated client performance decks), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial White-Label Licensing Options for Ignite Visibility:\n\n* **Option 1: Agency Private-Label Retainer ($497 setup + $199/mo or $2,500 + $1,500/mo enterprise)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Private-Label Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Commercial Codebase License ($4,500 one-time buyout / $25k full IP)**\n  Complete source code transfer (GitHub: Jackbockholdt/margin-engine-core), perpetual rights for unlimited client bots, zero monthly royalties.\n  👉 [Acquire Commercial License](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-10T16:30:41.736Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a08c28327be5722",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting Ignite Visibility's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi John,\n\nFollowing up on my previous note regarding LLM margin recovery for Ignite Visibility.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for Ignite Visibility",
+          "body": "Hi John,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into Ignite Visibility's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-B2-MTVQTRGX-4",
+      "name": "Bill",
+      "fullName": "William Craig",
+      "title": "President",
+      "company": "WebFX",
+      "domain": "webfx.com",
+      "email": "bill@webfx.com",
+      "industry": "Tech-Enabled Digital Marketing Solutions Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-B2-MTVQTRGX-4",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-10T16:30:07.953Z",
+        "roleMailboxCheck": "PASSED (personal inbox only)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not suppressed)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting WebFX's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Bill,\n\nI saw WebFX's work in Tech-Enabled Digital Marketing Solutions Agency. If your team is running high-volume LLM workflows (High-volume client content pipelines, CRM query summarization & automated SEO intelligence), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial White-Label Licensing Options for WebFX:\n\n* **Option 1: Agency Private-Label Retainer ($497 setup + $199/mo or $2,500 + $1,500/mo enterprise)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Private-Label Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Commercial Codebase License ($4,500 one-time buyout / $25k full IP)**\n  Complete source code transfer (GitHub: Jackbockholdt/margin-engine-core), perpetual rights for unlimited client bots, zero monthly royalties.\n  👉 [Acquire Commercial License](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-10T16:30:49.128Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a08c284f7ca275c",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting WebFX's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Bill,\n\nFollowing up on my previous note regarding LLM margin recovery for WebFX.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for WebFX",
+          "body": "Hi Bill,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into WebFX's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
+        }
+      }
+    },
+    {
+      "id": "AGENCY-B2-MTVQTTZ3-5",
+      "name": "Michael",
+      "fullName": "Michael Melen",
+      "title": "Co-Founder & COO",
+      "company": "SmartSites",
+      "domain": "smartsites.com",
+      "email": "michael@smartsites.com",
+      "industry": "Digital Marketing & Web Design Agency",
+      "stage": "contacted_step0",
+      "qualificationScore": 100,
+      "qualificationTier": "HIGH_VALUE_ICP",
+      "tokenSavingsPct": "87.6%",
+      "proposalId": "PROP-B2-MTVQTTZ3-5",
+      "stripePaymentLink": "https://master-hustle-engine.onrender.com/demo",
+      "governanceAudit": {
+        "scrubbedAt": "2026-09-10T16:30:11.199Z",
+        "roleMailboxCheck": "PASSED (personal inbox only)",
+        "osMxValidation": "PASSED (Resolve-DnsName confirmed)",
+        "blocklistStatus": "CLEARED (not suppressed)",
+        "status": "QUALIFIED"
+      },
+      "outreachSequence": {
+        "step0_initial": {
+          "step": 0,
+          "type": "INITIAL_PITCH",
+          "subject": "Cutting SmartSites's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+          "body": "Hi Michael,\n\nI saw SmartSites's work in Digital Marketing & Web Design Agency. If your team is running high-volume LLM workflows (E-commerce product descriptions, multi-account PPC ad copy generation & client lead intake triage), upstream API token burn and model outages are likely eating away at your gross margins.\n\nWe built and deployed the **Master Hustle / Anti-Gravity Engine** (hosted on Render at `master-hustle-engine.onrender.com`), a proprietary backend infrastructure layer that delivers:\n\n1. **Multi-LLM Failover Routing (<50ms)**: Intelligent sub-50ms circuit swap across Gemini, Claude, and OpenAI to eliminate client bot downtime during upstream 503/429 outages.\n2. **87.6% Inference Cost Reduction**: 3-Tier Token Reducer Router dynamically strips context bloat and routes background qualification/telemetry to Gemini Flash ($0.0001/lead) while strictly gating high-cost flagship models to human authorization.\n3. **10-Point Governance Scrubber**: Automated RFC syntax checks, fail-closed OS-level DNS MX validation, DNC blocklist suppression, and role/freemail filtering.\n\nYou can inspect the complete architecture and test the live failover console at:\n👉 https://master-hustle-engine.onrender.com/demo\n\n### Commercial White-Label Licensing Options for SmartSites:\n\n* **Option 1: Agency Private-Label Retainer ($497 setup + $199/mo or $2,500 + $1,500/mo enterprise)**\n  Turn-key deployment, continuous maintenance, 24/7 uptime monitoring, and priority model router upgrades.\n  👉 [Initiate Agency Private-Label Onboarding](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 2: Commercial Codebase License ($4,500 one-time buyout / $25k full IP)**\n  Complete source code transfer (GitHub: Jackbockholdt/margin-engine-core), perpetual rights for unlimited client bots, zero monthly royalties.\n  👉 [Acquire Commercial License](https://master-hustle-engine.onrender.com/demo)\n\n* **Option 3: Fixed Setup & Sign-Off ($4,000 one-time)**\n  Full custom implementation onto your agency's cloud stack with complete technical handover.\n  👉 [Initiate Turn-Key Setup & Sign-Off](https://master-hustle-engine.onrender.com/demo)\n\nAre you free for a brief 10-minute technical walkthrough this week, or should I send over the interactive pitch deck and financial ROI model?\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity\nRepository: github.com/JackBuckholdt/master-hustle-engine\nLive Demo: https://master-hustle-engine.onrender.com/demo",
+          "dispatchedAt": "2026-09-10T16:30:56.966Z",
+          "dispatchStatus": "DELIVERED (250 OK)",
+          "messageId": "1a08c287306fe5dd",
+          "statusCode": 200
+        },
+        "step1_followup_48h": {
+          "step": 1,
+          "type": "TECHNICAL_BREAKDOWN_48H",
+          "delayHours": 48,
+          "subject": "Re: Cutting SmartSites's LLM API token burn by 50-70% (Technical Breakdown)",
+          "body": "Hi Michael,\n\nFollowing up on my previous note regarding LLM margin recovery for SmartSites.\n\nHere is the exact technical cascade our 3-Tier Token Router uses in production:\n\n```\n[Inbound Agency Request / Lead Payload]\n  │\n  ├── Tier 1 (Qualifier - Gemini 1.5 Flash / $0.0001 per unit)\n  │     └─ Context bloat stripped (87.6% token reduction) -> Qualifies ICP & verifies MX\n  │\n  ├── Tier 2 (Researcher / Copy Engine - Low-Cost Fallback Chain / $0.0001 per unit)\n  │     └─ Extracts hooks, value propositions, and client-specific angles\n  │\n  └── Tier 3 (Flagship Pro - Gemini 1.5 Pro / $0.0035 per unit)\n        └─ GATED via HTTP 403. Only authorized when human approval header is passed.\n```\n\nIf your agency spends even $3,000/month on LLM tokens, this infrastructure recovers **$1,500–$2,100/month in pure profit** immediately.\n\nYou can inspect the complete architecture and test the live failover console at: https://master-hustle-engine.onrender.com/demo\n\nWould Thursday or Friday work for a brief 10-minute walkthrough?\n\nBest,\nJack Buckholdt"
+        },
+        "step2_followup_72h": {
+          "step": 2,
+          "type": "WHITE_LABEL_CLOSER_72H",
+          "delayHours": 72,
+          "subject": "Final follow-up: White-label licensing for SmartSites",
+          "body": "Hi Michael,\n\nClosing the loop on the Master Hustle / Anti-Gravity AI Engine.\n\nIf you'd like to integrate the infrastructure into SmartSites's stack this month, you can initiate immediate deployment via our direct onboarding links:\n\n* **[Option B: Managed Retainer ($2,500 setup + $1,500/mo)](https://master-hustle-engine.onrender.com/demo)** — Hosted, monitored, and maintained for you.\n\nIf now isn't the right time, no worries at all—I'll keep you on our quarterly architecture changelog.\n\nBest,\nJack Buckholdt\nMaster Hustle Engine"
         }
       }
     }

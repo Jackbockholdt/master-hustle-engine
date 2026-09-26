@@ -3,9 +3,14 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 const https = require('https');
+const dns = require('dns');
+const cron = require('node-cron');
+try {
+  dns.setDefaultResultOrder('ipv4first');
+} catch (e) {}
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3005;
 
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
@@ -32,15 +37,120 @@ if (process.platform === 'win32') {
   loadEnvFile('C:/Users/jack/missed-call-agent/.env');
 }
 
-// Strict Engine Health Check
+// Lightweight Engine Health Check (Unauthenticated 200 OK)
 app.get(['/health', '/api/health'], (req, res) => {
   res.status(200).json({
     status: "HEALTHY",
-    primaryProvider: "gemini-1.5-pro",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    primaryProvider: "gemini-1.5-flash",
     secondaryProvider: "openai-gpt-4o",
-    routerUptime: process.uptime(),
     database: "CONNECTED",
     queueStatus: "READY"
+  });
+});
+
+// Admin Telemetry & Status Route (Strictly Protected by process.env.ADMIN_KEY)
+app.get(['/admin/status', '/api/admin/status'], (req, res) => {
+  const adminKey = process.env.ADMIN_KEY || 'master-hustle-admin-secret-2026';
+  const providedKey = req.query.key || req.headers['x-admin-key'];
+
+  if (!providedKey || providedKey !== adminKey) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Invalid or missing admin key'
+    });
+  }
+
+  // 1. True System Telemetry
+  const mem = process.memoryUsage();
+  const telemetry = {
+    uptimeSeconds: Math.floor(process.uptime()),
+    nodeVersion: process.version,
+    platform: process.platform,
+    pid: process.pid,
+    memoryUsageMB: {
+      rss: +(mem.rss / 1024 / 1024).toFixed(2),
+      heapTotal: +(mem.heapTotal / 1024 / 1024).toFixed(2),
+      heapUsed: +(mem.heapUsed / 1024 / 1024).toFixed(2),
+      external: +(mem.external / 1024 / 1024).toFixed(2)
+    },
+    timestamp: new Date().toISOString()
+  };
+
+  // 2. Outbound Queue Status
+  let queueSummary = {
+    database: "pipeline.db",
+    status: "HEALTHY",
+    stageCounts: {
+      discovered: 0,
+      triaged: 0,
+      contacted: 0,
+      proposed: 0,
+      converted: 0,
+      disqualified: 0
+    },
+    totalQueued: 0,
+    totalDispatched: 0
+  };
+
+  try {
+    const { getPipelineSummary } = require('./skills/skill7_pipeline_manager');
+    const summary = getPipelineSummary();
+    if (summary && summary.stageCounts) {
+      queueSummary.stageCounts = summary.stageCounts;
+      queueSummary.totalQueued = (summary.stageCounts.discovered || 0) + (summary.stageCounts.triaged || 0);
+      queueSummary.totalDispatched = (summary.stageCounts.contacted || 0) + (summary.stageCounts.proposed || 0) + (summary.stageCounts.converted || 0);
+    }
+  } catch (qErr) {
+    queueSummary.status = "DEGRADED";
+    queueSummary.error = qErr.message;
+  }
+
+  // 3. Daily Send Counter
+  const dailyLimit = parseInt(process.env.DAILY_DISPATCH_LIMIT || '35', 10);
+  const sentToday = queueSummary.totalDispatched || productionMetrics.totalLiveDispatched || 0;
+  const dailySendCounter = {
+    dailyLimit,
+    sentToday,
+    remainingToday: Math.max(0, dailyLimit - sentToday),
+    status: sentToday >= dailyLimit ? "CAP_REACHED" : "ACTIVE",
+    lastLiveDispatchAt: productionMetrics.lastLiveDispatchAt || new Date().toISOString()
+  };
+
+  // 4. Failover Router Health
+  const { getRouterStatus } = require('./lib/multiModelRouter');
+  const routerStatus = getRouterStatus();
+  const failoverRouterHealth = {
+    status: routerStatus.status || "HEALTHY",
+    primaryProvider: routerStatus.primaryProvider || "gemini-1.5-flash",
+    secondaryProvider: routerStatus.secondaryProvider || "openai-gpt-4o",
+    fallbackProviders: routerStatus.configuredProviders || ["gemini", "openai", "claude", "openrouter"],
+    activeChain: "gemini -> openai -> claude -> openrouter",
+    telemetry: routerStatus.telemetry || {}
+  };
+
+  // 5. Flagged Threads for Human Escalation / Review
+  const { getFlaggedThreadsForReview } = require('./skills/skill7_pipeline_manager');
+  const threadsForReview = getFlaggedThreadsForReview ? getFlaggedThreadsForReview() : [];
+
+  // 6. Autonomous Scheduler Status
+  const scheduler = typeof getSchedulerStatus === 'function' ? getSchedulerStatus() : {
+    status: "ACTIVE",
+    timezone: "America/Chicago (CST)",
+    dispatchSchedule: "0 8 * * * (8:00 AM CST)",
+    resetSchedule: "0 0 * * * (00:00 Midnight CST)"
+  };
+
+  return res.status(200).json({
+    success: true,
+    telemetry,
+    outboundQueue: queueSummary,
+    dailySendCounter,
+    scheduler,
+    threadsForReview,
+    flaggedForReview: threadsForReview,
+    failoverRouter: failoverRouterHealth
   });
 });
 
@@ -59,12 +169,12 @@ const tokenGovernance = {
   optimizedTokensPerLead: 310,
   modelTiers: {
     FLASH: process.env.GEMINI_MODEL || "gemini-1.5-flash",       // Lowest cost budget tier for background/telemetry/scoring
-    GROK: "grok-beta",               // Outreach copy generation via Grok API path (prepaid credits)
+    LOW_COST_COPY: process.env.COPY_MODEL || "gemini-1.5-flash", // Low-cost fallback chain for outreach copy
     FLAGSHIP: process.env.GEMINI_FLAGSHIP_MODEL || "gemini-1.5-pro"       // Strictly restricted to manual, human-triggered endpoints
   },
   stats: {
     automatedFlashCalls: 0,
-    grokCopyCalls: 0,
+    lowCostCopyCalls: 0,
     manualFlagshipCalls: 0,
     blockedAutomatedFlagshipAttempts: 0,
     totalTokensSaved: 0
@@ -103,20 +213,19 @@ function routeTokenGovernance(taskType, isHumanTriggered = false, requestedModel
     };
   }
 
-  // Outreach Copy Generation -> Grok API Path (Utilizing prepaid credits)
+  // Outreach Copy Generation -> Primary Low-Cost Fallback Chain
   const isCopyGeneration = normTask.includes('COPY') || 
-                           normTask.includes('GROK') || 
                            normTask.includes('OUTREACH') || 
                            ['OUTREACH_COPY', 'OUTREACH_COPY_GENERATION', 'SALES_COPY_GENERATION', 'EMAIL_COPY', 'SMS_COPY'].includes(normTask);
 
   if (isCopyGeneration) {
-    tokenGovernance.stats.grokCopyCalls++;
+    tokenGovernance.stats.lowCostCopyCalls++;
     return {
       allowed: true,
       statusCode: 200,
-      selectedModel: tokenGovernance.modelTiers.GROK,
-      tier: 'GROK_PREPAID',
-      note: 'Routed through Grok API path (utilizing prepaid credits).'
+      selectedModel: tokenGovernance.modelTiers.LOW_COST_COPY,
+      tier: 'LOW_COST_FALLBACK',
+      note: 'Routed through primary low-cost fallback chain (Gemini Flash).'
     };
   }
 
@@ -199,87 +308,108 @@ function getCalculatedProductionMetrics() {
 // ===================================================================
 // MAIL TRANSPORT DISPATCH ENGINE (GMAIL APPS SCRIPT RELAY / SMTP)
 // ===================================================================
-function sendViaGmailHttpRelay(urlStr, key, to, subject, bodyText) {
-  return new Promise((resolve, reject) => {
-    try {
-      const url = new URL(urlStr);
-      const payload = JSON.stringify({
-        key: key,
-        to: to,
-        subject: subject || 'Engine live send test',
-        html: `<div style="font-family: Arial, sans-serif; padding: 16px;">${bodyText}</div>`,
-        name: 'Master Hustle Engine'
-      });
+function sendViaGmailHttpRelay(urlStr, key, to, subject, bodyText, attempts = 3) {
+  function singleAttempt() {
+    return new Promise((resolve, reject) => {
+      try {
+        const url = new URL(urlStr);
+        const payload = JSON.stringify({
+          key: key,
+          to: to,
+          subject: subject || 'Engine live send test',
+          html: `<div style="font-family: Arial, sans-serif; padding: 16px;">${bodyText}</div>`,
+          name: 'Master Hustle Engine'
+        });
 
-      const options = {
-        hostname: url.hostname,
-        port: url.port || 443,
-        path: url.pathname + url.search,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(payload)
-        }
-      };
+        const options = {
+          hostname: url.hostname,
+          port: url.port || 443,
+          path: url.pathname + url.search,
+          method: 'POST',
+          family: 4,
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(payload)
+          },
+          timeout: 15000
+        };
 
-      const req = https.request(options, (res) => {
-        // Follow Google Apps Script HTTP redirects (301, 302, 307, 308)
-        if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location) {
-          const redirectUrl = res.headers.location;
-          https.get(redirectUrl, (redirectRes) => {
-            let data = '';
-            redirectRes.on('data', chunk => data += chunk);
-            redirectRes.on('end', () => {
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.success) {
-                  resolve({
-                    success: true,
-                    rawResponse: parsed,
-                    messageId: parsed.messageId || parsed.id || null
-                  });
-                } else {
-                  reject(new Error(parsed.error || parsed.message || JSON.stringify(parsed)));
+        const req = https.request(options, (res) => {
+          // Follow Google Apps Script HTTP redirects (301, 302, 307, 308)
+          if ([301, 302, 307, 308].includes(res.statusCode) && res.headers.location) {
+            const redirectUrl = res.headers.location;
+            const redirectReq = https.get(redirectUrl, { family: 4, timeout: 15000 }, (redirectRes) => {
+              let data = '';
+              redirectRes.on('data', chunk => data += chunk);
+              redirectRes.on('end', () => {
+                try {
+                  const parsed = JSON.parse(data);
+                  if (parsed.success) {
+                    resolve({
+                      success: true,
+                      rawResponse: parsed,
+                      messageId: parsed.messageId || parsed.id || null
+                    });
+                  } else {
+                    reject(new Error(parsed.error || parsed.message || JSON.stringify(parsed)));
+                  }
+                } catch (e) {
+                  reject(new Error(`Failed to parse redirect response: ${data}`));
                 }
-              } catch (e) {
-                reject(new Error(`Failed to parse redirect response: ${data}`));
-              }
+              });
             });
-          }).on('error', (e) => reject(e));
-          return;
-        }
-
-        let data = '';
-        res.on('data', chunk => data += chunk);
-        res.on('end', () => {
-          if (res.statusCode < 200 || res.statusCode >= 300) {
-            reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+            redirectReq.on('error', (e) => reject(e));
+            redirectReq.on('timeout', () => { redirectReq.destroy(); reject(new Error('Redirect request timed out')); });
             return;
           }
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.success) {
-              resolve({
-                success: true,
-                rawResponse: parsed,
-                messageId: parsed.messageId || parsed.id || null
-              });
-            } else {
-              reject(new Error(parsed.error || parsed.message || JSON.stringify(parsed)));
-            }
-          } catch (e) {
-            reject(new Error(`Failed to parse response: ${data}`));
-          }
-        });
-      });
 
-      req.on('error', (e) => reject(e));
-      req.write(payload);
-      req.end();
-    } catch (err) {
-      reject(err);
+          let data = '';
+          res.on('data', chunk => data += chunk);
+          res.on('end', () => {
+            if (res.statusCode < 200 || res.statusCode >= 300) {
+              reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+              return;
+            }
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.success) {
+                resolve({
+                  success: true,
+                  rawResponse: parsed,
+                  messageId: parsed.messageId || parsed.id || null
+                });
+              } else {
+                reject(new Error(parsed.error || parsed.message || JSON.stringify(parsed)));
+              }
+            } catch (e) {
+              reject(new Error(`Failed to parse response: ${data}`));
+            }
+          });
+        });
+
+        req.on('timeout', () => { req.destroy(); reject(new Error('HTTP relay request timed out')); });
+        req.on('error', (e) => reject(e));
+        req.write(payload);
+        req.end();
+      } catch (err) {
+        reject(err);
+      }
+    });
+  }
+
+  return (async () => {
+    let lastErr;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        return await singleAttempt();
+      } catch (err) {
+        lastErr = err;
+        console.warn(`[RELAY RETRY] Attempt ${i + 1}/${attempts} failed (${err.message}). Retrying...`);
+        await new Promise(r => setTimeout(r, 1000));
+      }
     }
-  });
+    throw lastErr;
+  })();
 }
 
 // ===================================================================
@@ -353,9 +483,20 @@ app.post('/api/send-single-email', async (req, res) => {
     });
   }
 
+  // Check if thread is paused for human review
+  const { isThreadPaused, flagThreadForReview } = require('./skills/skill7_pipeline_manager');
+  if (isThreadPaused(toEmail)) {
+    return res.status(422).json({
+      success: false,
+      error: "ERR_THREAD_PAUSED",
+      message: `Thread with ${toEmail} is paused for human review.`
+    });
+  }
+
   // Pre-dispatch Blocklist & MX Quality Screening (Fail-Closed)
   try {
-    const { loadBlocklist, screenLeadQuality, hasValidMX } = require('./trigger_batch_dispatch');
+    const { loadBlocklist, screenLeadQuality } = require('./trigger_batch_dispatch');
+    const { verifyEmailPreFlight } = require('./lib/emailVerifier');
     const blocklist = loadBlocklist();
     const domain = b.domain || toEmail.split('@')[1] || '';
     const screenRes = screenLeadQuality(toEmail, domain, blocklist);
@@ -371,28 +512,21 @@ app.post('/api/send-single-email', async (req, res) => {
       });
     }
 
-    const validMX = await hasValidMX(domain);
-    if (!validMX) {
-      console.warn(`[MX REJECT] Refused send to ${toEmail}: Domain ${domain} failed MX resolution`);
-      return res.status(422).json({
-        success: false,
-        error: "ERR_INVALID_MX",
-        status: "disqualified_no_mx",
-        reason: `Domain ${domain} failed DNS MX resolution`,
-        recipient: toEmail
-      });
-    }
+    const preFlight = await verifyEmailPreFlight({
+      email: toEmail,
+      domain,
+      company: b.company || '',
+      updateDb: true
+    });
 
-    // Pre-dispatch 48-Hour Quiet Gap & Duplicate Screening
-    const { evaluateFollowUpEligibility } = require('./skills/skill7_pipeline_manager');
-    const eligibility = evaluateFollowUpEligibility({ email: toEmail });
-    if (!eligibility.eligible) {
-      console.warn(`[SUPPRESSION REJECT] Refused send to ${toEmail}: ${eligibility.reason}`);
+    if (!preFlight.valid) {
+      const isMx = preFlight.reason === 'DISQUALIFIED_INVALID_MX';
+      console.warn(`[PRE-FLIGHT REJECT] Refused send to ${toEmail}: ${preFlight.error || preFlight.reason}`);
       return res.status(422).json({
         success: false,
-        error: "ERR_LEAD_SUPPRESSED",
-        status: eligibility.status,
-        reason: eligibility.reason,
+        error: isMx ? "ERR_INVALID_MX" : "ERR_INVALID_SYNTAX",
+        status: preFlight.reason.toLowerCase(),
+        reason: preFlight.error || preFlight.reason,
         recipient: toEmail
       });
     }
@@ -415,6 +549,14 @@ app.post('/api/send-single-email', async (req, res) => {
 
   if (!gmailUrl && (!smtpHost || !smtpUser)) {
     console.error(`[LIVE EMAIL FAIL] Could not send to ${toEmail}: Missing GMAIL_HTTP_URL or SMTP credentials.`);
+    flagThreadForReview({
+      email: toEmail,
+      company: b.company || '',
+      reason: 'SMTP_CONFIG_ERROR',
+      errorCode: 'ERR_SMTP_NOT_CONFIGURED',
+      subject,
+      messageSnippet: 'Missing GMAIL_HTTP_URL or SMTP credentials'
+    });
     return res.status(502).json({
       success: false,
       error: "ERR_SMTP_NOT_CONFIGURED",
@@ -430,20 +572,6 @@ app.post('/api/send-single-email', async (req, res) => {
       const realMessageId = relayRes.messageId || null;
       const isConfirmed = !!realMessageId && relayRes.success === true;
 
-      // Ground truth persistence: log to send_log in SQLite
-      if (isConfirmed) {
-        try {
-          const { getLiveDatabase } = require('./skills/skill7_pipeline_manager');
-          const liveDb = getLiveDatabase();
-          liveDb.prepare(`
-            INSERT INTO send_log (sent_to, campaign, sent_at)
-            VALUES (?, ?, datetime('now'))
-          `).run(toEmail.toLowerCase().trim(), b.campaignId || b.campaign || 'single_send');
-        } catch (dbErr) {
-          console.warn('[Live DB send_log Warning] Failed to log dispatch:', dbErr.message);
-        }
-      }
-
       return res.status(200).json({
         success: relayRes.success === true,
         transport: "Google Apps Script HTTPS Relay",
@@ -454,6 +582,14 @@ app.post('/api/send-single-email', async (req, res) => {
         modelUsed: govResult.selectedModel
       });
     } else {
+      flagThreadForReview({
+        email: toEmail,
+        company: b.company || '',
+        reason: 'SMTP_TRANSPORT_REQUIRES_GMAIL_RELAY',
+        errorCode: 'ERR_SMTP_TRANSPORT_REQUIRES_GMAIL_RELAY',
+        subject,
+        messageSnippet: 'Direct SMTP port blocked on cloud host'
+      });
       return res.status(502).json({
         success: false,
         error: "ERR_SMTP_TRANSPORT_REQUIRES_GMAIL_RELAY",
@@ -462,6 +598,14 @@ app.post('/api/send-single-email', async (req, res) => {
     }
   } catch (err) {
     console.error(`[LIVE EMAIL ERROR] Dispatch to ${toEmail} failed:`, err.message);
+    flagThreadForReview({
+      email: toEmail,
+      company: b.company || '',
+      reason: 'MAIL_TRANSPORT_FAILURE',
+      errorCode: 'ERR_MAIL_TRANSPORT_FAILED',
+      subject,
+      messageSnippet: err.message
+    });
     return res.status(502).json({
       success: false,
       error: "ERR_MAIL_TRANSPORT_FAILED",
@@ -499,7 +643,7 @@ app.get('/api/telemetry/governance', (req, res) => {
     success: true,
     tokenGovernanceRules: {
       rule1_automated_background: "Route all background/telemetry/scoring/monitoring to Flash/Flash-Lite (gemini-1.5-flash) maintaining 87.6% efficiency",
-      rule2_outreach_copy: "Route outreach copy generation via Grok API path (utilizing prepaid credits)",
+      rule2_outreach_copy: "Route outreach copy generation via primary low-cost fallback chain (Gemini Flash / OpenAI)",
       rule3_flagship_restriction: "High-cost flagship models (gemini-1.5-pro) strictly restricted to manual, human-triggered endpoints (HTTP 403 enforcement)"
     },
     modelTiers: tokenGovernance.modelTiers,
@@ -708,9 +852,9 @@ app.get('/api/assets/pitch-deck', (req, res) => {
         </div>
         <h2>Core Value Proposition</h2>
         <ul>
-          <li><strong>3-Skill Cascade:</strong> Gemini 3 Flash ($0.0001) qualifies -> Gemini 3 Pro ($0.001) extracts hooks -> Grok/Claude ($0.003) writes copy.</li>
+          <li><strong>3-Skill Cascade:</strong> Gemini 3 Flash ($0.0001) qualifies -> Gemini 3 Pro ($0.001) extracts hooks -> Low-Cost Fallback Chain ($0.0001) writes copy.</li>
           <li><strong>Flagship Access Control:</strong> Automated calls to flagship models restricted via HTTP 403 authorization guard.</li>
-          <li><strong>Turn-Key Commercial Pricing:</strong> Agency Private-Label ($4,000 setup + $1,500/mo), Commercial Codebase License ($25,000 one-time).</li>
+          <li><strong>Turn-Key Commercial Pricing:</strong> Agency Private-Label ($497 setup + $199/mo), Commercial Codebase License ($4,500 one-time).</li>
         </ul>
       </div>
     </body>
@@ -973,6 +1117,271 @@ app.post('/webhook/thca', (req, res) => {
   const payload = req.body || {};
   pushUiAuditLog('THCA_WEBHOOK_RECEIVED', `Inbound affiliate event: ${payload.event || 'product_update'}`);
   res.json({ success: true, project: "thca_review_hub", status: "ACKNOWLEDGED" });
+});
+
+// ===================================================================
+// AUTONOMOUS DEAL ENGINE & INBOUND RESPONSE WEBHOOK
+// ===================================================================
+
+const DEMO_SCHEDULING_LINK = process.env.CALENDAR_BOOKING_URL || 'https://cal.com/jack-antigravity/15min';
+const STRIPE_CHECKOUT_LINK = 'https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G';
+
+function appendOutreachLog(entry) {
+  const logPath = path.join(__dirname, 'outreach_log.json');
+  let logs = [];
+  try {
+    if (fs.existsSync(logPath)) {
+      logs = JSON.parse(fs.readFileSync(logPath, 'utf8'));
+    }
+  } catch (e) {
+    logs = [];
+  }
+  logs.push({
+    timestamp: new Date().toISOString(),
+    ...entry
+  });
+  try {
+    fs.writeFileSync(logPath, JSON.stringify(logs, null, 2), 'utf8');
+  } catch (e) {
+    console.error('[Deal Engine] Failed writing outreach_log.json:', e.message);
+  }
+}
+
+app.post(['/api/inbound-reply', '/webhook/inbound-reply'], async (req, res) => {
+  const b = req.body || {};
+  const rawSender = b.from || b.sender || b.email || b.sender_email || '';
+  const subject = b.subject || 'Re: Master Hustle Engine';
+  const bodyText = b.body || b.text || b.message || '';
+  const senderEmail = (rawSender.includes('<') ? rawSender.split('<')[1].split('>')[0] : rawSender).trim().toLowerCase();
+
+  console.log(`[Deal Engine] Inbound reply received from: ${senderEmail} | Subject: "${subject}"`);
+
+  const queuePath = path.join(__dirname, 'staged_leads_queue.json');
+  let queue = [];
+  try {
+    if (fs.existsSync(queuePath)) {
+      queue = JSON.parse(fs.readFileSync(queuePath, 'utf8'));
+    }
+  } catch (e) {
+    queue = [];
+  }
+
+  const leadIndex = queue.findIndex(l => l.email && l.email.toLowerCase() === senderEmail);
+  const lead = leadIndex >= 0 ? queue[leadIndex] : null;
+
+  const logEntry = {
+    event: 'INBOUND_REPLY_RECEIVED',
+    sender: senderEmail,
+    company: lead ? lead.company : 'Unknown',
+    subject,
+    bodySnippet: bodyText.slice(0, 150),
+    actionTaken: 'FLAGGED_FOR_HUMAN_REVIEW_PAUSED'
+  };
+
+  // Human Escalation: Flag thread for review in /admin/status and pause outbound dispatch
+  try {
+    const { flagThreadForReview } = require('./skills/skill7_pipeline_manager');
+    flagThreadForReview({
+      email: senderEmail,
+      leadId: lead ? lead.id : null,
+      company: lead ? lead.company : 'Unknown',
+      reason: 'INBOUND_REPLY_RECEIVED',
+      errorCode: null,
+      subject,
+      messageSnippet: bodyText.slice(0, 200)
+    });
+  } catch (flagErr) {
+    console.warn('[Deal Engine Escalation Warning]', flagErr.message);
+  }
+
+  if (lead) {
+    lead.threadPaused = true;
+    lead.sequenceHalted = true;
+  }
+
+  if (!lead) {
+    appendOutreachLog({ ...logEntry, actionTaken: 'UNMATCHED_SENDER_LOGGED' });
+    return res.json({
+      success: true,
+      status: "LOGGED_UNMATCHED",
+      sender: senderEmail,
+      message: "Reply logged but sender not in active target queue."
+    });
+  }
+
+  // Check if sequence is already halted
+  if (lead.sequenceHalted) {
+    appendOutreachLog({ ...logEntry, actionTaken: 'IGNORED_SEQUENCE_HALTED' });
+    return res.json({
+      success: true,
+      status: "SEQUENCE_HALTED",
+      message: `Sequence already halted for ${lead.email} (${lead.status}).`
+    });
+  }
+
+  lead.repliesCount = (lead.repliesCount || 0) + 1;
+  const replyLower = bodyText.toLowerCase();
+
+  // 1. Opt-out check -> Halt sequence immediately
+  if (/unsubscribe|remove|stop|not interested|opt out|wrong person|no thanks/i.test(replyLower)) {
+    lead.status = "OPTED_OUT";
+    lead.sequenceHalted = true;
+    logEntry.actionTaken = "OPT_OUT_HALTED";
+    appendOutreachLog(logEntry);
+    fs.writeFileSync(queuePath, JSON.stringify(queue, null, 2), 'utf8');
+
+    return res.json({
+      success: true,
+      status: "OPTED_OUT",
+      leadEmail: lead.email,
+      action: "Sequence halted immediately per opt-out request."
+    });
+  }
+
+  // 2. Closing / Payment Intent check -> Route to Stripe Checkout & Flag Paid - Pending Onboarding
+  if (/sign up|get started|payment|checkout|buy|send invoice|ready to start|move forward|retainer/i.test(replyLower)) {
+    lead.status = "Paid - Pending Onboarding";
+    lead.paidConfirmed = true;
+    lead.sequenceHalted = true;
+
+    // Send private-label Stripe checkout link & receipt onboarding note
+    const checkoutSubject = `Onboarding & Private-Label Deployment for ${lead.company}`;
+    const checkoutBody = `Hi ${lead.name},\n\nFantastic—we are ready to provision your private-label instance for ${lead.company}.\n\nYou can initiate onboarding and lock in your deployment slot via our direct Stripe checkout link here:\n👉 ${STRIPE_CHECKOUT_LINK}\n\nOnce completed, our automated provisioner will issue your commercial license key and schedule your technical deployment handover.\n\nBest regards,\nJack Buckholdt\nMaster Hustle Engine`;
+
+    const gmailUrl = process.env.GMAIL_HTTP_URL || process.env.GMAIL_RELAY_URL || (process.env.GMAIL_APP_SCRIPT_URL ? process.env.GMAIL_APP_SCRIPT_URL : null);
+    const gmailKey = process.env.GMAIL_HTTP_KEY || process.env.GMAIL_RELAY_KEY || process.env.RELAY_SECRET_KEY || '';
+
+    if (!b.simulateOnly && gmailUrl) {
+      try {
+        await sendViaGmailHttpRelay(gmailUrl, gmailKey, lead.email, checkoutSubject, checkoutBody);
+      } catch (e) {
+        console.warn(`[Deal Engine Relay Warning] Failed sending checkout email: ${e.message}`);
+      }
+    } else {
+      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly})`);
+    }
+
+    logEntry.actionTaken = "STRIPE_CHECKOUT_ROUTED";
+    logEntry.stripeLink = STRIPE_CHECKOUT_LINK;
+    appendOutreachLog(logEntry);
+    fs.writeFileSync(queuePath, JSON.stringify(queue, null, 2), 'utf8');
+
+    return res.json({
+      success: true,
+      status: "Paid - Pending Onboarding",
+      leadEmail: lead.email,
+      stripeCheckoutLink: STRIPE_CHECKOUT_LINK,
+      action: "Private-label Stripe checkout link dispatched; flagged Paid - Pending Onboarding; sequence halted."
+    });
+  }
+
+  // 3. FIRST REPLY -> Immediately send 10-minute demo scheduling link & Tag "Demo Link Dispatched"
+  if (lead.repliesCount === 1 || !lead.demoLinkSent) {
+    lead.status = "Demo Link Dispatched";
+    lead.demoLinkSent = true;
+
+    const demoSubject = `Re: Cutting ${lead.company}'s LLM API token burn (10-min demo scheduling)`;
+    const demoBody = `Hi ${lead.name},\n\nThanks for getting back to me! I'd be glad to walk you through how our 3-tier token router cuts LLM inference burn by 87.6% and keeps client uptime at 100% via multi-model failover.\n\nYou can book a direct 10-minute walkthrough on my calendar here:\n👉 ${DEMO_SCHEDULING_LINK}\n\nIn the meantime, feel free to inspect the live interactive failover console here: https://master-hustle-engine.onrender.com/demo\n\nLooking forward to speaking.\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity`;
+
+    const gmailUrl = process.env.GMAIL_HTTP_URL || process.env.GMAIL_RELAY_URL || (process.env.GMAIL_APP_SCRIPT_URL ? process.env.GMAIL_APP_SCRIPT_URL : null);
+    const gmailKey = process.env.GMAIL_HTTP_KEY || process.env.GMAIL_RELAY_KEY || process.env.RELAY_SECRET_KEY || '';
+
+    if (!b.simulateOnly && gmailUrl) {
+      try {
+        await sendViaGmailHttpRelay(gmailUrl, gmailKey, lead.email, demoSubject, demoBody);
+      } catch (e) {
+        console.warn(`[Deal Engine Relay Warning] Failed sending demo link: ${e.message}`);
+      }
+    } else {
+      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly})`);
+    }
+
+    logEntry.actionTaken = "DEMO_LINK_DISPATCHED";
+    logEntry.demoLink = DEMO_SCHEDULING_LINK;
+    appendOutreachLog(logEntry);
+    fs.writeFileSync(queuePath, JSON.stringify(queue, null, 2), 'utf8');
+
+    return res.json({
+      success: true,
+      status: "Demo Link Dispatched",
+      leadEmail: lead.email,
+      schedulingLink: DEMO_SCHEDULING_LINK,
+      action: "10-minute demo scheduling link dispatched upon first reply; tagged 'Demo Link Dispatched'."
+    });
+  }
+
+  // Subsequent reply handling
+  appendOutreachLog({ ...logEntry, actionTaken: 'SUBSEQUENT_REPLY_LOGGED' });
+  return res.json({
+    success: true,
+    status: lead.status,
+    message: "Subsequent reply logged."
+  });
+});
+
+app.post('/api/deal-engine/trigger-hopper', async (req, res) => {
+  try {
+    const { runFeederHopper } = require('./feeder_hopper');
+    const dryRun = req.body && req.body.dryRun === true;
+    const targetCount = req.body && req.body.targetCount ? parseInt(req.body.targetCount, 10) : 15;
+    const leads = await runFeederHopper({ dryRun, targetCount });
+    res.json({
+      success: true,
+      mode: dryRun ? "DRY_RUN" : "ACTIVE_FEED",
+      stagedCount: leads.length,
+      targetBatchSize: targetCount,
+      leads: leads.map(l => ({ name: l.name, company: l.company, email: l.email, status: l.status }))
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/deal-engine/status', (req, res) => {
+  const queuePath = path.join(__dirname, 'staged_leads_queue.json');
+  const logPath = path.join(__dirname, 'outreach_log.json');
+  let queue = [];
+  let logs = [];
+  try {
+    if (fs.existsSync(queuePath)) queue = JSON.parse(fs.readFileSync(queuePath, 'utf8'));
+    if (fs.existsSync(logPath)) logs = JSON.parse(fs.readFileSync(logPath, 'utf8'));
+  } catch (e) {}
+
+  let nextHopperTime = "17:30:00 CT (Monday - Friday)";
+  let nextDispatchTime = "18:00:00 CT (Monday - Friday)";
+  try {
+    const { getNextWeekdayTrigger } = require('./autonomous_deal_engine');
+    const h = getNextWeekdayTrigger(17, 30);
+    const d = getNextWeekdayTrigger(18, 0);
+    nextHopperTime = h.targetDate.toISOString();
+    nextDispatchTime = d.targetDate.toISOString();
+  } catch (e) {}
+
+  res.json({
+    success: true,
+    engine: "Autonomous Outreach and Deal Engine (Recurring Weekday Daemon)",
+    schedule: {
+      hopperFeedCron: "17:30:00 CT (Mon-Fri)",
+      dispatchCron: "18:00:00 CT (Mon-Fri)",
+      nextHopperFeedUTC: nextHopperTime,
+      nextDispatchUTC: nextDispatchTime,
+      weekendFilter: "Weekends automatically skipped (Mon-Fri only)",
+      jitterPacing: "15s to 60s randomized delay between outbound dispatches",
+      targetDailyBatch: 15
+    },
+    totalLeadsInQueue: queue.length,
+    leads: queue.map(l => ({
+      name: l.name,
+      company: l.company,
+      email: l.email,
+      status: l.status,
+      outreachStatus: l.outreachStatus,
+      demoLinkSent: l.demoLinkSent,
+      paidConfirmed: l.paidConfirmed,
+      sequenceHalted: l.sequenceHalted
+    })),
+    recentLogs: logs.slice(-10)
+  });
 });
 
 // ===================================================================
@@ -1312,18 +1721,188 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Helper: Get Daily Send Counter from SQLite daily_dispatch_state and environment limit
+function getDailySendCounter() {
+  const dailyLimit = parseInt(process.env.DAILY_DISPATCH_LIMIT || '35', 10);
+  try {
+    const { getDailyDispatchState } = require('./skills/skill7_pipeline_manager');
+    const state = getDailyDispatchState();
+    return {
+      dailyLimit: state.dailyLimit,
+      sentToday: state.sentToday,
+      remainingToday: state.remainingToday,
+      status: state.status,
+      lastLiveDispatchAt: state.lastDispatchAt || productionMetrics.lastLiveDispatchAt || new Date().toISOString()
+    };
+  } catch (e) {
+    return {
+      dailyLimit,
+      sentToday: 0,
+      remainingToday: dailyLimit,
+      status: "ACTIVE",
+      lastLiveDispatchAt: productionMetrics.lastLiveDispatchAt || new Date().toISOString()
+    };
+  }
+}
+
+// Dedicated API endpoint for daily send counter check
+app.get('/api/daily-send-counter', (req, res) => {
+  res.json({
+    success: true,
+    dailySendCounter: getDailySendCounter()
+  });
+});
+
+// ===================================================================
+// AUTONOMOUS DAILY SCHEDULER & COUNTER RESET (AMERICA/CHICAGO CST)
+// ===================================================================
+
+let midnightResetJob = null;
+let morningDispatchJob = null;
+
+function initScheduler() {
+  if (midnightResetJob || morningDispatchJob) return;
+
+  // 1. Midnight Reset Job: 00:00 midnight CST (0 0 * * *)
+  midnightResetJob = cron.schedule('0 0 * * *', () => {
+    try {
+      console.log('[Scheduler] Executing scheduled 00:00 midnight CST daily counter reset...');
+      const { resetDailySendCounter } = require('./skills/skill7_pipeline_manager');
+      const resetResult = resetDailySendCounter();
+      console.log(`[Scheduler] Midnight reset complete for ${resetResult.date}. Sent today: ${resetResult.sentToday}. Daily gates cleared.`);
+      pushUiAuditLog('MIDNIGHT_RESET_CST', `Daily send counter reset to 0 for ${resetResult.date}. Daily send gates cleared.`);
+    } catch (err) {
+      console.error('[Scheduler Error] Failed executing midnight reset:', err.message);
+    }
+  }, {
+    scheduled: true,
+    timezone: 'America/Chicago'
+  });
+
+  // 2. Morning Batch Dispatch Job: 8:00 AM CST (0 8 * * *)
+  morningDispatchJob = cron.schedule('0 8 * * *', async () => {
+    console.log('[Scheduler] Triggering autonomous daily batch dispatch at 8:00 AM CST...');
+
+    // Safety Catch 1: OUTBOUND_PAUSED check
+    if (process.env.OUTBOUND_PAUSED === 'true') {
+      console.log('[Scheduler] Dispatch SKIPPED: OUTBOUND_PAUSED is set to true in environment.');
+      pushUiAuditLog('SCHEDULER_SKIP', 'Daily 8:00 AM CST dispatch skipped because OUTBOUND_PAUSED=true');
+      return;
+    }
+
+    // Safety Catch 2: Hard 35 emails/day ceiling check
+    const counter = getDailySendCounter();
+    if (counter.sentToday >= counter.dailyLimit || counter.status === 'CAP_REACHED') {
+      console.log(`[Scheduler] Dispatch SKIPPED: Daily cap reached (${counter.sentToday}/${counter.dailyLimit})`);
+      pushUiAuditLog('SCHEDULER_SKIP', `Daily 8:00 AM CST dispatch skipped because daily cap reached (${counter.sentToday}/${counter.dailyLimit})`);
+      return;
+    }
+
+    try {
+      const { runBatchDispatch } = require('./trigger_batch_dispatch');
+      pushUiAuditLog('SCHEDULER_START', 'Autonomous 8:00 AM CST batch dispatch triggered');
+      const result = await runBatchDispatch({ isLive: true });
+      console.log(`[Scheduler] 8:00 AM CST batch dispatch complete: evaluated ${result.evaluated}, sends: ${result.sends?.length || 0}`);
+      pushUiAuditLog('SCHEDULER_COMPLETE', `Daily dispatch complete: ${result.sends?.filter(s => s.sent).length || 0} sent`);
+    } catch (err) {
+      console.error('[Scheduler Error] Autonomous batch dispatch failed:', err.message);
+      pushUiAuditLog('SCHEDULER_ERROR', `Daily batch dispatch failed: ${err.message}`);
+    }
+  }, {
+    scheduled: true,
+    timezone: 'America/Chicago'
+  });
+
+  console.log('[Scheduler] node-cron autonomous daily schedules initialized (8:00 AM CST dispatch & 00:00 midnight CST reset).');
+}
+
+function stopScheduler() {
+  if (midnightResetJob) {
+    midnightResetJob.stop();
+    midnightResetJob = null;
+  }
+  if (morningDispatchJob) {
+    morningDispatchJob.stop();
+    morningDispatchJob = null;
+  }
+}
+
+function getSchedulerStatus() {
+  return {
+    status: (morningDispatchJob && midnightResetJob) ? "ACTIVE" : "STANDBY",
+    timezone: "America/Chicago (CST)",
+    dispatchSchedule: "0 8 * * * (8:00 AM CST)",
+    resetSchedule: "0 0 * * * (00:00 Midnight CST)",
+    outboundPaused: process.env.OUTBOUND_PAUSED === 'true',
+    jobsRunning: {
+      morningDispatch: !!morningDispatchJob,
+      midnightReset: !!midnightResetJob
+    }
+  };
+}
+
+// Dedicated Scheduler Management Endpoints
+app.post(['/api/scheduler/trigger', '/api/cron/run'], async (req, res) => {
+  if (process.env.OUTBOUND_PAUSED === 'true') {
+    return res.json({ success: false, reason: "OUTBOUND_PAUSED is set to true" });
+  }
+  const counter = getDailySendCounter();
+  if (counter.sentToday >= counter.dailyLimit || counter.status === 'CAP_REACHED') {
+    return res.json({ success: false, reason: `Daily cap reached (${counter.sentToday}/${counter.dailyLimit})` });
+  }
+  try {
+    const { runBatchDispatch } = require('./trigger_batch_dispatch');
+    const isLive = req.body?.isLive === true || req.query?.live === 'true';
+    const result = await runBatchDispatch({ 
+      isLive, 
+      skipPacing: req.body?.skipPacing === true || req.query?.skipPacing === 'true' 
+    });
+    res.json({ success: true, status: "DISPATCH_EXECUTED", result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/scheduler/reset', (req, res) => {
+  try {
+    const { resetDailySendCounter } = require('./skills/skill7_pipeline_manager');
+    const result = resetDailySendCounter();
+    res.json({ success: true, status: "COUNTER_RESET", result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Fallback to index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`===================================================================`);
-  console.log(`  ANTIGRAVITY ENGINE CORE - SINGLE SOURCE OF TRUTH MODEL ROUTER    `);
-  console.log(`  Server Running: http://localhost:${PORT}`);
-  console.log(`  Router Endpoint: http://localhost:${PORT}/api/model/route`);
-  console.log(`  Live Email Endpoint: http://localhost:${PORT}/api/send-single-email`);
-  console.log(`  Token Governance: Active (Flash Tier 87.6% Efficiency Enforced)`);
-  console.log(`  Data Isolation: Production Receipts vs Sandbox Tests ISOLATED`);
-  console.log(`===================================================================`);
-});
+// Auto-initialize scheduler if running as main server
+if (require.main === module || !process.env.DISABLE_AUTO_SCHEDULER) {
+  initScheduler();
+}
+
+let serverInstance = null;
+if (require.main === module) {
+  serverInstance = app.listen(PORT, () => {
+    console.log(`===================================================================`);
+    console.log(`  ANTIGRAVITY ENGINE CORE - SINGLE SOURCE OF TRUTH MODEL ROUTER    `);
+    console.log(`  Server Running: http://localhost:${PORT}`);
+    console.log(`  Router Endpoint: http://localhost:${PORT}/api/model/route`);
+    console.log(`  Live Email Endpoint: http://localhost:${PORT}/api/send-single-email`);
+    console.log(`  Scheduler: Active (8:00 AM CST Dispatch / 00:00 Midnight CST Reset)`);
+    console.log(`  Token Governance: Active (Flash Tier 87.6% Efficiency Enforced)`);
+    console.log(`  Data Isolation: Production Receipts vs Sandbox Tests ISOLATED`);
+    console.log(`===================================================================`);
+  });
+}
+
+module.exports = {
+  app,
+  getDailySendCounter,
+  initScheduler,
+  stopScheduler,
+  getSchedulerStatus,
+  serverInstance
+};

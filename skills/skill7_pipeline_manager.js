@@ -10,7 +10,7 @@ const fs = require('fs');
 const DB_PATH = path.join(__dirname, '..', 'pipeline.db');
 const JSON_CRM_PATH = path.join(__dirname, '..', 'crm_leads_tracker.json');
 
-const VALID_STAGES = ['discovered', 'triaged', 'contacted', 'proposed', 'converted', 'disqualified'];
+const VALID_STAGES = ['discovered', 'triaged', 'contacted', 'proposed', 'converted', 'disqualified', 'disqualified_invalid_mx'];
 
 let dbInstance = null;
 
@@ -56,29 +56,29 @@ function getDatabase() {
         FOREIGN KEY (lead_id) REFERENCES pipeline_leads(id)
       );
 
-      CREATE TABLE IF NOT EXISTS pipeline_followups (
+      CREATE TABLE IF NOT EXISTS review_threads (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         lead_id TEXT,
-        campaign_id TEXT DEFAULT 'default',
         email TEXT NOT NULL,
-        step INTEGER DEFAULT 1,
+        company TEXT,
+        reason TEXT NOT NULL,
+        error_code TEXT,
         subject TEXT,
-        body TEXT,
-        status TEXT NOT NULL DEFAULT 'pending',
-        suppress_reason TEXT,
-        due_at TEXT,
-        sent_at TEXT,
+        message_snippet TEXT,
+        status TEXT NOT NULL DEFAULT 'PAUSED_NEEDS_REVIEW',
         created_at TEXT,
-        FOREIGN KEY (lead_id) REFERENCES pipeline_leads(id)
+        updated_at TEXT
+      );
+
+      CREATE TABLE IF NOT EXISTS daily_dispatch_state (
+        date TEXT PRIMARY KEY,
+        sent_today INTEGER DEFAULT 0,
+        daily_limit INTEGER DEFAULT 35,
+        status TEXT DEFAULT 'ACTIVE',
+        last_dispatch_at TEXT,
+        updated_at TEXT
       );
     `);
-
-    // Ensure last_contacted_at column exists in pipeline_leads
-    try {
-      dbInstance.exec(`ALTER TABLE pipeline_leads ADD COLUMN last_contacted_at TEXT;`);
-    } catch (e) {
-      // Column already exists
-    }
   } catch (err) {
     console.error('[SQLite Init Error] Failed initializing SQLite database:', err.message);
     throw err;
@@ -106,16 +106,15 @@ function upsertLead(lead = {}) {
   const dealValue = parseFloat(lead.dealValueUSD || lead.deal_value || 0);
   const pkg = lead.selectedPackage || lead.tier || 'retainer';
   const stripeLink = lead.stripePaymentLink || '';
-  const lastContacted = lead.lastContactedAt || lead.last_contacted_at || null;
   const now = new Date().toISOString();
 
   const stmt = db.prepare(`
     INSERT INTO pipeline_leads (
       id, name, title, company, domain, email, industry, stage,
       qualification_score, qualification_tier, estimated_burn,
-      deal_value, selected_package, stripe_payment_link, last_contacted_at, created_at, updated_at
+      deal_value, selected_package, stripe_payment_link, created_at, updated_at
     ) VALUES (
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     )
     ON CONFLICT(id) DO UPDATE SET
       name=excluded.name,
@@ -131,16 +130,15 @@ function upsertLead(lead = {}) {
       deal_value=excluded.deal_value,
       selected_package=excluded.selected_package,
       stripe_payment_link=excluded.stripe_payment_link,
-      last_contacted_at=COALESCE(excluded.last_contacted_at, pipeline_leads.last_contacted_at),
       updated_at=excluded.updated_at
   `);
 
   stmt.run(
     id, name, title, company, domain, email, industry, stage,
-    score, tier, burn, dealValue, pkg, stripeLink, lastContacted, now, now
+    score, tier, burn, dealValue, pkg, stripeLink, now, now
   );
 
-  return { id, company, email, stage, lastContactedAt: lastContacted };
+  return { id, company, email, stage };
 }
 
 /**
@@ -208,7 +206,8 @@ function getPipelineSummary() {
     contacted: 0,
     proposed: 0,
     converted: 0,
-    disqualified: 0
+    disqualified: 0,
+    disqualified_invalid_mx: 0
   };
 
   let totalPipelineValueUSD = 0;
@@ -228,6 +227,9 @@ function getPipelineSummary() {
   const allLeadsStmt = db.prepare(`SELECT * FROM pipeline_leads ORDER BY updated_at DESC LIMIT 50`);
   const recentLeads = allLeadsStmt.all();
 
+  const reviewThreadsStmt = db.prepare(`SELECT * FROM review_threads WHERE status = 'PAUSED_NEEDS_REVIEW' ORDER BY updated_at DESC`);
+  const flaggedForReview = reviewThreadsStmt.all();
+
   return {
     success: true,
     database: "SQLite (node:sqlite)",
@@ -238,8 +240,161 @@ function getPipelineSummary() {
       totalPipelineValueUSD,
       totalConvertedValueUSD
     },
+    flaggedForReview,
     recentLeads
   };
+}
+
+/**
+ * Marks a lead as DISQUALIFIED_INVALID_MX in pipeline.db.
+ * If lead exists, updates its stage and tier; otherwise inserts a disqualified record.
+ */
+function markLeadDisqualifiedMx({ email, domain = null, leadId = null, company = '', reason = '' } = {}) {
+  const db = getDatabase();
+  const now = new Date().toISOString();
+  const cleanEmail = (email || '').trim().toLowerCase();
+  const cleanDomain = (domain || (cleanEmail.includes('@') ? cleanEmail.split('@')[1] : '')).trim().toLowerCase();
+
+  let existing = null;
+  if (leadId) {
+    existing = db.prepare('SELECT * FROM pipeline_leads WHERE id = ?').get(leadId);
+  }
+  if (!existing && cleanEmail) {
+    existing = db.prepare('SELECT * FROM pipeline_leads WHERE LOWER(email) = ?').get(cleanEmail);
+  }
+
+  const targetId = existing ? existing.id : (leadId || `LEAD-DISQ-MX-${Date.now().toString(36).toUpperCase()}`);
+  const targetCompany = existing ? existing.company : (company || cleanDomain || 'Unknown');
+  const targetName = existing ? existing.name : 'Unknown';
+  const targetTitle = existing ? existing.title : 'Executive';
+  const targetIndustry = existing ? existing.industry : 'Digital Agency';
+
+  if (existing) {
+    db.prepare(`
+      UPDATE pipeline_leads
+      SET stage = 'disqualified_invalid_mx',
+          qualification_tier = 'DISQUALIFIED_INVALID_MX',
+          updated_at = ?
+      WHERE id = ?
+    `).run(now, existing.id);
+  } else {
+    db.prepare(`
+      INSERT INTO pipeline_leads (
+        id, name, title, company, domain, email, industry, stage,
+        qualification_score, qualification_tier, estimated_burn,
+        deal_value, selected_package, stripe_payment_link, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'disqualified_invalid_mx', 0, 'DISQUALIFIED_INVALID_MX', 0, 0, 'none', '', ?, ?)
+    `).run(targetId, targetName, targetTitle, targetCompany, cleanDomain, cleanEmail, targetIndustry, now, now);
+  }
+
+  db.prepare(`
+    INSERT INTO lifecycle_audit_log (lead_id, from_stage, to_stage, event_name, detail, timestamp)
+    VALUES (?, ?, 'disqualified_invalid_mx', 'PRE_SEND_MX_DISQUALIFIED', ?, ?)
+  `).run(targetId, existing ? existing.stage : 'discovered', reason || 'Domain failed active DNS MX resolution', now);
+
+  return { id: targetId, email: cleanEmail, stage: 'disqualified_invalid_mx', status: 'DISQUALIFIED_INVALID_MX' };
+}
+
+/**
+ * Flags a thread for human review and pauses outbound dispatch for this thread.
+ */
+function flagThreadForReview({ email, leadId = null, company = '', reason = 'INBOUND_REPLY', errorCode = null, subject = '', messageSnippet = '' } = {}) {
+  const db = getDatabase();
+  const now = new Date().toISOString();
+  const cleanEmail = (email || '').trim().toLowerCase();
+
+  // If lead exists in pipeline_leads, tag it
+  if (cleanEmail) {
+    const existing = db.prepare('SELECT id, company FROM pipeline_leads WHERE LOWER(email) = ?').get(cleanEmail);
+    if (existing) {
+      if (!leadId) leadId = existing.id;
+      if (!company) company = existing.company;
+      db.prepare(`
+        UPDATE pipeline_leads
+        SET qualification_tier = 'NEEDS_HUMAN_REVIEW',
+            updated_at = ?
+        WHERE id = ?
+      `).run(now, existing.id);
+    }
+  }
+
+  // Insert or update review_threads
+  const existingThread = cleanEmail 
+    ? db.prepare("SELECT id FROM review_threads WHERE LOWER(email) = ? AND status = 'PAUSED_NEEDS_REVIEW'").get(cleanEmail)
+    : null;
+
+  if (existingThread) {
+    db.prepare(`
+      UPDATE review_threads
+      SET reason = ?, error_code = ?, subject = ?, message_snippet = ?, updated_at = ?
+      WHERE id = ?
+    `).run(reason, errorCode || null, subject || '', messageSnippet || '', now, existingThread.id);
+  } else {
+    db.prepare(`
+      INSERT INTO review_threads (
+        lead_id, email, company, reason, error_code, subject, message_snippet, status, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'PAUSED_NEEDS_REVIEW', ?, ?)
+    `).run(leadId || null, cleanEmail, company || 'Unknown', reason, errorCode || null, subject || '', messageSnippet || '', now, now);
+  }
+
+  if (leadId) {
+    db.prepare(`
+      INSERT INTO lifecycle_audit_log (lead_id, from_stage, to_stage, event_name, detail, timestamp)
+      VALUES (?, 'active', 'paused_review', 'THREAD_PAUSED_FOR_REVIEW', ?, ?)
+    `).run(leadId, `Reason: ${reason}. Error: ${errorCode || 'None'}`, now);
+  }
+
+  return {
+    success: true,
+    email: cleanEmail,
+    status: 'PAUSED_NEEDS_REVIEW',
+    reason,
+    paused: true
+  };
+}
+
+/**
+ * Gets all threads currently paused and flagged for review.
+ */
+function getFlaggedThreadsForReview() {
+  const db = getDatabase();
+  try {
+    const stmt = db.prepare("SELECT * FROM review_threads WHERE status = 'PAUSED_NEEDS_REVIEW' ORDER BY updated_at DESC");
+    return stmt.all();
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * Checks if a specific recipient thread is paused for review.
+ */
+function isThreadPaused(email) {
+  if (!email) return false;
+  const db = getDatabase();
+  try {
+    const cleanEmail = email.trim().toLowerCase();
+    const row = db.prepare("SELECT id FROM review_threads WHERE LOWER(email) = ? AND status = 'PAUSED_NEEDS_REVIEW'").get(cleanEmail);
+    return !!row;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Unpauses a thread after human review.
+ */
+function unpauseThread(email, newStatus = 'RESOLVED') {
+  if (!email) return false;
+  const db = getDatabase();
+  const cleanEmail = email.trim().toLowerCase();
+  const now = new Date().toISOString();
+  db.prepare(`
+    UPDATE review_threads
+    SET status = ?, updated_at = ?
+    WHERE LOWER(email) = ? AND status = 'PAUSED_NEEDS_REVIEW'
+  `).run(newStatus, now, cleanEmail);
+  return true;
 }
 
 /**
@@ -269,343 +424,130 @@ function seedInitialPipeline(targets = []) {
   return seeded;
 }
 
-// =============================================================================
-// FOLLOW-UP DEDUPLICATION & 48-HOUR QUIET GAP GUARDRAILS
-// Ported from followup-dedupe.patch for Enterprise 9-Skill modern architecture
-// =============================================================================
-
-const FOLLOWUP_MIN_GAP_HOURS = Number(process.env.FOLLOWUP_MIN_GAP_HOURS || 48);
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const LIVE_DB_PATH = process.env.LIVE_DB_PATH || process.env.DB_PATH || path.join(__dirname, '..', 'transactions.sqlite');
-
-let liveDbInstance = null;
-
-function getLiveDatabase() {
-  if (liveDbInstance) return liveDbInstance;
-
-  try {
-    const { DatabaseSync } = require('node:sqlite');
-    liveDbInstance = new DatabaseSync(LIVE_DB_PATH);
-    liveDbInstance.exec(`
-      CREATE TABLE IF NOT EXISTS send_log (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        sent_to TEXT NOT NULL,
-        campaign TEXT,
-        sent_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS follow_ups (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        campaign_id TEXT,
-        company_name TEXT,
-        contact_email TEXT,
-        step INTEGER,
-        subject TEXT,
-        body TEXT,
-        due_at TEXT,
-        status TEXT DEFAULT 'pending',
-        sent_at DATETIME,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-      CREATE TABLE IF NOT EXISTS leads_queue (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        company_name TEXT,
-        contact_email TEXT,
-        status TEXT DEFAULT 'pending',
-        added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        processed_at DATETIME
-      );
-    `);
-  } catch (err) {
-    console.error('[Live SQLite Init Error] Failed initializing live database:', err.message);
-    throw err;
-  }
-
-  return liveDbInstance;
-}
-
-function normalizeEmail(email) {
-  return String(email || '').trim().toLowerCase();
+/**
+ * Returns current date string in Central Standard Time (America/Chicago) YYYY-MM-DD
+ */
+function getCstDateString(d = new Date()) {
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
 }
 
 /**
- * Evaluates whether a follow-up is eligible to be scheduled or dispatched.
- * Enforces:
- *  1. Syntax validation (RFC check)
- *  2. Duplicate suppression (active pending/processing task in pipeline_followups or live follow_ups/leads_queue)
- *  3. 48-Hour quiet gap (from lastContactedAt, pipeline_followups sent records, or live send_log)
+ * Retrieves current daily dispatch counter state from SQLite database.
+ * If no record exists for today's CST date, initializes one with sent_today = 0.
  */
-function evaluateFollowUpEligibility({ leadId = null, email = '', campaignId = 'default', step = 1, lastContactedAt = null } = {}) {
-  const normalized = normalizeEmail(email);
-  if (!normalized || !EMAIL_REGEX.test(normalized)) {
-    return {
-      eligible: false,
-      status: 'DROPPED_INVALID_FORMAT',
-      reason: 'Failed RFC-compliant email syntax check',
-      email: normalized
-    };
-  }
-
+function getDailyDispatchState(targetDate = null) {
   const db = getDatabase();
-  const liveDb = getLiveDatabase();
+  const dateKey = targetDate || getCstDateString();
+  const dailyLimit = parseInt(process.env.DAILY_DISPATCH_LIMIT || '35', 10);
+  const now = new Date().toISOString();
 
-  // 1. Check duplicate pending/processing tasks for this address in pipeline.db
-  const checkDupeStmt = db.prepare(`
-    SELECT id, campaign_id, step, status, created_at
-      FROM pipeline_followups
-     WHERE LOWER(email) = ? AND status IN ('pending', 'processing')
-     ORDER BY id ASC LIMIT 1
-  `);
-  const activeDupe = checkDupeStmt.get(normalized);
-  if (activeDupe) {
-    return {
-      eligible: false,
-      status: 'SUPPRESSED_DUPLICATE',
-      reason: `Duplicate recipient address detected within campaign window (Task #${activeDupe.id} already ${activeDupe.status} for step ${activeDupe.step})`,
-      existingTaskId: activeDupe.id,
-      email: normalized
+  let row = db.prepare('SELECT * FROM daily_dispatch_state WHERE date = ?').get(dateKey);
+  if (!row) {
+    db.prepare(`
+      INSERT INTO daily_dispatch_state (date, sent_today, daily_limit, status, last_dispatch_at, updated_at)
+      VALUES (?, 0, ?, 'ACTIVE', NULL, ?)
+    `).run(dateKey, dailyLimit, now);
+    row = {
+      date: dateKey,
+      sent_today: 0,
+      daily_limit: dailyLimit,
+      status: 'ACTIVE',
+      last_dispatch_at: null,
+      updated_at: now
     };
   }
 
-  // Check duplicate pending/processing sequences or queue in live store
-  try {
-    const liveFu = liveDb.prepare(`
-      SELECT id, status, step FROM follow_ups
-       WHERE LOWER(contact_email) = ? AND status IN ('pending', 'processing')
-       ORDER BY id ASC LIMIT 1
-    `).get(normalized);
-    if (liveFu) {
-      return {
-        eligible: false,
-        status: 'SUPPRESSED_DUPLICATE',
-        reason: `Duplicate recipient address detected in live follow_ups (Step ${liveFu.step || 1} already ${liveFu.status})`,
-        email: normalized
-      };
-    }
-  } catch (e) {}
-
-  try {
-    const liveQ = liveDb.prepare(`
-      SELECT id, status FROM leads_queue
-       WHERE LOWER(contact_email) = ? AND status IN ('pending', 'queued', 'processing')
-       ORDER BY id ASC LIMIT 1
-    `).get(normalized);
-    if (liveQ) {
-      return {
-        eligible: false,
-        status: 'SUPPRESSED_DUPLICATE',
-        reason: `Recipient address already queued in live leads_queue (${liveQ.status})`,
-        email: normalized
-      };
-    }
-  } catch (e) {}
-
-  // 2. Check 48-Hour Quiet Gap
-  let contactTimestamp = lastContactedAt;
-  if (!contactTimestamp && leadId) {
-    const leadStmt = db.prepare(`SELECT last_contacted_at FROM pipeline_leads WHERE id = ?`);
-    const l = leadStmt.get(leadId);
-    if (l && l.last_contacted_at) contactTimestamp = l.last_contacted_at;
-  }
-  if (!contactTimestamp) {
-    // Check latest sent follow-up in pipeline_followups
-    const sentStmt = db.prepare(`
-      SELECT sent_at FROM pipeline_followups
-       WHERE LOWER(email) = ? AND status = 'sent'
-       ORDER BY sent_at DESC LIMIT 1
-    `);
-    const lastSent = sentStmt.get(normalized);
-    if (lastSent && lastSent.sent_at) contactTimestamp = lastSent.sent_at;
-  }
-  if (!contactTimestamp) {
-    // Check live send_log (ground truth for "we emailed this person")
-    try {
-      const liveSentStmt = liveDb.prepare(`
-        SELECT sent_at FROM send_log
-         WHERE LOWER(sent_to) = ?
-         ORDER BY id DESC LIMIT 1
-      `);
-      const liveSent = liveSentStmt.get(normalized);
-      if (liveSent && liveSent.sent_at) contactTimestamp = liveSent.sent_at;
-    } catch (e) {}
-  }
-  if (!contactTimestamp) {
-    // Check live follow_ups sent_at
-    try {
-      const liveFuSent = liveDb.prepare(`
-        SELECT sent_at FROM follow_ups
-         WHERE LOWER(contact_email) = ? AND status = 'sent' AND sent_at IS NOT NULL
-         ORDER BY id DESC LIMIT 1
-      `);
-      const liveFuSentRow = liveFuSent.get(normalized);
-      if (liveFuSentRow && liveFuSentRow.sent_at) contactTimestamp = liveFuSentRow.sent_at;
-    } catch (e) {}
-  }
-
-  if (contactTimestamp) {
-    let contactedMs = new Date(contactTimestamp).getTime();
-    if (isNaN(contactedMs) && typeof contactTimestamp === 'string') {
-      contactedMs = new Date(contactTimestamp.replace(' ', 'T') + 'Z').getTime();
-    }
-    if (!isNaN(contactedMs)) {
-      const elapsedHours = (Date.now() - contactedMs) / (1000 * 60 * 60);
-      if (elapsedHours < FOLLOWUP_MIN_GAP_HOURS) {
-        const remainingHours = Math.max(0, +(FOLLOWUP_MIN_GAP_HOURS - elapsedHours).toFixed(1));
-        return {
-          eligible: false,
-          status: 'SUPPRESSED_QUIET_GAP',
-          reason: `Suppressed: Recipient contacted ${elapsedHours.toFixed(1)}h ago; inside mandatory ${FOLLOWUP_MIN_GAP_HOURS}h quiet gap window`,
-          elapsedHours: +elapsedHours.toFixed(1),
-          remainingGapHours: remainingHours,
-          enforcedQuietGapHours: FOLLOWUP_MIN_GAP_HOURS,
-          lastContactedAt: contactTimestamp,
-          email: normalized
-        };
-      }
-    }
-  }
+  const sentToday = Number(row.sent_today || 0);
+  const limit = Number(row.daily_limit || dailyLimit);
+  const status = sentToday >= limit ? 'CAP_REACHED' : (row.status || 'ACTIVE');
 
   return {
-    eligible: true,
-    status: 'CLEARED_FOR_DISPATCH',
-    reason: 'Passed syntax, deduping, and 48-hour quiet gap guardrails',
-    enforcedQuietGapHours: FOLLOWUP_MIN_GAP_HOURS,
-    email: normalized
+    date: row.date,
+    sentToday,
+    dailyLimit: limit,
+    remainingToday: Math.max(0, limit - sentToday),
+    status,
+    lastDispatchAt: row.last_dispatch_at
   };
 }
 
 /**
- * Queues a follow-up task with deduplication and quiet gap guardrail enforcement
+ * Increments sent_today in SQLite daily_dispatch_state for today's CST date.
  */
-function queueFollowUpTask({ leadId = null, email = '', campaignId = 'default', step = 1, subject = '', body = '', dueAt = null, lastContactedAt = null } = {}) {
+function recordDailySend(count = 1) {
   const db = getDatabase();
-  const normalized = normalizeEmail(email);
-  const evaluation = evaluateFollowUpEligibility({ leadId, email: normalized, campaignId, step, lastContactedAt });
+  const dateKey = getCstDateString();
+  const dailyLimit = parseInt(process.env.DAILY_DISPATCH_LIMIT || '35', 10);
   const now = new Date().toISOString();
-  const scheduledDue = dueAt || now;
 
-  const insertStmt = db.prepare(`
-    INSERT INTO pipeline_followups (
-      lead_id, campaign_id, email, step, subject, body,
-      status, suppress_reason, due_at, sent_at, created_at
-    ) VALUES (
-      ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?
-    )
-  `);
+  getDailyDispatchState(dateKey);
 
-  if (!evaluation.eligible) {
-    const res = insertStmt.run(
-      leadId, campaignId, normalized, step, subject, body,
-      'suppressed', evaluation.reason, scheduledDue, now
-    );
-    return {
-      taskId: Number(res.lastInsertRowid),
-      eligible: false,
-      status: evaluation.status,
-      reason: evaluation.reason,
-      details: evaluation
-    };
+  db.prepare(`
+    UPDATE daily_dispatch_state
+    SET sent_today = sent_today + ?,
+        last_dispatch_at = ?,
+        updated_at = ?
+    WHERE date = ?
+  `).run(count, now, now, dateKey);
+
+  const updated = db.prepare('SELECT * FROM daily_dispatch_state WHERE date = ?').get(dateKey);
+  const sentToday = Number(updated.sent_today || 0);
+  if (sentToday >= dailyLimit) {
+    db.prepare(`UPDATE daily_dispatch_state SET status = 'CAP_REACHED' WHERE date = ?`).run(dateKey);
   }
 
-  const res = insertStmt.run(
-    leadId, campaignId, normalized, step, subject, body,
-    'pending', null, scheduledDue, now
-  );
-
-  return {
-    taskId: Number(res.lastInsertRowid),
-    eligible: true,
-    status: 'CLEARED_FOR_DISPATCH',
-    reason: evaluation.reason,
-    dueAt: scheduledDue
-  };
+  return getDailyDispatchState(dateKey);
 }
 
 /**
- * Fetches due follow-ups enforcing at most ONE row per ADDRESS per run (MIN(id) selection)
+ * Resets sent_today back to zero in the database and clears daily send gates.
+ * Runs automatically at 00:00 midnight CST.
  */
-function fetchDueFollowUps(limit = 25) {
+function resetDailySendCounter(targetDate = null) {
   const db = getDatabase();
+  const dateKey = targetDate || getCstDateString();
+  const dailyLimit = parseInt(process.env.DAILY_DISPATCH_LIMIT || '35', 10);
   const now = new Date().toISOString();
-  const stmt = db.prepare(`
-    SELECT id, lead_id, campaign_id, email, step, subject, body, due_at
-      FROM pipeline_followups
-     WHERE status = 'pending' AND due_at <= ?
-       AND id IN (SELECT MIN(id) FROM pipeline_followups
-                   WHERE status = 'pending' AND due_at <= ?
-                   GROUP BY LOWER(email))
-     ORDER BY due_at ASC LIMIT ?
-  `);
-  return stmt.all(now, now, limit || 25);
-}
 
-/**
- * Marks follow-up task status
- */
-function markFollowUpTask(id, status, error = null) {
-  const db = getDatabase();
-  const now = new Date().toISOString();
-  const stmt = db.prepare(`
-    UPDATE pipeline_followups
-       SET status = ?,
-           sent_at = CASE WHEN ? = 'sent' THEN ? ELSE sent_at END,
-           suppress_reason = ?
-     WHERE id = ?
-  `);
-  stmt.run(status, status, now, error || null, id);
-}
+  db.prepare(`
+    INSERT INTO daily_dispatch_state (date, sent_today, daily_limit, status, last_dispatch_at, updated_at)
+    VALUES (?, 0, ?, 'ACTIVE', NULL, ?)
+    ON CONFLICT(date) DO UPDATE SET
+      sent_today = 0,
+      status = 'ACTIVE',
+      updated_at = excluded.updated_at
+  `).run(dateKey, dailyLimit, now);
 
-/**
- * One-time / boot cleanup: for any address holding pending follow-ups under more
- * than one campaign, keep the earliest campaign and suppress the rest.
- */
-function retireDuplicateSequences() {
-  const db = getDatabase();
-  const dupeRows = db.prepare(`
-    SELECT LOWER(email) AS email, COUNT(DISTINCT campaign_id) AS campaigns
-      FROM pipeline_followups
-     WHERE status = 'pending'
-     GROUP BY LOWER(email) HAVING campaigns > 1
-  `).all();
-
-  let retired = 0;
-  for (const d of dupeRows) {
-    const keep = db.prepare(`
-      SELECT campaign_id FROM pipeline_followups
-       WHERE status = 'pending' AND LOWER(email) = ?
-       ORDER BY id ASC LIMIT 1
-    `).get(d.email);
-    if (!keep) continue;
-
-    const r = db.prepare(`
-      UPDATE pipeline_followups
-         SET status = 'suppressed',
-             suppress_reason = 'Duplicate campaign sequence retired by retireDuplicateSequences'
-       WHERE status = 'pending' AND LOWER(email) = ? AND campaign_id != ?
-    `).run(d.email, keep.campaign_id);
-
-    retired += Number(r.changes || 0);
-  }
+  db.prepare(`
+    INSERT INTO lifecycle_audit_log (lead_id, from_stage, to_stage, event_name, detail, timestamp)
+    VALUES (NULL, 'CAP_REACHED', 'ACTIVE', 'DAILY_SEND_COUNTER_RESET', ?, ?)
+  `).run(`Daily send counter reset to 0 for date ${dateKey} at midnight CST. Gates cleared.`, now);
 
   return {
     success: true,
-    totalAddressesWithDupes: dupeRows.length,
-    retiredSequences: retired
+    date: dateKey,
+    sentToday: 0,
+    dailyLimit,
+    remainingToday: dailyLimit,
+    status: 'ACTIVE',
+    clearedAt: now
   };
 }
 
 module.exports = {
   getDatabase,
-  getLiveDatabase,
-  LIVE_DB_PATH,
   upsertLead,
   transitionStage,
   getPipelineSummary,
   seedInitialPipeline,
-  evaluateFollowUpEligibility,
-  queueFollowUpTask,
-  fetchDueFollowUps,
-  markFollowUpTask,
-  retireDuplicateSequences,
-  FOLLOWUP_MIN_GAP_HOURS,
+  markLeadDisqualifiedMx,
+  flagThreadForReview,
+  getFlaggedThreadsForReview,
+  isThreadPaused,
+  unpauseThread,
+  getCstDateString,
+  getDailyDispatchState,
+  recordDailySend,
+  resetDailySendCounter,
   VALID_STAGES
 };

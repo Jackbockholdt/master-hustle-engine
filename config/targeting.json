@@ -85,7 +85,7 @@
     "currency": "USD",
     "coreCapabilities": [
       "9 Pre-Built Enterprise Operational Engines (Gatekeeping, Entity Extraction, Validation, Failover)",
-      "Multi-Model Failover Pooling (Gemini -> Claude -> Grok -> OpenRouter) Zero Vendor Lock-in",
+      "Multi-Model Failover Pooling (Gemini -> Claude / OpenAI -> OpenRouter) Zero Vendor Lock-in",
       "100% White-Label Agency Brand Deployment to Resell to High-Ticket Clients"
     ]
   },

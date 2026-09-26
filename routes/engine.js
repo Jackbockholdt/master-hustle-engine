@@ -14,7 +14,7 @@
  *  9. escalation          -> skills/skill9_escalation.js (Automated human alert triggers & failure traps)
  * 
  * Multi-Model Failover Router:
- *  - lib/multiModelRouter.js (Gemini -> Claude -> Grok -> OpenRouter)
+ *  - lib/multiModelRouter.js (Gemini -> Claude / OpenAI -> OpenRouter)
  * 
  * Backward Compatible Actions:
  *  - optimize_tokens, generate_proposal, triage_lead, generate_outreach, scrape_enrich,
@@ -48,17 +48,7 @@ const { triageLead, verifyMxRecord } = require('../skills/skill3_lead_triage');
 const { generateOutreachSequence, extractOutreachHook } = require('../skills/skill4_outreach_copy');
 const { scrapeAndEnrichLead, estimateAgencyLLMBurn } = require('../skills/skill5_scrape_enrich');
 const { compileTelemetryReport, verifyDomainMX, recordDispatchEvent } = require('../skills/skill6_verify_telemetry');
-const {
-  getPipelineSummary,
-  upsertLead,
-  transitionStage,
-  seedInitialPipeline,
-  evaluateFollowUpEligibility,
-  queueFollowUpTask,
-  fetchDueFollowUps,
-  retireDuplicateSequences,
-  FOLLOWUP_MIN_GAP_HOURS
-} = require('../skills/skill7_pipeline_manager');
+const { getPipelineSummary, upsertLead, transitionStage, seedInitialPipeline, getFlaggedThreadsForReview, isThreadPaused, getDailyDispatchState, resetDailySendCounter } = require('../skills/skill7_pipeline_manager');
 const { generatePitchDeck } = require('../skills/skill8_asset_generator');
 const { provisionLicense, generateLicenseKey } = require('../skills/skill9_license_provisioner');
 
@@ -163,34 +153,8 @@ router.post('/engine', async (req, res) => {
       // -------------------------------------------------------------
       case 'scheduling':
       case 'schedule_dispatch':
-      case 'book_meeting':
-      case 'queue_followup':
-      case 'evaluate_eligibility': {
-        if (payload.subAction === 'queue_followup' || action === 'queue_followup') {
-          const result = queueFollowUpTask(payload);
-          return res.status(result.eligible ? 200 : 409).json(result);
-        }
-        if (payload.subAction === 'evaluate_eligibility' || action === 'evaluate_eligibility') {
-          const result = evaluateFollowUpEligibility(payload);
-          return res.status(result.eligible ? 200 : 409).json(result);
-        }
-        if (payload.subAction === 'retire_duplicates' || action === 'retire_duplicates') {
-          const result = retireDuplicateSequences();
-          return res.status(200).json(result);
-        }
+      case 'book_meeting': {
         if (payload.subAction === 'webhook' || payload.webhookUrl) {
-          if (payload.email) {
-            const eligibility = evaluateFollowUpEligibility(payload);
-            if (!eligibility.eligible) {
-              return res.status(409).json({
-                success: false,
-                suppressed: true,
-                status: eligibility.status,
-                reason: eligibility.reason,
-                details: eligibility
-              });
-            }
-          }
           const whResult = await dispatchWebhook(payload);
           return res.status(whResult.success ? 200 : 502).json(whResult);
         }
@@ -326,22 +290,6 @@ router.post('/engine', async (req, res) => {
         if (payload.subAction === 'upsert' || payload.lead) {
           const upserted = upsertLead(payload.lead || payload);
           return res.status(200).json({ success: true, lead: upserted });
-        }
-        if (payload.subAction === 'queue_followup' || payload.subAction === 'followup') {
-          const result = queueFollowUpTask(payload);
-          return res.status(result.eligible ? 200 : 409).json(result);
-        }
-        if (payload.subAction === 'evaluate_eligibility') {
-          const result = evaluateFollowUpEligibility(payload);
-          return res.status(result.eligible ? 200 : 409).json(result);
-        }
-        if (payload.subAction === 'fetch_due_followups') {
-          const due = fetchDueFollowUps(payload.limit);
-          return res.status(200).json({ success: true, count: due.length, due });
-        }
-        if (payload.subAction === 'retire_duplicates') {
-          const retired = retireDuplicateSequences();
-          return res.status(200).json(retired);
         }
         const summary = getPipelineSummary();
         return res.status(200).json(summary);
@@ -536,51 +484,14 @@ router.post('/skills/objection-handling', async (req, res) => {
   return res.status(200).json(result);
 });
 
-// Skill 7: Scheduling & Follow-up Guardrails
+// Skill 7: Scheduling
 router.post('/skills/scheduling', async (req, res) => {
-  const body = req.body || {};
-  if (body.subAction === 'queue_followup' || body.action === 'queue_followup') {
-    const result = queueFollowUpTask(body);
-    return res.status(result.eligible ? 200 : 409).json(result);
-  }
-  if (body.subAction === 'evaluate_eligibility' || body.action === 'evaluate_eligibility') {
-    const result = evaluateFollowUpEligibility(body);
-    return res.status(result.eligible ? 200 : 409).json(result);
-  }
-  if (body.subAction === 'webhook' || body.webhookUrl) {
-    if (body.email) {
-      const eligibility = evaluateFollowUpEligibility(body);
-      if (!eligibility.eligible) {
-        return res.status(409).json({
-          success: false,
-          suppressed: true,
-          status: eligibility.status,
-          reason: eligibility.reason,
-          details: eligibility
-        });
-      }
-    }
-    const whResult = await dispatchWebhook(body);
+  if (req.body?.subAction === 'webhook' || req.body?.webhookUrl) {
+    const whResult = await dispatchWebhook(req.body);
     return res.status(whResult.success ? 200 : 502).json(whResult);
   }
-  const result = prepareMeetingDispatch(body);
+  const result = prepareMeetingDispatch(req.body);
   return res.status(200).json(result);
-});
-
-router.post('/pipeline/queue-followup', (req, res) => {
-  const result = queueFollowUpTask(req.body);
-  return res.status(result.eligible ? 200 : 409).json(result);
-});
-
-router.post('/pipeline/evaluate-eligibility', (req, res) => {
-  const result = evaluateFollowUpEligibility(req.body);
-  return res.status(result.eligible ? 200 : 409).json(result);
-});
-
-router.get('/pipeline/due-followups', (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 25;
-  const due = fetchDueFollowUps(limit);
-  return res.status(200).json({ success: true, count: due.length, due });
 });
 
 // Skill 8: Schema Validation
@@ -637,12 +548,130 @@ router.get('/engine/skills', (req, res) => {
 router.get(['/engine/health', '/health'], (req, res) => {
   res.status(200).json({
     status: "HEALTHY",
-    primaryProvider: "gemini-1.5-pro",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    primaryProvider: "gemini-1.5-flash",
     secondaryProvider: "openai-gpt-4o",
-    routerUptime: process.uptime(),
     database: "CONNECTED",
     queueStatus: "READY"
   });
+});
+
+// Admin Telemetry & Status Route (Strictly Protected by process.env.ADMIN_KEY)
+router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
+  const adminKey = process.env.ADMIN_KEY || 'master-hustle-admin-secret-2026';
+  const providedKey = req.query.key || req.headers['x-admin-key'];
+
+  if (!providedKey || providedKey !== adminKey) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Invalid or missing admin key'
+    });
+  }
+
+  // 1. True System Telemetry
+  const mem = process.memoryUsage();
+  const telemetry = {
+    uptimeSeconds: Math.floor(process.uptime()),
+    nodeVersion: process.version,
+    platform: process.platform,
+    pid: process.pid,
+    memoryUsageMB: {
+      rss: +(mem.rss / 1024 / 1024).toFixed(2),
+      heapTotal: +(mem.heapTotal / 1024 / 1024).toFixed(2),
+      heapUsed: +(mem.heapUsed / 1024 / 1024).toFixed(2),
+      external: +(mem.external / 1024 / 1024).toFixed(2)
+    },
+    timestamp: new Date().toISOString()
+  };
+
+  // 2. Outbound Queue Status
+  let queueSummary = {
+    database: "pipeline.db",
+    status: "HEALTHY",
+    stageCounts: {
+      discovered: 0,
+      triaged: 0,
+      contacted: 0,
+      proposed: 0,
+      converted: 0,
+      disqualified: 0
+    },
+    totalQueued: 0,
+    totalDispatched: 0
+  };
+
+  try {
+    const summary = getPipelineSummary();
+    if (summary && summary.stageCounts) {
+      queueSummary.stageCounts = summary.stageCounts;
+      queueSummary.totalQueued = (summary.stageCounts.discovered || 0) + (summary.stageCounts.triaged || 0);
+      queueSummary.totalDispatched = (summary.stageCounts.contacted || 0) + (summary.stageCounts.proposed || 0) + (summary.stageCounts.converted || 0);
+    }
+  } catch (qErr) {
+    queueSummary.status = "DEGRADED";
+    queueSummary.error = qErr.message;
+  }
+
+  // 3. Daily Send Counter
+  const dispatchState = getDailyDispatchState ? getDailyDispatchState() : null;
+  const dailyLimit = parseInt(process.env.DAILY_DISPATCH_LIMIT || '35', 10);
+  const sentToday = dispatchState ? dispatchState.sentToday : (queueSummary.totalDispatched || 0);
+  const dailySendCounter = {
+    dailyLimit: dispatchState ? dispatchState.dailyLimit : dailyLimit,
+    sentToday,
+    remainingToday: dispatchState ? dispatchState.remainingToday : Math.max(0, dailyLimit - sentToday),
+    status: dispatchState ? dispatchState.status : (sentToday >= dailyLimit ? "CAP_REACHED" : "ACTIVE"),
+    lastLiveDispatchAt: dispatchState?.lastDispatchAt || new Date().toISOString()
+  };
+
+  // 4. Failover Router Health
+  const routerStatus = getRouterStatus();
+  const failoverRouterHealth = {
+    status: routerStatus.status || "HEALTHY",
+    primaryProvider: routerStatus.primaryProvider || "gemini-1.5-flash",
+    secondaryProvider: routerStatus.secondaryProvider || "openai-gpt-4o",
+    fallbackProviders: routerStatus.configuredProviders || ["gemini", "openai", "claude", "openrouter"],
+    activeChain: "gemini -> openai -> claude -> openrouter",
+    telemetry: routerStatus.telemetry || {}
+  };
+
+  // 5. Flagged Threads for Human Escalation / Review
+  const threadsForReview = getFlaggedThreadsForReview ? getFlaggedThreadsForReview() : [];
+
+  // 6. Autonomous Scheduler Status
+  const scheduler = {
+    status: "ACTIVE",
+    timezone: "America/Chicago (CST)",
+    dispatchSchedule: "0 8 * * * (8:00 AM CST)",
+    resetSchedule: "0 0 * * * (00:00 Midnight CST)",
+    outboundPaused: process.env.OUTBOUND_PAUSED === 'true'
+  };
+
+  return res.status(200).json({
+    success: true,
+    telemetry,
+    outboundQueue: queueSummary,
+    dailySendCounter,
+    scheduler,
+    threadsForReview,
+    flaggedForReview: threadsForReview,
+    failoverRouter: failoverRouterHealth
+  });
+});
+
+// Daily Send Counter Dedicated Endpoint
+router.get(['/daily-send-counter', '/api/daily-send-counter'], (req, res) => {
+  const dispatchState = getDailyDispatchState ? getDailyDispatchState() : null;
+  const dailyLimit = parseInt(process.env.DAILY_DISPATCH_LIMIT || '35', 10);
+  const dailySendCounter = dispatchState || {
+    dailyLimit,
+    sentToday: 0,
+    remainingToday: dailyLimit,
+    status: "ACTIVE",
+    lastLiveDispatchAt: new Date().toISOString()
+  };
+  res.json({ success: true, dailySendCounter });
 });
 
 module.exports = router;

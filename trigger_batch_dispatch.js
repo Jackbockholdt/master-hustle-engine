@@ -7,9 +7,12 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
-const dns = require('dns').promises;
+
+const { verifyEmailPreFlight, validateEmailSyntax, resolveMxRecords } = require('./lib/emailVerifier');
+const { isThreadPaused, flagThreadForReview, markLeadDisqualifiedMx, getPipelineSummary, recordDailySend, getDailyDispatchState, resetDailySendCounter } = require('./skills/skill7_pipeline_manager');
 
 const BASE_DIR = __dirname;
+const DAILY_CAP = 35;
 const POSSIBLE_VERIFIED_PATHS = [
   path.join(BASE_DIR, '..', 'verified_leads.csv'),
   path.join(BASE_DIR, 'verified_leads.csv')
@@ -40,18 +43,74 @@ const DOMAIN_BLOCK_FAILURE_TYPES = new Set([
   'domain_nonexistent'
 ]);
 
-// Helper: DNS MX Pre-verification gate
+// Helper: Calculate randomized humanized stagger delay between min and max seconds (default 180s - 420s)
+function getRandomStaggerMs(minSec = 180, maxSec = 420) {
+  const minMs = minSec * 1000;
+  const maxMs = maxSec * 1000;
+  return Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
+}
+
+// Helper: Check dailySendCounter from server.js (or fallback SQLite pipeline) before every single dispatch
+async function checkDailySendCounter(port = 3005) {
+  try {
+    const res = await new Promise((resolve, reject) => {
+      const req = http.request({
+        hostname: 'localhost',
+        port,
+        path: '/api/daily-send-counter',
+        method: 'GET',
+        timeout: 2500
+      }, (r) => {
+        let data = '';
+        r.on('data', chunk => data += chunk);
+        r.on('end', () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(e);
+          }
+        });
+      });
+      req.on('error', reject);
+      req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+      req.end();
+    });
+    if (res && res.dailySendCounter) {
+      return res.dailySendCounter;
+    }
+  } catch (err) {
+    // Server endpoint not reachable, fallback to direct module check
+  }
+
+  try {
+    const { getDailySendCounter } = require('./server');
+    if (typeof getDailySendCounter === 'function') {
+      return getDailySendCounter();
+    }
+  } catch (e) {}
+
+  try {
+    const summary = getPipelineSummary();
+    const sentToday = (summary.stageCounts?.contacted || 0) + (summary.stageCounts?.proposed || 0) + (summary.stageCounts?.converted || 0);
+    return {
+      dailyLimit: DAILY_CAP,
+      sentToday,
+      remainingToday: Math.max(0, DAILY_CAP - sentToday),
+      status: sentToday >= DAILY_CAP ? "CAP_REACHED" : "ACTIVE"
+    };
+  } catch (e) {}
+
+  return { dailyLimit: DAILY_CAP, sentToday: 0, remainingToday: DAILY_CAP, status: "ACTIVE" };
+}
+
+// Helper: DNS MX Pre-verification gate using native Node resolveMx
 async function hasValidMX(domain) {
   if (!domain || typeof domain !== 'string') return false;
   const cleanDom = domain.replace(/^["']|["']$/g, '').trim().toLowerCase();
   if (!cleanDom || !cleanDom.includes('.')) return false;
   if (FREEMAIL_DOMAINS.has(cleanDom)) return true;
-  try {
-    const mx = await dns.resolveMx(cleanDom);
-    return Array.isArray(mx) && mx.length > 0;
-  } catch (e) {
-    return false;
-  }
+  const res = await resolveMxRecords(cleanDom);
+  return res.hasMx;
 }
 
 // Helper: Clean First Name Sanitizer (No bracket placeholders, no lowercase, clean fallback to 'there')
@@ -312,6 +371,12 @@ async function sendSingleEmail(lead) {
   const emailLower = (lead.email || '').toLowerCase().trim();
   const domainLower = (lead.domain || emailLower.split('@')[1] || '').toLowerCase().trim();
 
+  // THREAD PAUSE GATE (NON-BYPASSABLE)
+  if (isThreadPaused(emailLower)) {
+    console.log(`[PAUSED] ${lead.email} — thread paused for human review`);
+    return { lead, success: false, statusCode: 422, error: `ERR_THREAD_PAUSED: Thread ${lead.email} is paused for human review` };
+  }
+
   // HARD BLOCKLIST GATE (NON-BYPASSABLE)
   const blocklist = loadBlocklist();
   if (blocklist.emails.has(emailLower) || (domainLower && !FREEMAIL_DOMAINS.has(domainLower) && blocklist.domains.has(domainLower))) {
@@ -319,11 +384,17 @@ async function sendSingleEmail(lead) {
     return { lead, success: false, statusCode: 422, error: `ERR_HARD_BLOCKLIST_HIT: ${lead.email} hard blocklisted` };
   }
 
-  // MX PRE-VERIFICATION GATE (NON-BYPASSABLE)
-  const validMX = await hasValidMX(domainLower);
-  if (!validMX) {
-    console.log(`[MX REJECT] ${lead.email} — domain ${domainLower} failed MX resolution`);
-    return { lead, success: false, statusCode: 422, error: `ERR_INVALID_MX: ${domainLower} has no active MX records` };
+  // MX & RFC SYNTAX PRE-VERIFICATION GATE (NON-BYPASSABLE)
+  const preFlight = await verifyEmailPreFlight({
+    email: emailLower,
+    domain: domainLower,
+    leadId: lead.id,
+    company: lead.company,
+    updateDb: true
+  });
+  if (!preFlight.valid) {
+    console.log(`[PRE-FLIGHT DROP] ${lead.email} — ${preFlight.reason} (${preFlight.error || 'Dropped before SMTP transport'})`);
+    return { lead, success: false, statusCode: 422, error: `ERR_${preFlight.reason}: ${preFlight.error || 'Failed pre-flight verification'}` };
   }
 
   return new Promise((resolve) => {
@@ -378,6 +449,10 @@ function recordOutreachLog(lead, outcome = 'delivered awaiting reply', status = 
       fs.appendFileSync(logPath, rowStr);
     }
   }
+
+  try {
+    recordDailySend(1);
+  } catch (e) {}
 }
 
 // Main Batch Dispatch Function
@@ -385,7 +460,7 @@ async function runBatchDispatch(options = {}) {
   const isLive = options.isLive || process.argv.includes('--live');
   const isSyntheticTest = options.isSyntheticTest || process.argv.includes('--test-synthetic');
   const skipPacing = options.skipPacing || false;
-  const batchLimit = Math.min(parseInt(options.batchLimit || 25, 10), 25);
+  const batchLimit = Math.min(parseInt(options.batchLimit || options.dailyCap || DAILY_CAP, 10), DAILY_CAP);
 
   const logs = [];
   const log = (msg) => {
@@ -396,6 +471,19 @@ async function runBatchDispatch(options = {}) {
   log("===================================================================");
   log("  MASTER HUSTLE ENGINE - BATCH DISPATCH & TOKEN GOVERNANCE LOOP    ");
   log("===================================================================");
+
+  // Safety Catch: Check process.env.OUTBOUND_PAUSED
+  if (process.env.OUTBOUND_PAUSED === 'true') {
+    log("[ABORT] OUTBOUND_PAUSED is set to true. No emails will be dispatched to protect domain reputation.");
+    return {
+      success: true,
+      executionMode: "SUSPENDED_OUTBOUND_PAUSED",
+      evaluated: 0,
+      skips: [],
+      sends: [],
+      logs
+    };
+  }
 
   const blocklist = loadBlocklist();
   const outreachHistory = loadOutreachHistory();
@@ -461,6 +549,14 @@ async function runBatchDispatch(options = {}) {
     const domainLower = lead.domain ? lead.domain.toLowerCase() : '';
     const capLower = lead.company_cap ? lead.company_cap.toLowerCase() : domainLower;
 
+    // Check 0: Thread Paused for Human Review
+    if (isThreadPaused(emailLower)) {
+      const reason = "Thread is paused for human review";
+      log(`[SKIP] ${lead.email} — THREAD_PAUSED (${reason})`);
+      evaluationResults.push({ lead, status: 'THREAD_PAUSED', reason });
+      continue;
+    }
+
     // Check 1: Blocklist via screenLeadQuality
     const screenRes = screenLeadQuality(lead.email, lead.domain, blocklist);
     if (screenRes.status === 'DISQUALIFIED') {
@@ -470,12 +566,18 @@ async function runBatchDispatch(options = {}) {
       continue;
     }
 
-    // Check 1.5: MX Pre-verification Gate
-    const validMX = await hasValidMX(domainLower);
-    if (!validMX) {
-      const reason = `Domain ${domainLower || 'unknown'} failed DNS MX resolution`;
-      log(`[SKIP] ${lead.email} — DISQUALIFIED_NO_MX (${reason})`);
-      evaluationResults.push({ lead, status: 'DISQUALIFIED_NO_MX', reason });
+    // Check 1.5: Pre-Send RFC Syntax and DNS/MX Verification Gate
+    const preFlight = await verifyEmailPreFlight({
+      email: lead.email,
+      domain: domainLower,
+      leadId: lead.id,
+      company: lead.company,
+      updateDb: true
+    });
+    if (!preFlight.valid) {
+      const reason = preFlight.error || `Pre-flight validation failed (${preFlight.reason})`;
+      log(`[SKIP] ${lead.email} — ${preFlight.reason} (${reason})`);
+      evaluationResults.push({ lead, status: preFlight.reason, reason });
       continue;
     }
 
@@ -513,6 +615,20 @@ async function runBatchDispatch(options = {}) {
   for (let i = 0; i < leadsToSend.length; i++) {
     const lead = leadsToSend[i];
 
+    // Check dailySendCounter from server.js before every single send
+    const counter = await checkDailySendCounter();
+    if (counter.sentToday >= DAILY_CAP || counter.status === 'CAP_REACHED') {
+      log(`[DAILY CAP REACHED] dailySendCounter sentToday (${counter.sentToday}) reached or exceeded daily limit of ${DAILY_CAP}. Stopping the queue cleanly until tomorrow.`);
+      break;
+    }
+
+    // Check thread paused
+    if (isThreadPaused(lead.email)) {
+      log(`[SKIP] ${lead.email} — THREAD_PAUSED (Thread is paused for human review)`);
+      evaluationResults.push({ lead, status: 'THREAD_PAUSED', reason: 'Thread is paused for human review' });
+      continue;
+    }
+
     if (!isLive) {
       const msg = `[DRY-RUN] ${lead.email} — WOULD SEND (Dry-run mode active, 0 emails dispatched)`;
       log(msg);
@@ -520,10 +636,12 @@ async function runBatchDispatch(options = {}) {
       continue;
     }
 
-    // Live send mode
+    // Live send mode: Humanized stagger 180 to 420 seconds (randomized)
     if (i > 0 && !skipPacing) {
-      log(`[Pacing] Waiting 45 seconds before next dispatch...`);
-      await new Promise(r => setTimeout(r, 45000));
+      const staggerMs = options.testStaggerMs || getRandomStaggerMs(180, 420);
+      const staggerSec = Math.round(staggerMs / 1000);
+      log(`[Pacing] Humanized delay: waiting ${staggerSec}s (${(staggerSec / 60).toFixed(1)} mins) before next dispatch...`);
+      await new Promise(r => setTimeout(r, staggerMs));
     }
 
     log(`[SENDING] Dispatching to ${lead.email}...`);
@@ -537,6 +655,28 @@ async function runBatchDispatch(options = {}) {
       recordOutreachLog(lead);
       sendResults.push({ lead, status: 'SEND', sent: true, response: sendRes.response });
     } else {
+      const errStr = String(sendRes.error || sendRes.response?.error || '');
+      const isBadAddress = errStr.includes('INVALID_MX') || 
+                           errStr.includes('INVALID_SYNTAX') || 
+                           errStr.includes('INVALID_RECIPIENT') || 
+                           errStr.includes('DISQUALIFIED') || 
+                           errStr.includes('BLOCKLIST') ||
+                           sendRes.statusCode === 400;
+
+      if (!isBadAddress) {
+        // Flag for human review in /admin/status and pause that specific thread
+        flagThreadForReview({
+          email: lead.email,
+          leadId: lead.id,
+          company: lead.company,
+          reason: 'OUTBOUND_SEND_FAILURE',
+          errorCode: errStr || 'SMTP_DISPATCH_ERROR',
+          subject: `Outreach to ${lead.company}`,
+          messageSnippet: sendRes.response?.message || errStr || 'Non-address send error'
+        });
+        log(`[ESCALATION] Flagged for review in /admin/status and thread paused: ${lead.email} (${errStr})`);
+      }
+
       log(`[FAIL] ${lead.email} — FAILED (${sendRes.error || sendRes.response?.message || 'Unknown error'})`);
       sendResults.push({ lead, status: 'FAILED', sent: false, error: sendRes.error });
     }
@@ -575,5 +715,8 @@ module.exports = {
   hasValidMX,
   sanitizeFirstName,
   loadOutreachHistory,
-  loadVerifiedLeads
+  loadVerifiedLeads,
+  getRandomStaggerMs,
+  checkDailySendCounter,
+  DAILY_CAP
 };

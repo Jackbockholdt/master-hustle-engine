@@ -33,7 +33,7 @@ const REBUTTAL_PLAYBOOKS = {
   COMPETITOR_EXISTING: {
     coreAngle: 'Multi-model failover insurance',
     talkingPoint: 'Single-vendor setups leave agencies vulnerable to 429 outages and token price hikes. Our router sits on top and auto-fails over.',
-    sampleReply: 'Great to hear you have an existing setup. We do not replace your stack; we sit directly in front of it as an intelligent failover router that guarantees 100% uptime across Gemini, Claude, and Grok.'
+    sampleReply: 'Great to hear you have an existing setup. We do not replace your stack; we sit directly in front of it as an intelligent failover router that guarantees 100% uptime across Gemini, Claude, and OpenRouter.'
   },
   AUTHORITY_DELEGATION: {
     coreAngle: 'Executive alignment package',

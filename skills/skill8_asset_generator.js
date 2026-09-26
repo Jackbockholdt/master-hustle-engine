@@ -45,7 +45,7 @@ Our proprietary orchestrator acts as a single source of truth across all LLM int
                         ▼
 ┌────────────────────────────────────────────────────────┐
 │  Tier 2: Deep Researcher & Copywriting Engine          │
-│  Model: Grok API Path (Prepaid Credits / Fast Copy)    │
+│  Model: Low-Cost Fallback Chain (Gemini Flash / Claude)│
 │  Result: Highly Personalized Hook & Strategy           │
 └───────────────────────┬────────────────────────────────┘
                         │ (Requires Human Approval)

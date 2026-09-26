@@ -31,7 +31,7 @@
     {
       "tier": 3,
       "name": "High-Converting Copywriter",
-      "model": "grok-beta",
+      "model": "gemini-1.5-flash",
       "outputs": ["subject_line", "email_body", "sms_body"],
       "dispatch_targets": ["email_smtp", "sms_gateway", "webhook_endpoint"]
     }

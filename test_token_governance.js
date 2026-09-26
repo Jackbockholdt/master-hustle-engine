@@ -84,7 +84,7 @@ async function runVerificationSuite() {
 
   const checklist = {
     rule1_flash_background_telemetry: false,
-    rule2_grok_outreach_copy: false,
+    rule2_low_cost_outreach_copy: false,
     rule3_flagship_blocked_automated: false,
     rule3_flagship_authorized_human: false,
     rule4_sandbox_isolation_verified: false
@@ -97,10 +97,10 @@ async function runVerificationSuite() {
     console.log("  ✅ PASS: /api/model/route correctly assigned Flash tier for automated background task.");
   }
 
-  const routeGrokRes = await makeRequest('POST', '/api/model/route', { taskType: 'OUTREACH_COPY_GENERATION' });
-  if (routeGrokRes.statusCode === 200 && routeGrokRes.data.selectedModel === 'grok-beta') {
-    console.log("  ✅ PASS: /api/model/route correctly assigned Grok API path for copy generation.");
-    checklist.rule2_grok_outreach_copy = true;
+  const routeCopyRes = await makeRequest('POST', '/api/model/route', { taskType: 'OUTREACH_COPY_GENERATION' });
+  if (routeCopyRes.statusCode === 200 && (routeCopyRes.data.selectedModel === 'gemini-1.5-flash' || routeCopyRes.data.tier === 'LOW_COST_FALLBACK')) {
+    console.log("  ✅ PASS: /api/model/route correctly assigned Low-Cost Fallback path for copy generation.");
+    checklist.rule2_low_cost_outreach_copy = true;
   }
 
   const routeFlagshipBlocked = await makeRequest('POST', '/api/model/route', {
@@ -184,7 +184,7 @@ async function runVerificationSuite() {
   console.log("                FINAL VERIFICATION CHECKLIST RESULTS               ");
   console.log("===================================================================");
   console.log(` 1. Automated Flash / Budget Tier Routing:   ${checklist.rule1_flash_background_telemetry ? '✅ VERIFIED' : '❌ FAILED'}`);
-  console.log(` 2. Grok API / Outreach Copy Path:           ${checklist.rule2_grok_outreach_copy ? '✅ VERIFIED' : '❌ FAILED'}`);
+  console.log(` 2. Low-Cost Fallback / Outreach Copy Path:  ${checklist.rule2_low_cost_outreach_copy ? '✅ VERIFIED' : '❌ FAILED'}`);
   console.log(` 3. Flagship Blocked for Automated (403):    ${checklist.rule3_flagship_blocked_automated ? '✅ VERIFIED' : '❌ FAILED'}`);
   console.log(` 4. Flagship Allowed for Human Trigger:      ${checklist.rule3_flagship_authorized_human ? '✅ VERIFIED' : '❌ FAILED'}`);
   console.log(` 5. Sandbox Metric Isolation (Zero CRM Leak): ${checklist.rule4_sandbox_isolation_verified ? '✅ VERIFIED' : '❌ FAILED'}`);

@@ -352,6 +352,23 @@ def check_inbox(seen_ids):
 
             log_triage_record(record)
             print_alert(record)
+
+            # Forward to Autonomous Deal Engine Webhook
+            try:
+                import urllib.request
+                webhook_url = "http://localhost:3005/api/inbound-reply"
+                wh_payload = json.dumps({
+                    "from": sender_email,
+                    "sender_name": sender_name,
+                    "subject": subject,
+                    "body": body,
+                    "timestamp": datetime.now().isoformat()
+                }).encode('utf-8')
+                wh_req = urllib.request.Request(webhook_url, data=wh_payload, headers={'Content-Type': 'application/json'})
+                urllib.request.urlopen(wh_req, timeout=5)
+            except Exception as whe:
+                pass
+
             seen_ids.add(str_id)
             new_matches += 1
 

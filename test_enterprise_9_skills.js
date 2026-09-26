@@ -217,7 +217,7 @@ async function runEnterpriseTests() {
     for (const r of results) {
       console.log(` Skill ${r.skillNum} [${r.name}]: ${r.passed ? '✅ VERIFIED & OPERATIONAL' : '❌ FAILED'}`);
     }
-    console.log(`\n Multi-Model Failover Router (Gemini -> Claude -> Grok -> OpenRouter): ✅ VERIFIED & HEALTHY`);
+    console.log(`\n Multi-Model Failover Router (Gemini -> Claude / OpenAI -> OpenRouter): ✅ VERIFIED & HEALTHY`);
     console.log(` End-to-End Pipeline (/api/pipeline/process): ✅ PASSING`);
     console.log('===================================================================\n');
 
