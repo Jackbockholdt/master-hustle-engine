@@ -39,14 +39,24 @@ if (process.platform === 'win32') {
 
 // Lightweight Engine Health Check (Unauthenticated 200 OK)
 app.get(['/health', '/api/health'], (req, res) => {
+  const { getRouterStatus } = require('./lib/multiModelRouter');
+  const routerStatus = getRouterStatus();
   res.status(200).json({
     status: "HEALTHY",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
-    primaryProvider: "gemini-1.5-flash",
-    secondaryProvider: "openai-gpt-4o",
+    primaryProvider: routerStatus.primaryProvider,
+    secondaryProvider: routerStatus.secondaryProvider,
+    tertiaryProvider: routerStatus.tertiaryProvider,
     database: "CONNECTED",
-    queueStatus: "READY"
+    queueStatus: "READY",
+    router: {
+      status: routerStatus.status,
+      activeChain: routerStatus.activeChain,
+      averageLatencyMs: routerStatus.averageLatencyMs,
+      reachability: routerStatus.reachability,
+      probes: routerStatus.probes
+    }
   });
 });
 
@@ -134,9 +144,13 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
     primaryProvider: routerStatus.primaryProvider || "gemini-1.5-flash",
-    secondaryProvider: routerStatus.secondaryProvider || "openai-gpt-4o",
+    secondaryProvider: routerStatus.secondaryProvider || "gpt-4o",
+    tertiaryProvider: routerStatus.tertiaryProvider || "claude-3-5-sonnet-20241022",
     fallbackProviders: routerStatus.configuredProviders || ["gemini", "openai", "claude", "openrouter"],
-    activeChain: "gemini -> openai -> claude -> openrouter",
+    activeChain: routerStatus.activeChain || "gemini -> openai -> claude -> openrouter",
+    reachability: routerStatus.reachability,
+    probes: routerStatus.probes,
+    averageLatencyMs: routerStatus.averageLatencyMs,
     telemetry: routerStatus.telemetry || {}
   };
 
@@ -1436,16 +1450,10 @@ app.all('/api/cron/run', async (req, res) => {
   }
 });
 
-// Health Check Endpoints
-app.get(['/health', '/api/health'], (req, res) => {
-  res.status(200).json({
-    status: "HEALTHY",
-    primaryProvider: "gemini-1.5-pro",
-    secondaryProvider: "openai-gpt-4o",
-    routerUptime: process.uptime(),
-    database: "CONNECTED",
-    queueStatus: "READY"
-  });
+// Health Check Endpoints (Router-Aware)
+app.get(['/api/router-health'], (req, res) => {
+  const { getRouterStatus } = require('./lib/multiModelRouter');
+  res.status(200).json(getRouterStatus());
 });
 
 // ===================================================================
@@ -2004,6 +2012,14 @@ if (require.main === module) {
     console.log(`  Token Governance: Active (Flash Tier 87.6% Efficiency Enforced)`);
     console.log(`  Data Isolation: Production Receipts vs Sandbox Tests ISOLATED`);
     console.log(`===================================================================`);
+
+    // Perform startup dry run probe for configured LLM providers
+    try {
+      const { probeAllProviders } = require('./lib/multiModelRouter');
+      probeAllProviders().catch(err => {
+        console.warn('[Router Startup Probe Notice]', err.message);
+      });
+    } catch (e) {}
   });
 }
 

@@ -546,14 +546,23 @@ router.get('/engine/skills', (req, res) => {
 });
 
 router.get(['/engine/health', '/health'], (req, res) => {
+  const routerStatus = getRouterStatus();
   res.status(200).json({
     status: "HEALTHY",
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
-    primaryProvider: "gemini-1.5-flash",
-    secondaryProvider: "openai-gpt-4o",
+    primaryProvider: routerStatus.primaryProvider,
+    secondaryProvider: routerStatus.secondaryProvider,
+    tertiaryProvider: routerStatus.tertiaryProvider,
     database: "CONNECTED",
-    queueStatus: "READY"
+    queueStatus: "READY",
+    router: {
+      status: routerStatus.status,
+      activeChain: routerStatus.activeChain,
+      averageLatencyMs: routerStatus.averageLatencyMs,
+      reachability: routerStatus.reachability,
+      probes: routerStatus.probes
+    }
   });
 });
 
@@ -636,9 +645,13 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
     primaryProvider: routerStatus.primaryProvider || "gemini-1.5-flash",
-    secondaryProvider: routerStatus.secondaryProvider || "openai-gpt-4o",
+    secondaryProvider: routerStatus.secondaryProvider || "gpt-4o",
+    tertiaryProvider: routerStatus.tertiaryProvider || "claude-3-5-sonnet-20241022",
     fallbackProviders: routerStatus.configuredProviders || ["gemini", "openai", "claude", "openrouter"],
-    activeChain: "gemini -> openai -> claude -> openrouter",
+    activeChain: routerStatus.activeChain || "gemini -> openai -> claude -> openrouter",
+    reachability: routerStatus.reachability,
+    probes: routerStatus.probes,
+    averageLatencyMs: routerStatus.averageLatencyMs,
     telemetry: routerStatus.telemetry || {}
   };
 
