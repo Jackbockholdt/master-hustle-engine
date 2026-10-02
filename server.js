@@ -15,7 +15,15 @@ const PORT = process.env.PORT || 3005;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static(path.join(__dirname)));
+// The repo root holds lead data, logs, and server source, so only page assets are served from it.
+const PUBLIC_STATIC_EXTENSIONS = new Set([
+  '.html', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.mp4', '.woff', '.woff2'
+]);
+const serveRootStatic = express.static(path.join(__dirname));
+app.use((req, res, next) => {
+  if (!PUBLIC_STATIC_EXTENSIONS.has(path.extname(req.path).toLowerCase())) return next();
+  return serveRootStatic(req, res, next);
+});
 
 // Helper to load .env configuration files safely across OS environments
 function loadEnvFile(filePath) {
