@@ -126,6 +126,7 @@ async function runTests() {
   // --- Test 6: GET /admin/status Exposes leadQueueDepth ---
   console.log('\n--- 6. Testing GET /admin/status Telemetry for leadQueueDepth ---');
   // Start server on temporary port 3008
+  process.env.ADMIN_KEY = process.env.ADMIN_KEY || 'local-test-admin-key';
   const { app, initScheduler, stopScheduler } = require('./server');
   const PORT = 3008;
   const server = app.listen(PORT);
@@ -134,7 +135,7 @@ async function runTests() {
 
   try {
     const statusData = await new Promise((resolve, reject) => {
-      http.get(`http://localhost:${PORT}/admin/status?key=master-hustle-admin-secret-2026`, res => {
+      http.get(`http://localhost:${PORT}/admin/status?key=${encodeURIComponent(process.env.ADMIN_KEY)}`, res => {
         let body = '';
         res.on('data', c => body += c);
         res.on('end', () => resolve(JSON.parse(body)));

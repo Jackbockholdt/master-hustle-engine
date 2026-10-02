@@ -568,9 +568,15 @@ router.get(['/engine/health', '/health'], (req, res) => {
 
 // Admin Telemetry & Status Route (Strictly Protected by process.env.ADMIN_KEY)
 router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
-  const adminKey = process.env.ADMIN_KEY || 'master-hustle-admin-secret-2026';
+  const adminKey = process.env.ADMIN_KEY;
   const providedKey = req.query.key || req.headers['x-admin-key'];
 
+  if (!adminKey) {
+    return res.status(503).json({
+      success: false,
+      error: 'Admin access is disabled: ADMIN_KEY is not set on this server'
+    });
+  }
   if (!providedKey || providedKey !== adminKey) {
     return res.status(401).json({
       success: false,
@@ -685,7 +691,11 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
 router.post(['/intake/run', '/api/intake/run', '/scheduler/intake', '/api/scheduler/intake'], async (req, res) => {
   try {
     const { runAutonomousDailyIntake } = require('../lib/autonomousLeadIntake');
+    const { scheduledJobsEnabled, SCHEDULED_JOBS_DISABLED_REASON } = require('../lib/outboundGates');
     const { query, limit, mock, dryRun, forceLive } = req.body || {};
+    if (!scheduledJobsEnabled() && mock !== true && dryRun !== true) {
+      return res.status(403).json({ success: false, reason: SCHEDULED_JOBS_DISABLED_REASON });
+    }
     const result = await runAutonomousDailyIntake({
       query,
       limit: parseInt(limit, 10) || 15,

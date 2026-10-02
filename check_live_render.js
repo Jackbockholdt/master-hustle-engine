@@ -17,17 +17,13 @@ async function main() {
   try {
     const root = await get('https://master-hustle-engine.onrender.com/');
     const isHtml = root.body.includes('<!DOCTYPE html>');
-    const has4000 = root.body.includes('4,000') || root.body.includes('4000');
-    const has1500 = root.body.includes('1,500') || root.body.includes('1500');
-    const has25k = root.body.includes('25,000') || root.body.includes('25000');
-    const has497 = root.body.includes('497');
-    const has199 = root.body.includes('199');
-    const has4500 = root.body.includes('4,500') || root.body.includes('4500');
+    const rootShowsPrices = /\$\s?\d/.test(root.body);
+    const rootHasSalesDesk = root.body.includes('AI sales desk');
+    const rootHasContact = root.body.includes('hello@master-hustle-engine.com') && !root.body.includes('@gmail.com');
     const hasDemo = root.body.includes('/demo');
 
     console.log(`  Root: Status ${root.status}, isHtml: ${isHtml}`);
-    console.log(`  Old Pricing: 4000=${has4000}, 1500=${has1500}, 25000=${has25k}`);
-    console.log(`  New Pricing: 497=${has497}, 199=${has199}, 4500=${has4500}`);
+    console.log(`  Sales desk copy: ${rootHasSalesDesk}, public prices: ${rootShowsPrices}, hello@ contact: ${rootHasContact}`);
     console.log(`  Demo Link: ${hasDemo}`);
 
     if (isHtml) {
@@ -36,14 +32,15 @@ async function main() {
     }
 
     const demo = await get('https://master-hustle-engine.onrender.com/demo');
-    const isDemoV2 = demo.body.includes('Failover Console') || demo.body.includes('simulateOutage') || demo.body.includes('Queue & Guardrail Scrubber');
-    console.log(`  Demo: Status ${demo.status}, Length: ${demo.body.length}, isNewDemo: ${isDemoV2}`);
+    const isSalesDeskDemo = demo.body.includes('data-demo="sales-desk"');
+    const demoShowsPrices = /\$\s?\d/.test(demo.body);
+    console.log(`  Demo: Status ${demo.status}, Length: ${demo.body.length}, isSalesDeskDemo: ${isSalesDeskDemo}, public prices: ${demoShowsPrices}`);
     const demoTitle = demo.body.match(/<title>([\s\S]*?)<\/title>/)?.[1];
     console.log(`  Demo Title: ${demoTitle}`);
 
     return {
-      rootReady: isHtml && !has4000 && has497 && has4500 && hasDemo,
-      demoReady: isDemoV2
+      rootReady: isHtml && rootHasSalesDesk && !rootShowsPrices && rootHasContact && hasDemo,
+      demoReady: isSalesDeskDemo && !demoShowsPrices
     };
   } catch (err) {
     console.error('Fetch error:', err.message);

@@ -5,6 +5,12 @@ const fs = require('fs');
 const https = require('https');
 const dns = require('dns');
 const cron = require('node-cron');
+const {
+  scheduledJobsEnabled,
+  liveSendsEnabled,
+  SCHEDULED_JOBS_DISABLED_REASON,
+  LIVE_SENDS_DISABLED_REASON
+} = require('./lib/outboundGates');
 try {
   dns.setDefaultResultOrder('ipv4first');
 } catch (e) {}
@@ -15,7 +21,20 @@ const PORT = process.env.PORT || 3005;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static(path.join(__dirname)));
+// Off-message pages that live in the repo but must not be public on this domain.
+app.get(['/saas_sell_sheet.html', '/strain-card.html', '/infusion-card.html'], (req, res) => {
+  res.redirect(302, '/demo');
+});
+
+// The repo root holds lead data, logs, and server source, so only page assets are served from it.
+const PUBLIC_STATIC_EXTENSIONS = new Set([
+  '.html', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.mp4', '.woff', '.woff2'
+]);
+const serveRootStatic = express.static(path.join(__dirname));
+app.use((req, res, next) => {
+  if (!PUBLIC_STATIC_EXTENSIONS.has(path.extname(req.path).toLowerCase())) return next();
+  return serveRootStatic(req, res, next);
+});
 
 // Helper to load .env configuration files safely across OS environments
 function loadEnvFile(filePath) {
@@ -62,9 +81,15 @@ app.get(['/health', '/api/health'], (req, res) => {
 
 // Admin Telemetry & Status Route (Strictly Protected by process.env.ADMIN_KEY)
 app.get(['/admin/status', '/api/admin/status'], (req, res) => {
-  const adminKey = process.env.ADMIN_KEY || 'master-hustle-admin-secret-2026';
+  const adminKey = process.env.ADMIN_KEY;
   const providedKey = req.query.key || req.headers['x-admin-key'];
 
+  if (!adminKey) {
+    return res.status(503).json({
+      success: false,
+      error: 'Admin access is disabled: ADMIN_KEY is not set on this server'
+    });
+  }
   if (!providedKey || providedKey !== adminKey) {
     return res.status(401).json({
       success: false,
@@ -506,6 +531,9 @@ app.post('/api/model/route', (req, res) => {
 // Single-Recipient Live Email Dispatch Endpoint (NO SYNTHETIC MESSAGE ID, NO SIMULATION FALLBACK)
 app.post('/api/send-single-email', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
+  if (!liveSendsEnabled()) {
+    return res.status(403).json({ success: false, error: 'ERR_LIVE_SENDS_DISABLED', message: LIVE_SENDS_DISABLED_REASON });
+  }
   const b = req.body || {};
   const toEmail = b.to || b.email || b.recipient;
   const subject = b.subject || 'Engine live send test';
@@ -713,6 +741,9 @@ async function handleBatchDispatch(req, res) {
     const { runBatchDispatch } = require('./trigger_batch_dispatch');
 
     const isLive = req.body?.live === true || req.body?.isLive === true || req.query?.live === "true";
+    if (isLive && !liveSendsEnabled()) {
+      return res.status(403).json({ success: false, error: 'ERR_LIVE_SENDS_DISABLED', message: LIVE_SENDS_DISABLED_REASON });
+    }
     const isSyntheticTest = req.body?.synthetic === true || req.body?.testSynthetic === true || req.query?.synthetic === "true";
     const skipPacing = req.body?.skipPacing === true || req.query?.skipPacing === "true";
     const requestedCap = parseInt(req.body?.maxBatchSize || req.body?.batchSize || req.body?.limit || 25, 10);
@@ -1287,14 +1318,14 @@ app.post(['/api/inbound-reply', '/webhook/inbound-reply'], async (req, res) => {
     const gmailUrl = process.env.GMAIL_HTTP_URL || process.env.GMAIL_RELAY_URL || (process.env.GMAIL_APP_SCRIPT_URL ? process.env.GMAIL_APP_SCRIPT_URL : null);
     const gmailKey = process.env.GMAIL_HTTP_KEY || process.env.GMAIL_RELAY_KEY || process.env.RELAY_SECRET_KEY || '';
 
-    if (!b.simulateOnly && gmailUrl) {
+    if (!b.simulateOnly && liveSendsEnabled() && gmailUrl) {
       try {
         await sendViaGmailHttpRelay(gmailUrl, gmailKey, lead.email, checkoutSubject, checkoutBody);
       } catch (e) {
         console.warn(`[Deal Engine Relay Warning] Failed sending checkout email: ${e.message}`);
       }
     } else {
-      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly})`);
+      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly}, liveSendsEnabled=${liveSendsEnabled()})`);
     }
 
     logEntry.actionTaken = "STRIPE_CHECKOUT_ROUTED";
@@ -1322,14 +1353,14 @@ app.post(['/api/inbound-reply', '/webhook/inbound-reply'], async (req, res) => {
     const gmailUrl = process.env.GMAIL_HTTP_URL || process.env.GMAIL_RELAY_URL || (process.env.GMAIL_APP_SCRIPT_URL ? process.env.GMAIL_APP_SCRIPT_URL : null);
     const gmailKey = process.env.GMAIL_HTTP_KEY || process.env.GMAIL_RELAY_KEY || process.env.RELAY_SECRET_KEY || '';
 
-    if (!b.simulateOnly && gmailUrl) {
+    if (!b.simulateOnly && liveSendsEnabled() && gmailUrl) {
       try {
         await sendViaGmailHttpRelay(gmailUrl, gmailKey, lead.email, demoSubject, demoBody);
       } catch (e) {
         console.warn(`[Deal Engine Relay Warning] Failed sending demo link: ${e.message}`);
       }
     } else {
-      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly})`);
+      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly}, liveSendsEnabled=${liveSendsEnabled()})`);
     }
 
     logEntry.actionTaken = "DEMO_LINK_DISPATCHED";
@@ -1359,6 +1390,9 @@ app.post('/api/deal-engine/trigger-hopper', async (req, res) => {
   try {
     const { runFeederHopper } = require('./feeder_hopper');
     const dryRun = req.body && req.body.dryRun === true;
+    if (!dryRun && !liveSendsEnabled()) {
+      return res.status(403).json({ success: false, error: 'ERR_LIVE_SENDS_DISABLED', message: LIVE_SENDS_DISABLED_REASON });
+    }
     const targetCount = req.body && req.body.targetCount ? parseInt(req.body.targetCount, 10) : 15;
     const leads = await runFeederHopper({ dryRun, targetCount });
     res.json({
@@ -1457,18 +1491,14 @@ app.get(['/api/router-health'], (req, res) => {
 });
 
 // ===================================================================
-// LOCKED DEMO: INTERACTIVE LIVE FAILOVER & GUARDRAIL CONSOLE
+// PUBLIC DEMO: WHITE-LABEL AI SALES DESK WALKTHROUGH (static, no API calls)
 // ===================================================================
 
 app.get(['/demo', '/demo.html', '/demo-v2', '/demo-v2.html'], (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'demo.html');
-  if (fs.existsSync(filePath)) {
-    return res.sendFile(filePath);
-  }
-  res.sendFile(path.join(__dirname, 'demo.html'));
+  res.sendFile(path.join(__dirname, 'public', 'demo.html'));
 });
 
-// Demo API: Live Provider Failover
+// Demo API: Live Provider Failover (no longer used by /demo; kept for existing scripts)
 app.post('/api/demo/failover', async (req, res) => {
   const { prompt, simulateOutage = false } = req.body || {};
   const queryPrompt = prompt || "You are an expert customer success assistant for an e-commerce brand. Please draft an empathetic return policy response for Order #89211.";
@@ -1840,6 +1870,12 @@ function initScheduler() {
       return;
     }
 
+    if (!liveSendsEnabled()) {
+      console.log('[Scheduler] Dispatch SKIPPED: ENABLE_LIVE_SENDS is not set to true.');
+      pushUiAuditLog('SCHEDULER_SKIP', 'Daily 8:00 AM CST dispatch skipped because ENABLE_LIVE_SENDS is off');
+      return;
+    }
+
     // Safety Catch 2: Hard 35 emails/day ceiling check
     const counter = getDailySendCounter();
     if (counter.sentToday >= counter.dailyLimit || counter.status === 'CAP_REACHED') {
@@ -1912,6 +1948,8 @@ function getSchedulerStatus() {
     inboundSchedule: "*/15 * * * * (Every 15 min CST)",
     resetSchedule: "0 0 * * * (00:00 Midnight CST)",
     outboundPaused: process.env.OUTBOUND_PAUSED === 'true',
+    scheduledJobsEnabled: scheduledJobsEnabled(),
+    liveSendsEnabled: liveSendsEnabled(),
     jobsRunning: {
       morningIntake: !!morningIntakeJob,
       morningDispatch: !!morningDispatchJob,
@@ -1926,6 +1964,9 @@ app.post(['/api/scheduler/intake', '/api/intake/trigger'], async (req, res) => {
   try {
     const { runAutonomousDailyIntake } = require('./lib/autonomousLeadIntake');
     const { query, limit, mock, dryRun, forceLive } = req.body || {};
+    if (!scheduledJobsEnabled() && mock !== true && dryRun !== true) {
+      return res.status(403).json({ success: false, reason: SCHEDULED_JOBS_DISABLED_REASON });
+    }
     const result = await runAutonomousDailyIntake({
       query,
       limit: parseInt(limit, 10) || 15,
@@ -1940,6 +1981,13 @@ app.post(['/api/scheduler/intake', '/api/intake/trigger'], async (req, res) => {
 });
 
 app.post(['/api/scheduler/trigger', '/api/cron/run'], async (req, res) => {
+  const isLive = req.body?.isLive === true || req.query?.live === 'true';
+  if (isLive && !scheduledJobsEnabled()) {
+    return res.status(403).json({ success: false, reason: SCHEDULED_JOBS_DISABLED_REASON });
+  }
+  if (isLive && !liveSendsEnabled()) {
+    return res.status(403).json({ success: false, reason: LIVE_SENDS_DISABLED_REASON });
+  }
   if (process.env.OUTBOUND_PAUSED === 'true') {
     return res.json({ success: false, reason: "OUTBOUND_PAUSED is set to true" });
   }
@@ -1949,7 +1997,6 @@ app.post(['/api/scheduler/trigger', '/api/cron/run'], async (req, res) => {
   }
   try {
     const { runBatchDispatch } = require('./trigger_batch_dispatch');
-    const isLive = req.body?.isLive === true || req.query?.live === 'true';
     const result = await runBatchDispatch({ 
       isLive, 
       skipPacing: req.body?.skipPacing === true || req.query?.skipPacing === 'true' 
@@ -1995,9 +2042,10 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Auto-initialize scheduler if running as main server
-if (require.main === module || !process.env.DISABLE_AUTO_SCHEDULER) {
+if (scheduledJobsEnabled()) {
   initScheduler();
+} else {
+  console.log('[Scheduler] Scheduled jobs are OFF (intake, dispatch, inbound poll, midnight reset). Set ENABLE_SCHEDULED_JOBS=true to enable.');
 }
 
 let serverInstance = null;
@@ -2008,7 +2056,7 @@ if (require.main === module) {
     console.log(`  Server Running: http://localhost:${PORT}`);
     console.log(`  Router Endpoint: http://localhost:${PORT}/api/model/route`);
     console.log(`  Live Email Endpoint: http://localhost:${PORT}/api/send-single-email`);
-    console.log(`  Scheduler: Active (8:00 AM CST Dispatch / 00:00 Midnight CST Reset)`);
+    console.log(`  Scheduler: ${scheduledJobsEnabled() ? 'Active (6:00 AM CST Intake / 8:00 AM CST Dispatch / 00:00 Midnight CST Reset)' : 'OFF (ENABLE_SCHEDULED_JOBS not set to true)'}`);
     console.log(`  Token Governance: Active (Flash Tier 87.6% Efficiency Enforced)`);
     console.log(`  Data Isolation: Production Receipts vs Sandbox Tests ISOLATED`);
     console.log(`===================================================================`);
