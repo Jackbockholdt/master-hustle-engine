@@ -235,7 +235,7 @@
         },
         confirmIn: { time: 'Wed 8:40 AM', text: '10:30 works' },
         booking: {
-          dow: 'Sat', when: '10:30 AM', job: 'Rekey all exterior locks', where: 'East Austin',
+          day: 'Saturday', dow: 'Sat', when: '10:30 AM', job: 'Rekey all exterior locks', where: 'East Austin',
           note: 'New homeowner. Ask about a smart lock upgrade.',
           reminder: 'Friday at 6:00 PM',
           text: 'You\'re set for Saturday at 10:30 AM. Your tech will text when they\'re on the way. Reply here if anything changes.'
@@ -277,7 +277,7 @@
         },
         confirmIn: { time: 'Tue 1:02 PM', text: 'Yes book it' },
         booking: {
-          dow: 'Thu', when: '5:30 PM', job: 'AC diagnostic, possible replacement', where: 'Westerville',
+          day: 'Thursday', dow: 'Thu', when: '5:30 PM', job: 'AC diagnostic, possible replacement', where: 'Westerville',
           note: 'Flagged for the comfort advisor: 14-year-old system.',
           reminder: 'Thursday at 8:00 AM',
           text: 'Done. Thursday at 5:30 PM is yours. We\'ll send a reminder Thursday morning, and your tech will text when they\'re on the way.'
@@ -319,7 +319,7 @@
         },
         confirmIn: { time: 'Thu 12:05 PM', text: 'Ok, Friday 9 works' },
         booking: {
-          dow: 'Fri', when: '9:00 AM', job: 'Free roof inspection with photos', where: 'South Tulsa',
+          day: 'Friday', dow: 'Fri', when: '9:00 AM', job: 'Free roof inspection with photos', where: 'South Tulsa',
           note: 'Customer wants low pressure. Email the photos after.',
           reminder: 'Thursday at 5:00 PM',
           text: 'Great, you\'re booked for Friday at 9:00 AM. Chris will text when he\'s on the way, and you\'ll get the photos by email the same day.'
@@ -436,7 +436,7 @@
         return card;
       },
       5: function (s, animate) {
-        var card = eventCard('Booked', 'tag-ok', s.booking.job, 'On ' + s.client.name + '\u2019s calendar');
+        var card = eventCard('Booked', 'tag-ok', 'On the calendar for ' + s.booking.day + ' at ' + s.booking.when, 'Added to ' + s.client.name + '\u2019s calendar');
         card.appendChild(bubble('in', s.lead.name + ' \u00b7 ' + s.confirmIn.time, s.confirmIn.text));
         var spacer = el('div'); spacer.style.height = '10px'; card.appendChild(spacer);
         var booking = el('div', 'booking');
