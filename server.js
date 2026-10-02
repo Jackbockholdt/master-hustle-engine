@@ -15,6 +15,11 @@ const PORT = process.env.PORT || 3005;
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Off-message pages that live in the repo but must not be public on this domain.
+app.get(['/saas_sell_sheet.html', '/strain-card.html', '/infusion-card.html'], (req, res) => {
+  res.redirect(302, '/demo');
+});
+
 // The repo root holds lead data, logs, and server source, so only page assets are served from it.
 const PUBLIC_STATIC_EXTENSIONS = new Set([
   '.html', '.css', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico', '.mp4', '.woff', '.woff2'
