@@ -47,21 +47,17 @@ async function check() {
   try {
     const root = await get('https://master-hustle-engine.onrender.com/');
     const isHtml = root.body.includes('<!DOCTYPE html>');
-    const has4000 = root.body.includes('4,000') || root.body.includes('4000');
-    const has1500 = root.body.includes('1,500') || root.body.includes('1500');
-    const has25k = root.body.includes('25,000') || root.body.includes('25000');
-    const has2500 = root.body.includes('2,500') || root.body.includes('2500');
-    const has497 = root.body.includes('497');
-    const has199 = root.body.includes('199');
-    const has4500 = root.body.includes('4,500') || root.body.includes('4500');
+    const rootShowsPrices = /\$\s?\d/.test(root.body);
+    const rootHasSalesDesk = root.body.includes('AI sales desk');
     const hasDemo = root.body.includes('/demo');
 
     const demo = await get('https://master-hustle-engine.onrender.com/demo');
-    const isDemoV2 = demo.body.includes('Failover Console') || demo.body.includes('simulateOutage') || demo.body.includes('Queue & Guardrail Scrubber');
+    const isSalesDeskDemo = demo.body.includes('data-demo="sales-desk"');
+    const demoShowsPrices = /\$\s?\d/.test(demo.body);
 
-    console.log(`[${ts}] rootStatus=${root.status} isHtml=${isHtml} has4000=${has4000} has1500=${has1500} has2500=${has2500} has25k=${has25k} has497=${has497} has199=${has199} has4500=${has4500} hasDemo=${hasDemo} isDemoV2=${isDemoV2}`);
+    console.log(`[${ts}] rootStatus=${root.status} isHtml=${isHtml} rootHasSalesDesk=${rootHasSalesDesk} rootShowsPrices=${rootShowsPrices} hasDemo=${hasDemo} isSalesDeskDemo=${isSalesDeskDemo} demoShowsPrices=${demoShowsPrices}`);
 
-    if (isHtml && !has4000 && !has1500 && !has2500 && !has25k && has497 && has199 && has4500 && hasDemo && isDemoV2) {
+    if (isHtml && rootHasSalesDesk && !rootShowsPrices && hasDemo && isSalesDeskDemo && !demoShowsPrices) {
       console.log('\n======================================================');
       console.log('  LIVE RENDER DEPLOYMENT CONFIRMED AND VERIFIED!');
       console.log('======================================================\n');
