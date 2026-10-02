@@ -1457,18 +1457,14 @@ app.get(['/api/router-health'], (req, res) => {
 });
 
 // ===================================================================
-// LOCKED DEMO: INTERACTIVE LIVE FAILOVER & GUARDRAIL CONSOLE
+// PUBLIC DEMO: WHITE-LABEL AI SALES DESK WALKTHROUGH (static, no API calls)
 // ===================================================================
 
 app.get(['/demo', '/demo.html', '/demo-v2', '/demo-v2.html'], (req, res) => {
-  const filePath = path.join(__dirname, 'public', 'demo.html');
-  if (fs.existsSync(filePath)) {
-    return res.sendFile(filePath);
-  }
-  res.sendFile(path.join(__dirname, 'demo.html'));
+  res.sendFile(path.join(__dirname, 'public', 'demo.html'));
 });
 
-// Demo API: Live Provider Failover
+// Demo API: Live Provider Failover (no longer used by /demo; kept for existing scripts)
 app.post('/api/demo/failover', async (req, res) => {
   const { prompt, simulateOutage = false } = req.body || {};
   const queryPrompt = prompt || "You are an expert customer success assistant for an e-commerce brand. Please draft an empathetic return policy response for Order #89211.";
