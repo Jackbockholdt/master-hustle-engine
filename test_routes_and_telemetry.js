@@ -2,6 +2,8 @@ const http = require('http');
 const path = require('path');
 const { spawn } = require('child_process');
 
+const TEST_ADMIN_KEY = process.env.ADMIN_KEY || 'local-test-admin-key';
+
 function makeRequest(path, headers = {}) {
   return new Promise((resolve, reject) => {
     const req = http.request({
@@ -47,7 +49,7 @@ async function run() {
   if (!running) {
     console.log('[Setup] Starting server.js on port 3005...');
     serverProcess = spawn(process.execPath, [path.join(__dirname, 'server.js')], {
-      env: { ...process.env, PORT: '3005' },
+      env: { ...process.env, PORT: '3005', ADMIN_KEY: TEST_ADMIN_KEY },
       stdio: 'pipe'
     });
 
@@ -88,7 +90,7 @@ async function run() {
     console.log('  ✅ PASS: /admin/status strictly rejected unauthenticated request with 401 Unauthorized.\n');
 
     // 3. Test /admin/status with correct ADMIN_KEY (Should return 200 with full telemetry)
-    const adminKey = process.env.ADMIN_KEY || 'master-hustle-admin-secret-2026';
+    const adminKey = TEST_ADMIN_KEY;
     console.log(`[Test 3] Testing GET /admin/status WITH admin key (?key=${adminKey})...`);
     const adminRes = await makeRequest(`/admin/status?key=${adminKey}`);
     console.log(`  -> Status Code: ${adminRes.statusCode}`);

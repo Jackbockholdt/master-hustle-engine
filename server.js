@@ -70,9 +70,15 @@ app.get(['/health', '/api/health'], (req, res) => {
 
 // Admin Telemetry & Status Route (Strictly Protected by process.env.ADMIN_KEY)
 app.get(['/admin/status', '/api/admin/status'], (req, res) => {
-  const adminKey = process.env.ADMIN_KEY || 'master-hustle-admin-secret-2026';
+  const adminKey = process.env.ADMIN_KEY;
   const providedKey = req.query.key || req.headers['x-admin-key'];
 
+  if (!adminKey) {
+    return res.status(503).json({
+      success: false,
+      error: 'Admin access is disabled: ADMIN_KEY is not set on this server'
+    });
+  }
   if (!providedKey || providedKey !== adminKey) {
     return res.status(401).json({
       success: false,
