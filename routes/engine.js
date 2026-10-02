@@ -685,7 +685,11 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
 router.post(['/intake/run', '/api/intake/run', '/scheduler/intake', '/api/scheduler/intake'], async (req, res) => {
   try {
     const { runAutonomousDailyIntake } = require('../lib/autonomousLeadIntake');
+    const { scheduledJobsEnabled, SCHEDULED_JOBS_DISABLED_REASON } = require('../lib/scheduledJobs');
     const { query, limit, mock, dryRun, forceLive } = req.body || {};
+    if (!scheduledJobsEnabled() && mock !== true && dryRun !== true) {
+      return res.status(403).json({ success: false, reason: SCHEDULED_JOBS_DISABLED_REASON });
+    }
     const result = await runAutonomousDailyIntake({
       query,
       limit: parseInt(limit, 10) || 15,

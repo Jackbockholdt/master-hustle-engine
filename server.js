@@ -1795,6 +1795,7 @@ let midnightResetJob = null;
 let morningIntakeJob = null;
 let morningDispatchJob = null;
 let inboundPollerJob = null;
+const { scheduledJobsEnabled, SCHEDULED_JOBS_DISABLED_REASON } = require('./lib/scheduledJobs');
 
 function initScheduler() {
   if (midnightResetJob || morningIntakeJob || morningDispatchJob || inboundPollerJob) return;
@@ -1916,6 +1917,7 @@ function getSchedulerStatus() {
     inboundSchedule: "*/15 * * * * (Every 15 min CST)",
     resetSchedule: "0 0 * * * (00:00 Midnight CST)",
     outboundPaused: process.env.OUTBOUND_PAUSED === 'true',
+    scheduledJobsEnabled: scheduledJobsEnabled(),
     jobsRunning: {
       morningIntake: !!morningIntakeJob,
       morningDispatch: !!morningDispatchJob,
@@ -1930,6 +1932,9 @@ app.post(['/api/scheduler/intake', '/api/intake/trigger'], async (req, res) => {
   try {
     const { runAutonomousDailyIntake } = require('./lib/autonomousLeadIntake');
     const { query, limit, mock, dryRun, forceLive } = req.body || {};
+    if (!scheduledJobsEnabled() && mock !== true && dryRun !== true) {
+      return res.status(403).json({ success: false, reason: SCHEDULED_JOBS_DISABLED_REASON });
+    }
     const result = await runAutonomousDailyIntake({
       query,
       limit: parseInt(limit, 10) || 15,
@@ -1944,6 +1949,10 @@ app.post(['/api/scheduler/intake', '/api/intake/trigger'], async (req, res) => {
 });
 
 app.post(['/api/scheduler/trigger', '/api/cron/run'], async (req, res) => {
+  const isLive = req.body?.isLive === true || req.query?.live === 'true';
+  if (isLive && !scheduledJobsEnabled()) {
+    return res.status(403).json({ success: false, reason: SCHEDULED_JOBS_DISABLED_REASON });
+  }
   if (process.env.OUTBOUND_PAUSED === 'true') {
     return res.json({ success: false, reason: "OUTBOUND_PAUSED is set to true" });
   }
@@ -1953,7 +1962,6 @@ app.post(['/api/scheduler/trigger', '/api/cron/run'], async (req, res) => {
   }
   try {
     const { runBatchDispatch } = require('./trigger_batch_dispatch');
-    const isLive = req.body?.isLive === true || req.query?.live === 'true';
     const result = await runBatchDispatch({ 
       isLive, 
       skipPacing: req.body?.skipPacing === true || req.query?.skipPacing === 'true' 
@@ -1999,9 +2007,10 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Auto-initialize scheduler if running as main server
-if (require.main === module || !process.env.DISABLE_AUTO_SCHEDULER) {
+if (scheduledJobsEnabled()) {
   initScheduler();
+} else {
+  console.log('[Scheduler] Scheduled jobs are OFF (intake, dispatch, inbound poll, midnight reset). Set ENABLE_SCHEDULED_JOBS=true to enable.');
 }
 
 let serverInstance = null;
@@ -2012,7 +2021,7 @@ if (require.main === module) {
     console.log(`  Server Running: http://localhost:${PORT}`);
     console.log(`  Router Endpoint: http://localhost:${PORT}/api/model/route`);
     console.log(`  Live Email Endpoint: http://localhost:${PORT}/api/send-single-email`);
-    console.log(`  Scheduler: Active (8:00 AM CST Dispatch / 00:00 Midnight CST Reset)`);
+    console.log(`  Scheduler: ${scheduledJobsEnabled() ? 'Active (6:00 AM CST Intake / 8:00 AM CST Dispatch / 00:00 Midnight CST Reset)' : 'OFF (ENABLE_SCHEDULED_JOBS not set to true)'}`);
     console.log(`  Token Governance: Active (Flash Tier 87.6% Efficiency Enforced)`);
     console.log(`  Data Isolation: Production Receipts vs Sandbox Tests ISOLATED`);
     console.log(`===================================================================`);

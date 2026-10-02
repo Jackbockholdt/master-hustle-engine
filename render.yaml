@@ -13,6 +13,10 @@ services:
         value: 10000
       - key: NODE_ENV
         value: production
+      - key: ENABLE_SCHEDULED_JOBS
+        value: "false"
+      - key: ADMIN_KEY
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
