@@ -5,6 +5,12 @@ const fs = require('fs');
 const https = require('https');
 const dns = require('dns');
 const cron = require('node-cron');
+const {
+  scheduledJobsEnabled,
+  liveSendsEnabled,
+  SCHEDULED_JOBS_DISABLED_REASON,
+  LIVE_SENDS_DISABLED_REASON
+} = require('./lib/outboundGates');
 try {
   dns.setDefaultResultOrder('ipv4first');
 } catch (e) {}
@@ -525,6 +531,9 @@ app.post('/api/model/route', (req, res) => {
 // Single-Recipient Live Email Dispatch Endpoint (NO SYNTHETIC MESSAGE ID, NO SIMULATION FALLBACK)
 app.post('/api/send-single-email', async (req, res) => {
   res.setHeader('Content-Type', 'application/json');
+  if (!liveSendsEnabled()) {
+    return res.status(403).json({ success: false, error: 'ERR_LIVE_SENDS_DISABLED', message: LIVE_SENDS_DISABLED_REASON });
+  }
   const b = req.body || {};
   const toEmail = b.to || b.email || b.recipient;
   const subject = b.subject || 'Engine live send test';
@@ -732,6 +741,9 @@ async function handleBatchDispatch(req, res) {
     const { runBatchDispatch } = require('./trigger_batch_dispatch');
 
     const isLive = req.body?.live === true || req.body?.isLive === true || req.query?.live === "true";
+    if (isLive && !liveSendsEnabled()) {
+      return res.status(403).json({ success: false, error: 'ERR_LIVE_SENDS_DISABLED', message: LIVE_SENDS_DISABLED_REASON });
+    }
     const isSyntheticTest = req.body?.synthetic === true || req.body?.testSynthetic === true || req.query?.synthetic === "true";
     const skipPacing = req.body?.skipPacing === true || req.query?.skipPacing === "true";
     const requestedCap = parseInt(req.body?.maxBatchSize || req.body?.batchSize || req.body?.limit || 25, 10);
@@ -1306,14 +1318,14 @@ app.post(['/api/inbound-reply', '/webhook/inbound-reply'], async (req, res) => {
     const gmailUrl = process.env.GMAIL_HTTP_URL || process.env.GMAIL_RELAY_URL || (process.env.GMAIL_APP_SCRIPT_URL ? process.env.GMAIL_APP_SCRIPT_URL : null);
     const gmailKey = process.env.GMAIL_HTTP_KEY || process.env.GMAIL_RELAY_KEY || process.env.RELAY_SECRET_KEY || '';
 
-    if (!b.simulateOnly && gmailUrl) {
+    if (!b.simulateOnly && liveSendsEnabled() && gmailUrl) {
       try {
         await sendViaGmailHttpRelay(gmailUrl, gmailKey, lead.email, checkoutSubject, checkoutBody);
       } catch (e) {
         console.warn(`[Deal Engine Relay Warning] Failed sending checkout email: ${e.message}`);
       }
     } else {
-      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly})`);
+      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly}, liveSendsEnabled=${liveSendsEnabled()})`);
     }
 
     logEntry.actionTaken = "STRIPE_CHECKOUT_ROUTED";
@@ -1341,14 +1353,14 @@ app.post(['/api/inbound-reply', '/webhook/inbound-reply'], async (req, res) => {
     const gmailUrl = process.env.GMAIL_HTTP_URL || process.env.GMAIL_RELAY_URL || (process.env.GMAIL_APP_SCRIPT_URL ? process.env.GMAIL_APP_SCRIPT_URL : null);
     const gmailKey = process.env.GMAIL_HTTP_KEY || process.env.GMAIL_RELAY_KEY || process.env.RELAY_SECRET_KEY || '';
 
-    if (!b.simulateOnly && gmailUrl) {
+    if (!b.simulateOnly && liveSendsEnabled() && gmailUrl) {
       try {
         await sendViaGmailHttpRelay(gmailUrl, gmailKey, lead.email, demoSubject, demoBody);
       } catch (e) {
         console.warn(`[Deal Engine Relay Warning] Failed sending demo link: ${e.message}`);
       }
     } else {
-      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly})`);
+      console.log(`[Deal Engine Simulation] Skipped live email send to ${lead.email} (simulateOnly=${!!b.simulateOnly}, liveSendsEnabled=${liveSendsEnabled()})`);
     }
 
     logEntry.actionTaken = "DEMO_LINK_DISPATCHED";
@@ -1378,6 +1390,9 @@ app.post('/api/deal-engine/trigger-hopper', async (req, res) => {
   try {
     const { runFeederHopper } = require('./feeder_hopper');
     const dryRun = req.body && req.body.dryRun === true;
+    if (!dryRun && !liveSendsEnabled()) {
+      return res.status(403).json({ success: false, error: 'ERR_LIVE_SENDS_DISABLED', message: LIVE_SENDS_DISABLED_REASON });
+    }
     const targetCount = req.body && req.body.targetCount ? parseInt(req.body.targetCount, 10) : 15;
     const leads = await runFeederHopper({ dryRun, targetCount });
     res.json({
@@ -1806,7 +1821,6 @@ let midnightResetJob = null;
 let morningIntakeJob = null;
 let morningDispatchJob = null;
 let inboundPollerJob = null;
-const { scheduledJobsEnabled, SCHEDULED_JOBS_DISABLED_REASON } = require('./lib/scheduledJobs');
 
 function initScheduler() {
   if (midnightResetJob || morningIntakeJob || morningDispatchJob || inboundPollerJob) return;
@@ -1853,6 +1867,12 @@ function initScheduler() {
     if (process.env.OUTBOUND_PAUSED === 'true') {
       console.log('[Scheduler] Dispatch SKIPPED: OUTBOUND_PAUSED is set to true in environment.');
       pushUiAuditLog('SCHEDULER_SKIP', 'Daily 8:00 AM CST dispatch skipped because OUTBOUND_PAUSED=true');
+      return;
+    }
+
+    if (!liveSendsEnabled()) {
+      console.log('[Scheduler] Dispatch SKIPPED: ENABLE_LIVE_SENDS is not set to true.');
+      pushUiAuditLog('SCHEDULER_SKIP', 'Daily 8:00 AM CST dispatch skipped because ENABLE_LIVE_SENDS is off');
       return;
     }
 
@@ -1929,6 +1949,7 @@ function getSchedulerStatus() {
     resetSchedule: "0 0 * * * (00:00 Midnight CST)",
     outboundPaused: process.env.OUTBOUND_PAUSED === 'true',
     scheduledJobsEnabled: scheduledJobsEnabled(),
+    liveSendsEnabled: liveSendsEnabled(),
     jobsRunning: {
       morningIntake: !!morningIntakeJob,
       morningDispatch: !!morningDispatchJob,
@@ -1963,6 +1984,9 @@ app.post(['/api/scheduler/trigger', '/api/cron/run'], async (req, res) => {
   const isLive = req.body?.isLive === true || req.query?.live === 'true';
   if (isLive && !scheduledJobsEnabled()) {
     return res.status(403).json({ success: false, reason: SCHEDULED_JOBS_DISABLED_REASON });
+  }
+  if (isLive && !liveSendsEnabled()) {
+    return res.status(403).json({ success: false, reason: LIVE_SENDS_DISABLED_REASON });
   }
   if (process.env.OUTBOUND_PAUSED === 'true') {
     return res.json({ success: false, reason: "OUTBOUND_PAUSED is set to true" });
