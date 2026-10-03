@@ -9,12 +9,11 @@
 function getMeasuredSavings() {
   try {
     const { routerTelemetry } = require('../lib/multiModelRouter');
-    if (routerTelemetry && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct) {
-      if (typeof routerTelemetry.costs.measuredSavingsPct === 'number' && routerTelemetry.costs.measuredSavingsPct > 0) {
-        return `${Number(routerTelemetry.costs.measuredSavingsPct.toFixed(1))}%`;
-      }
+    const hasTraffic = routerTelemetry && (routerTelemetry.successfulDispatches > 0 || routerTelemetry.totalDispatches > 0);
+    if (hasTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null) {
       const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
-      if (!isNaN(parsed) && parsed > 0) return `${Number(parsed.toFixed(1))}%`;
+      if (!isNaN(parsed)) return `${Number(parsed.toFixed(1))}%`;
+      return String(routerTelemetry.costs.measuredSavingsPct);
     }
   } catch (e) {}
   return "not measured yet";

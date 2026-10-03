@@ -75,7 +75,9 @@ async function scrapeAndEnrichLead(leadData = {}) {
     lead: enrichment,
     governance: {
       modelTier: 'FLASH_BUDGET',
-      tokensSavedEstimate: route.tokensSavedEstimate || 2190
+      tokensSavedEstimate: (route && route.tokensSavedEstimate !== undefined && route.tokensSavedEstimate !== null)
+        ? route.tokensSavedEstimate
+        : 'not measured yet'
     }
   };
 }

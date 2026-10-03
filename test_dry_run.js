@@ -4,10 +4,11 @@ async function testDryRun() {
   console.log('=== STARTING DRY-RUN DISPATCH & ENDPOINT VERIFICATION ===');
   
   // 1. Start server in background require
-  const server = require('./server.js');
-  
-  // Give server 500ms to bind to port 3005
-  await new Promise(resolve => setTimeout(resolve, 500));
+  const { app } = require('./server.js');
+  let localServer = null;
+  await new Promise((resolve) => {
+    localServer = app.listen(3005, () => resolve());
+  });
   
   function postRequest(path, payload, headers = {}) {
     return new Promise((resolve, reject) => {

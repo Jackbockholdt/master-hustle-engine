@@ -51,22 +51,43 @@ function verifyDomainMX(domain) {
  * Compiles real-time telemetry and token burn savings metrics
  */
 function compileTelemetryReport() {
-  const baselineCostPerLeadUSD = 0.005;
-  const flashCostPerLeadUSD = 0.0001;
-  const processed = tokenStats.totalCallsProcessed || 1;
-  const tokensSaved = tokenStats.totalTokensSaved || (processed * 800);
-  const costSavingsUSD = Number(((baselineCostPerLeadUSD - flashCostPerLeadUSD) * processed).toFixed(4));
+  let reductionTargetPct = "not measured yet";
+  let totalTokensProcessed = "not measured yet";
+  let totalTokensSaved = "not measured yet";
+  let estimatedCostSavingsUSD = "not measured yet";
+
+  try {
+    const { routerTelemetry } = require('../lib/multiModelRouter');
+    const hasTraffic = routerTelemetry && (routerTelemetry.successfulDispatches > 0 || routerTelemetry.totalDispatches > 0);
+    if (hasTraffic) {
+      if (routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null) {
+        const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
+        reductionTargetPct = !isNaN(parsed) ? `${Number(parsed.toFixed(1))}%` : String(routerTelemetry.costs.measuredSavingsPct);
+      }
+      if (routerTelemetry.tokens && routerTelemetry.tokens.totalTokens !== undefined) {
+        totalTokensProcessed = routerTelemetry.tokens.totalTokens;
+      }
+      if (routerTelemetry.costs && routerTelemetry.costs.totalSavingsUSD !== undefined) {
+        estimatedCostSavingsUSD = Number(routerTelemetry.costs.totalSavingsUSD.toFixed(4));
+      }
+      if (tokenStats && typeof tokenStats.totalTokensSaved === 'number') {
+        totalTokensSaved = tokenStats.totalTokensSaved;
+      } else {
+        totalTokensSaved = 0;
+      }
+    }
+  } catch (e) {}
 
   return {
     success: true,
     timestamp: new Date().toISOString(),
     tokenGovernance: {
       activeRules: true,
-      reductionTargetPct: "measured",
+      reductionTargetPct,
       telemetryModel: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
-      totalTokensProcessed: processed * 200,
-      totalTokensSaved: tokensSaved,
-      estimatedCostSavingsUSD: Math.max(12.50, costSavingsUSD)
+      totalTokensProcessed,
+      totalTokensSaved,
+      estimatedCostSavingsUSD
     },
     domainHealth: telemetryStore.domainHealth,
     productionMetrics: telemetryStore.productionMetrics,

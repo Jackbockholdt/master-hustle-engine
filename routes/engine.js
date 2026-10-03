@@ -692,11 +692,11 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
   const routerStatus = getRouterStatus();
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
-    primaryProvider: routerStatus.primaryProvider || "gemini-2.5-flash",
-    secondaryProvider: routerStatus.secondaryProvider || "gpt-4o",
-    tertiaryProvider: routerStatus.tertiaryProvider || "claude-3-5-sonnet-20241022",
-    fallbackProviders: routerStatus.configuredProviders || ["gemini", "openai", "claude", "openrouter"],
-    activeChain: routerStatus.activeChain || "gemini -> openai -> claude -> openrouter",
+    primaryProvider: routerStatus.primaryProvider || "gpt-4o-mini",
+    secondaryProvider: routerStatus.secondaryProvider || "gemini-3.5-flash-lite",
+    tertiaryProvider: routerStatus.tertiaryProvider || "google/gemini-3.5-flash-lite",
+    fallbackProviders: routerStatus.configuredProviders || ["openai", "gemini", "claude", "openrouter"],
+    activeChain: routerStatus.activeChain || "openai -> gemini -> openrouter -> claude",
     reachability: routerStatus.reachability,
     probes: routerStatus.probes,
     averageLatencyMs: routerStatus.averageLatencyMs,
