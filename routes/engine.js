@@ -36,7 +36,7 @@ const { validateSchema, validateAgainstSchema, SCHEMAS } = require('../skills/sk
 const { triggerEscalation, getActiveIncidents, SEVERITY_LEVELS } = require('../skills/skill9_escalation');
 
 // Multi-Model Failover Router
-const { routeMultiModel, getRouterStatus } = require('../lib/multiModelRouter');
+const { routeMultiModel, getRouterStatus, requireRouterApiKey } = require('../lib/multiModelRouter');
 
 // Outscraper Agency Intake Engine
 const { runIntakeScrape, targetingConfig } = require('../lib/outscraperIntake');
@@ -134,7 +134,17 @@ router.post('/engine', async (req, res) => {
       case 'copywriting':
       case 'generate_copy':
       case 'outreach_copy': {
-        const result = await generateCopywriting(payload);
+        let authed = false;
+        requireRouterApiKey(req, res, () => { authed = true; });
+        if (!authed) return;
+        const copyPayload = { ...(payload || {}) };
+        delete copyPayload.systemPrompt;
+        if (copyPayload.context && typeof copyPayload.context === 'object') {
+          const cleanContext = { ...copyPayload.context };
+          delete cleanContext.systemPrompt;
+          copyPayload.context = cleanContext;
+        }
+        const result = await generateCopywriting(copyPayload);
         return res.status(200).json(result);
       }
 
@@ -144,7 +154,17 @@ router.post('/engine', async (req, res) => {
       case 'objection_handling':
       case 'handle_objection':
       case 'rebuttal': {
-        const result = await handleObjection(payload);
+        let authed = false;
+        requireRouterApiKey(req, res, () => { authed = true; });
+        if (!authed) return;
+        const objPayload = { ...(payload || {}) };
+        delete objPayload.systemPrompt;
+        if (objPayload.context && typeof objPayload.context === 'object') {
+          const cleanContext = { ...objPayload.context };
+          delete cleanContext.systemPrompt;
+          objPayload.context = cleanContext;
+        }
+        const result = await handleObjection(objPayload);
         return res.status(200).json(result);
       }
 
@@ -189,8 +209,13 @@ router.post('/engine', async (req, res) => {
       case 'route_model':
       case 'multi_model_dispatch':
       case 'ai_dispatch': {
-        const result = await routeMultiModel(payload);
-        return res.status(200).json(result);
+        let authed = false;
+        requireRouterApiKey(req, res, () => { authed = true; });
+        if (!authed) return;
+        const payloadClean = { ...(payload || {}), mock: false };
+        const result = await routeMultiModel(payloadClean);
+        const statusCode = result.success ? 200 : (result.attempts?.length ? 502 : 400);
+        return res.status(statusCode).json(result);
       }
 
       // -------------------------------------------------------------
@@ -430,10 +455,12 @@ router.post('/pipeline/process', async (req, res) => {
 // ===================================================================
 // 3. MULTI-MODEL ROUTER ENDPOINTS
 // ===================================================================
-router.post('/router/dispatch', async (req, res) => {
+router.post('/router/dispatch', requireRouterApiKey, async (req, res) => {
   try {
-    const result = await routeMultiModel(req.body);
-    return res.status(200).json(result);
+    const payload = { ...(req.body || {}), mock: false };
+    const result = await routeMultiModel(payload);
+    const statusCode = result.success ? 200 : (result.attempts?.length ? 502 : 400);
+    return res.status(statusCode).json(result);
   } catch (err) {
     return res.status(err.statusCode || 500).json({ success: false, error: err.message, attempts: err.attempts });
   }
@@ -473,14 +500,29 @@ router.post('/skills/context-building', (req, res) => {
 });
 
 // Skill 5: Copywriting
-router.post('/skills/copywriting', async (req, res) => {
-  const result = await generateCopywriting(req.body);
+router.post('/skills/copywriting', requireRouterApiKey, async (req, res) => {
+  const payload = { ...(req.body || {}) };
+  // Block caller-supplied system prompts to prevent prompt injection / unauthorized routing instructions
+  delete payload.systemPrompt;
+  if (payload.context && typeof payload.context === 'object') {
+    const cleanContext = { ...payload.context };
+    delete cleanContext.systemPrompt;
+    payload.context = cleanContext;
+  }
+  const result = await generateCopywriting(payload);
   return res.status(200).json(result);
 });
 
 // Skill 6: Objection Handling
-router.post('/skills/objection-handling', async (req, res) => {
-  const result = await handleObjection(req.body);
+router.post('/skills/objection-handling', requireRouterApiKey, async (req, res) => {
+  const payload = { ...(req.body || {}) };
+  delete payload.systemPrompt;
+  if (payload.context && typeof payload.context === 'object') {
+    const cleanContext = { ...payload.context };
+    delete cleanContext.systemPrompt;
+    payload.context = cleanContext;
+  }
+  const result = await handleObjection(payload);
   return res.status(200).json(result);
 });
 
@@ -650,11 +692,11 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
   const routerStatus = getRouterStatus();
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
-    primaryProvider: routerStatus.primaryProvider || "gemini-1.5-flash",
-    secondaryProvider: routerStatus.secondaryProvider || "gpt-4o",
-    tertiaryProvider: routerStatus.tertiaryProvider || "claude-3-5-sonnet-20241022",
-    fallbackProviders: routerStatus.configuredProviders || ["gemini", "openai", "claude", "openrouter"],
-    activeChain: routerStatus.activeChain || "gemini -> openai -> claude -> openrouter",
+    primaryProvider: routerStatus.primaryProvider || "gpt-4o-mini",
+    secondaryProvider: routerStatus.secondaryProvider || "gemini-3.5-flash-lite",
+    tertiaryProvider: routerStatus.tertiaryProvider || "google/gemini-3.5-flash-lite",
+    fallbackProviders: routerStatus.configuredProviders || ["openai", "gemini", "claude", "openrouter"],
+    activeChain: routerStatus.activeChain || "openai -> gemini -> openrouter -> claude",
     reachability: routerStatus.reachability,
     probes: routerStatus.probes,
     averageLatencyMs: routerStatus.averageLatencyMs,

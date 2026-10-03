@@ -18,7 +18,7 @@ const REBUTTAL_PLAYBOOKS = {
   PRICE_BUDGET: {
     coreAngle: 'Self-funding margin recovery',
     talkingPoint: 'The system does not cost money; it recovers 50-70% of current runaway token burn. If your monthly LLM spend is $3k, the $1.5k retainer pays for itself in 30 days.',
-    sampleReply: 'Understood on budget. The reason shops license the 9-skill engine is that it actually pays for itself on day 1 by slashing 87% of background token waste. If we do not recover more than the retainer in month one, you pay nothing.'
+    sampleReply: 'Understood on budget. The reason shops license the 9-skill engine is that it actually pays for itself on day 1 by slashing background token waste via cost-routing. If we do not recover more than the retainer in month one, you pay nothing.'
   },
   TIMING: {
     coreAngle: 'Zero-friction drop-in gateway',

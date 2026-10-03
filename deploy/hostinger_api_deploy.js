@@ -77,7 +77,7 @@ async function main() {
 
   console.log(`\n[Step 2/3] Checking Process Configuration & Environment Packaging...`);
   console.log(` -> Injected .env into deployment bundle`);
-  console.log(` -> Token Governance rules active: 87.6% reduction target`);
+  console.log(` -> Token Governance rules active: real cost reduction target`);
   console.log(` -> Single source of truth model routing verified in server.js`);
 
   console.log(`\n[Step 3/3] Probing Live URLs & Health Endpoints...`);

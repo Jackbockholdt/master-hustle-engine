@@ -38,8 +38,8 @@ Our proprietary orchestrator acts as a single source of truth across all LLM int
                 ▼
 ┌────────────────────────────────────────────────────────┐
 │  Tier 1: Context Bloat Stripper & Fast Qualifier       │
-│  Model: Gemini 1.5 Flash (~$0.0001 / lead)             │
-│  Result: 87.6% Token Cost Reduction                    │
+│  Model: Gemini 2.5 Flash (~$0.0001 / lead)             │
+│  Result: Dynamic Cost Reduction via Cheap Tier Routing │
 └───────────────────────┬────────────────────────────────┘
                         │ (If Qualified)
                         ▼
@@ -66,7 +66,7 @@ Our proprietary orchestrator acts as a single source of truth across all LLM int
 | **Average Cost / Lead** | $0.0050 USD | $0.0001 USD | **50x Cost Reduction** |
 | **Monthly Token Burn** | $${burnEst.toLocaleString()} USD | $${Math.round(burnEst * 0.35).toLocaleString()} USD | **+$${Math.round(burnEst * 0.65).toLocaleString()} Profit/mo** |
 | **Annualized Recovery** | $${annualBurn.toLocaleString()} USD | $${Math.round(annualBurn * 0.35).toLocaleString()} USD | **+$${annualSavings.toLocaleString()} USD / yr** |
-| **Gross Margin Impact** | ~55-65% | **94.2%** | **+29.2% Net Margin** |
+| **Gross Margin Impact** | ~55-65% | **Expanded Margin** | **High Margin Recovery** |
 
 ---
 
@@ -87,7 +87,7 @@ Our proprietary orchestrator acts as a single source of truth across all LLM int
       estimatedMonthlyBurnUSD: burnEst,
       estimatedMonthlySavingsUSD: Math.round(burnEst * 0.65),
       estimatedAnnualSavingsUSD: annualSavings,
-      grossMarginPct: "94.2%"
+      grossMarginProfile: "Expanded Net Margin"
     },
     pitchDeckMarkdown: deckMarkdown,
     packagesAvailable: PRICING_PACKAGES

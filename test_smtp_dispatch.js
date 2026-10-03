@@ -69,7 +69,7 @@ socket.on('data', data => {
       '<p>Your 9-Skill Margin Engine is now 100% connected to Gmail SMTP.</p>',
       '<ul>',
       `<li><strong>Sender:</strong> ${smtpUser}</li>`,
-      '<li><strong>Router Tier:</strong> 3-Tier Token Reducer Active (87.6% savings)</li>',
+      '<li><strong>Router Tier:</strong> Real-Cost Failover Router Active</li>',
       '<li><strong>Status:</strong> Live Dispatch Ready</li>',
       '</ul>',
       '.'

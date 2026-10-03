@@ -1,21 +1,34 @@
 /**
  * Skill 1: Financial Margin & Token Burn Optimizer
  * 3-Tier Token Reducer Architecture:
- * - Tier 1: Qualifier / Background Telemetry (Gemini 1.5 Flash) -> 87.6% token cost reduction (~$0.0001/lead)
+ * - Tier 1: Qualifier / Background Telemetry (Gemini Flash) -> Real measured cost reduction (~$0.0001/lead)
  * - Tier 2: Research & Copy Drafting (Primary Low-Cost Fallback: Gemini Flash / Claude Haiku)
- * - Tier 3: Flagship Pro (Gemini 1.5 Pro) -> Strictly gated to verified human triggers (HTTP 403 enforcement)
+ * - Tier 3: Flagship Pro (Gemini Pro) -> Strictly gated to verified human triggers (HTTP 403 enforcement)
  */
 
+function getMeasuredSavings() {
+  try {
+    const { routerTelemetry } = require('../lib/multiModelRouter');
+    const hasTraffic = routerTelemetry && (routerTelemetry.successfulDispatches > 0 || routerTelemetry.totalDispatches > 0);
+    if (hasTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null) {
+      const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
+      if (!isNaN(parsed)) return `${Number(parsed.toFixed(1))}%`;
+      return String(routerTelemetry.costs.measuredSavingsPct);
+    }
+  } catch (e) {}
+  return "not measured yet";
+}
+
 const tokenStats = {
-  baselineTokensPerUnit: 2500,
-  optimizedTokensPerUnit: 310,
-  targetEfficiencyPct: 87.6,
+  get targetEfficiencyPct() {
+    return getMeasuredSavings();
+  },
   totalCallsProcessed: 0,
   totalTokensSaved: 0,
   modelTiers: {
-    FLASH: process.env.GEMINI_MODEL || "gemini-1.5-flash",
-    LOW_COST_COPY: process.env.COPY_MODEL || "gemini-1.5-flash",
-    FLAGSHIP: process.env.GEMINI_FLAGSHIP_MODEL || "gemini-1.5-pro"
+    get FLASH() { return process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get FLAGSHIP() { return process.env.GEMINI_FLAGSHIP_MODEL || "gemini-3.8-flash"; }
   },
   marginTiers: {
     RETAINER: { name: "Managed Agency Retainer", dueAtSigningUSD: 4000, setupFeeUSD: 2500, monthlyPriceUSD: 1500, stripeLink: "https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G" },
@@ -92,22 +105,21 @@ function optimizeTokenRoute(params = {}) {
     };
   }
 
-  // Flash Budget / Background Automated Tier (87.6% reduction)
-  const tokensSaved = (tokenStats.baselineTokensPerUnit - tokenStats.optimizedTokensPerUnit) * leadCount;
-  tokenStats.totalTokensSaved += tokensSaved;
+  // Flash Budget / Background Automated Tier (Dynamic measured reduction)
+  const measuredEfficiency = getMeasuredSavings();
+  const isMeasured = measuredEfficiency !== "not measured yet";
 
   return {
     success: true,
     statusCode: 200,
     selectedModel: tokenStats.modelTiers.FLASH,
     tier: 'FLASH_BUDGET',
-    efficiencyPct: `${tokenStats.targetEfficiencyPct}%`,
-    tokensSavedEstimate: tokensSaved,
+    efficiencyPct: measuredEfficiency,
+    tokensSavedEstimate: isMeasured ? tokenStats.totalTokensSaved : "not measured yet",
     estimatedCostPerUnitUSD: 0.0001,
     marginTierRecommended: tokenStats.marginTiers.STARTER,
     financialMetrics: {
-      grossMarginPct: "94.2%",
-      costReductionFactor: "8.06x",
+      measuredSavingsPct: measuredEfficiency,
       leadUnitCostUSD: 0.0001
     },
     cleanedPrompt

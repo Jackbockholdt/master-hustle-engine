@@ -3,16 +3,14 @@
   "version": "4.1.0",
   "token_governance": {
     "active": true,
-    "efficiency_pct": 87.6,
-    "baseline_tokens_per_lead": 2500,
-    "optimized_tokens_per_lead": 310,
+    "efficiency_pct": "not measured yet",
     "single_source_router_endpoint": "http://localhost:3005/api/model/route"
   },
   "routing_rules": [
     {
       "tier": 1,
       "name": "ICP Fast Qualifier (Automated Background)",
-      "model": "gemini-1.5-flash",
+      "model": "gemini-3.5-flash-lite",
       "model_type": "FLASH_BUDGET",
       "eval_conditions": {
         "required_fields": ["company_name"],
@@ -25,7 +23,7 @@
     {
       "tier": 2,
       "name": "Deep Researcher & Hook Extractor (Automated Background)",
-      "model": "gemini-1.5-flash",
+      "model": "gemini-3.5-flash-lite",
       "model_type": "FLASH_BUDGET",
       "extract_fields": ["core_value_prop", "pain_point", "hook"],
       "action": "proceed_to_tier_3"
@@ -33,14 +31,14 @@
     {
       "tier": 3,
       "name": "Outreach Copywriter (Low-Cost Fallback Chain)",
-      "model": "gemini-1.5-flash",
+      "model": "gemini-3.5-flash-lite",
       "model_type": "LOW_COST_FALLBACK",
       "outputs": ["subject_line", "email_body", "sms_body"],
       "dispatch_targets": ["email_smtp", "sms_gateway", "webhook_endpoint"]
     }
   ],
   "flagship_access_control": {
-    "flagship_model": "gemini-1.5-pro",
+    "flagship_model": "gemini-3.8-flash",
     "access": "STRICTLY_HUMAN_TRIGGERED_ONLY",
     "header_required": "X-Human-Trigger: true",
     "body_param_required": "humanTriggered: true",

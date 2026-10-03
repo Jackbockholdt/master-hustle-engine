@@ -168,11 +168,11 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
   const routerStatus = getRouterStatus();
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
-    primaryProvider: routerStatus.primaryProvider || "gemini-1.5-flash",
-    secondaryProvider: routerStatus.secondaryProvider || "gpt-4o",
-    tertiaryProvider: routerStatus.tertiaryProvider || "claude-3-5-sonnet-20241022",
-    fallbackProviders: routerStatus.configuredProviders || ["gemini", "openai", "claude", "openrouter"],
-    activeChain: routerStatus.activeChain || "gemini -> openai -> claude -> openrouter",
+    primaryProvider: routerStatus.primaryProvider || "gpt-4o-mini",
+    secondaryProvider: routerStatus.secondaryProvider || "gemini-3.5-flash-lite",
+    tertiaryProvider: routerStatus.tertiaryProvider || "google/gemini-3.5-flash-lite",
+    fallbackProviders: routerStatus.configuredProviders || ["openai", "gemini", "claude", "openrouter"],
+    activeChain: routerStatus.activeChain || "openai -> gemini -> openrouter -> claude",
     reachability: routerStatus.reachability,
     probes: routerStatus.probes,
     averageLatencyMs: routerStatus.averageLatencyMs,
@@ -223,15 +223,30 @@ app.use('/', engineRouter);
 // ===================================================================
 // TOKEN GOVERNANCE & SINGLE SOURCE OF TRUTH MODEL ROUTER
 // ===================================================================
+function formatEfficiencyDisplay(val) {
+  if (val === undefined || val === null || val === 'not measured yet' || val === '') return 'not measured yet';
+  const str = String(val).trim();
+  return str.endsWith('%') ? str : `${str}%`;
+}
+
 const tokenGovernance = {
   activeRules: true,
-  reductionTargetPct: 87.6,
-  baselineTokensPerLead: 2500,
-  optimizedTokensPerLead: 310,
+  get reductionTargetPct() {
+    try {
+      const { routerTelemetry } = require('./lib/multiModelRouter');
+      const hasTraffic = routerTelemetry && (routerTelemetry.successfulDispatches > 0 || routerTelemetry.totalDispatches > 0);
+      if (hasTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null) {
+        const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
+        if (!isNaN(parsed)) return `${Number(parsed.toFixed(1))}%`;
+        return String(routerTelemetry.costs.measuredSavingsPct);
+      }
+    } catch (e) {}
+    return "not measured yet";
+  },
   modelTiers: {
-    FLASH: process.env.GEMINI_MODEL || "gemini-1.5-flash",       // Lowest cost budget tier for background/telemetry/scoring
-    LOW_COST_COPY: process.env.COPY_MODEL || "gemini-1.5-flash", // Low-cost fallback chain for outreach copy
-    FLAGSHIP: process.env.GEMINI_FLAGSHIP_MODEL || "gemini-1.5-pro"       // Strictly restricted to manual, human-triggered endpoints
+    get FLASH() { return process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get FLAGSHIP() { return process.env.GEMINI_FLAGSHIP_MODEL || "gemini-3.8-flash"; }
   },
   stats: {
     automatedFlashCalls: 0,
@@ -292,17 +307,19 @@ function routeTokenGovernance(taskType, isHumanTriggered = false, requestedModel
 
   // Background / Telemetry / Lead Scoring / Inbox Monitoring / Batch Dispatch -> Flash Budget Tier
   tokenGovernance.stats.automatedFlashCalls++;
-  const tokensSaved = tokenGovernance.baselineTokensPerLead - tokenGovernance.optimizedTokensPerLead;
-  tokenGovernance.stats.totalTokensSaved += tokensSaved;
+  const eff = tokenGovernance.reductionTargetPct;
+  const isMeasured = eff !== "not measured yet";
 
   return {
     allowed: true,
     statusCode: 200,
     selectedModel: tokenGovernance.modelTiers.FLASH,
     tier: 'FLASH_BUDGET',
-    tokensSavedPerUnit: tokensSaved,
-    efficiencyPct: tokenGovernance.reductionTargetPct,
-    note: 'Routed to Flash tier for automated background/telemetry efficiency (87.6% reduction).'
+    tokensSavedPerUnit: isMeasured ? tokenGovernance.stats.totalTokensSaved : "not measured yet",
+    efficiencyPct: eff,
+    note: isMeasured
+      ? `Routed to Flash tier for automated background/telemetry efficiency (${eff} reduction).`
+      : 'Routed to Flash tier for automated background/telemetry efficiency.'
   };
 }
 
@@ -357,9 +374,7 @@ function getCalculatedProductionMetrics() {
     sandboxMetrics: sandboxTestMetrics,
     tokenGovernance: {
       active: true,
-      reductionEfficiency: "87.6%",
-      baselineTokensPerLead: 2500,
-      optimizedTokensPerLead: 310,
+      reductionEfficiency: formatEfficiencyDisplay(tokenGovernance.reductionTargetPct),
       modelTiers: tokenGovernance.modelTiers,
       stats: tokenGovernance.stats
     }
@@ -493,7 +508,10 @@ app.get('/api/routes', (req, res) => {
 });
 
 // Single Source of Truth Model Router Endpoint
-app.post('/api/model/route', (req, res) => {
+app.post('/api/model/route', (req, res, next) => {
+  const { requireRouterApiKey } = require('./lib/multiModelRouter');
+  return requireRouterApiKey(req, res, next);
+}, (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   const b = req.body || {};
   const taskType = b.taskType || b.task_type || b.task || 'BACKGROUND_TASK';
@@ -523,7 +541,7 @@ app.post('/api/model/route', (req, res) => {
     humanTriggered: isHuman,
     selectedModel: govResult.selectedModel,
     tier: govResult.tier,
-    efficiencyPct: govResult.efficiencyPct || "87.6%",
+    efficiencyPct: formatEfficiencyDisplay(govResult.efficiencyPct || tokenGovernance.reductionTargetPct),
     note: govResult.note
   });
 });
@@ -692,7 +710,7 @@ app.get('/api/telemetry', (req, res) => {
     tokenGovernance: {
       ruleActive: true,
       telemetryModel: govResult.selectedModel,
-      efficiencyPct: "87.6%",
+      efficiencyPct: formatEfficiencyDisplay(tokenGovernance.reductionTargetPct),
       stats: tokenGovernance.stats
     },
     productionMetrics: getCalculatedProductionMetrics(),
@@ -706,9 +724,9 @@ app.get('/api/telemetry/governance', (req, res) => {
   res.json({
     success: true,
     tokenGovernanceRules: {
-      rule1_automated_background: "Route all background/telemetry/scoring/monitoring to Flash/Flash-Lite (gemini-1.5-flash) maintaining 87.6% efficiency",
+      rule1_automated_background: `Route all background/telemetry/scoring/monitoring to Flash/Flash-Lite (${tokenGovernance.modelTiers.FLASH}) maintaining high token efficiency`,
       rule2_outreach_copy: "Route outreach copy generation via primary low-cost fallback chain (Gemini Flash / OpenAI)",
-      rule3_flagship_restriction: "High-cost flagship models (gemini-1.5-pro) strictly restricted to manual, human-triggered endpoints (HTTP 403 enforcement)"
+      rule3_flagship_restriction: `High-cost flagship models (${tokenGovernance.modelTiers.FLAGSHIP}) strictly restricted to manual, human-triggered endpoints (HTTP 403 enforcement)`
     },
     modelTiers: tokenGovernance.modelTiers,
     stats: tokenGovernance.stats
@@ -907,7 +925,7 @@ app.get('/api/assets/pitch-deck', (req, res) => {
         <p><strong>System Architecture:</strong> Antigravity Multi-Agent 3-Tier Token Reducer Router</p>
         <div class="metric">
           <div>Token Cost Savings</div>
-          <div class="metric-val">87.6% Reduction</div>
+          <div class="metric-val">Measured Real Cost</div>
         </div>
         <div class="metric">
           <div>ICP Qualification Cost</div>
@@ -919,7 +937,7 @@ app.get('/api/assets/pitch-deck', (req, res) => {
         </div>
         <h2>Core Value Proposition</h2>
         <ul>
-          <li><strong>3-Skill Cascade:</strong> Gemini 3 Flash ($0.0001) qualifies -> Gemini 3 Pro ($0.001) extracts hooks -> Low-Cost Fallback Chain ($0.0001) writes copy.</li>
+          <li><strong>Real-Cost Cascade:</strong> Cheap model qualifies -> Escalates to Strong model on complex tasks or failure.</li>
           <li><strong>Flagship Access Control:</strong> Automated calls to flagship models restricted via HTTP 403 authorization guard.</li>
           <li><strong>Turn-Key Commercial Pricing:</strong> Agency Private-Label ($497 setup + $199/mo), Commercial Codebase License ($4,500 one-time).</li>
         </ul>
@@ -932,8 +950,8 @@ app.get('/api/assets/pitch-deck', (req, res) => {
 app.get('/api/assets/financial-model', (req, res) => {
   const csvData = `Category,Year 1 Target,Year 2 Projection,Year 3 Projection
 Projected ARR,$150000,$480000,$1200000
-Gross Margin (Token Savings),92.4%,92.4%,92.4%
-Token Savings Efficiency,87.6%,87.6%,87.6%
+Gross Margin (Token Savings),Measured,Measured,Measured
+Token Savings Efficiency,Measured,Measured,Measured
 Avg Qualification Cost / Lead,$0.0001,$0.0001,$0.0001
 Monthly Active Subscribers (Est),15,40,100
 `;
@@ -1135,7 +1153,7 @@ app.post('/api/v1/shovel/run-skill', async (req, res) => {
     targetCompany: targetCompany || "Commercial Manufacturer",
     modelUsed: gov.selectedModel,
     pitchSnippet: `Patent-Pending Self-Cleaning Shovel Licensing Overview for ${targetCompany || 'Manufacturing Partner'}. Engineered mechanical dirt-release blade system.`,
-    tokenSavings: gov.efficiencyPct || "87.6%"
+    tokenSavings: formatEfficiencyDisplay(gov.efficiencyPct || tokenGovernance.reductionTargetPct)
   });
 });
 
@@ -1176,7 +1194,7 @@ app.post('/api/v1/thca/run-skill', async (req, res) => {
       disclaimer: "Compliant with 2018 US Farm Bill (<0.3% Delta-9 THC)."
     },
     modelUsed: gov.selectedModel,
-    tokenSavings: gov.efficiencyPct || "87.6%"
+    tokenSavings: formatEfficiencyDisplay(gov.efficiencyPct || tokenGovernance.reductionTargetPct)
   });
 });
 
@@ -1348,7 +1366,7 @@ app.post(['/api/inbound-reply', '/webhook/inbound-reply'], async (req, res) => {
     lead.demoLinkSent = true;
 
     const demoSubject = `Re: Cutting ${lead.company}'s LLM API token burn (10-min demo scheduling)`;
-    const demoBody = `Hi ${lead.name},\n\nThanks for getting back to me! I'd be glad to walk you through how our 3-tier token router cuts LLM inference burn by 87.6% and keeps client uptime at 100% via multi-model failover.\n\nYou can book a direct 10-minute walkthrough on my calendar here:\n👉 ${DEMO_SCHEDULING_LINK}\n\nIn the meantime, feel free to inspect the live interactive failover console here: https://master-hustle-engine.onrender.com/demo\n\nLooking forward to speaking.\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity`;
+    const demoBody = `Hi ${lead.name},\n\nThanks for getting back to me! I'd be glad to walk you through how our 3-tier token router cuts LLM inference burn via real cost routing and keeps client uptime at 100% via multi-model failover.\n\nYou can book a direct 10-minute walkthrough on my calendar here:\n👉 ${DEMO_SCHEDULING_LINK}\n\nIn the meantime, feel free to inspect the live interactive failover console here: https://master-hustle-engine.onrender.com/demo\n\nLooking forward to speaking.\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity`;
 
     const gmailUrl = process.env.GMAIL_HTTP_URL || process.env.GMAIL_RELAY_URL || (process.env.GMAIL_APP_SCRIPT_URL ? process.env.GMAIL_APP_SCRIPT_URL : null);
     const gmailKey = process.env.GMAIL_HTTP_KEY || process.env.GMAIL_RELAY_KEY || process.env.RELAY_SECRET_KEY || '';
@@ -1498,8 +1516,16 @@ app.get(['/demo', '/demo.html', '/demo-v2', '/demo-v2.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'demo.html'));
 });
 
+// AI Router Walkthrough Page
+app.get(['/router', '/router.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'router.html'));
+});
+
 // Demo API: Live Provider Failover (no longer used by /demo; kept for existing scripts)
-app.post('/api/demo/failover', async (req, res) => {
+app.post('/api/demo/failover', (req, res, next) => {
+  const { requireRouterApiKey } = require('./lib/multiModelRouter');
+  return requireRouterApiKey(req, res, next);
+}, async (req, res) => {
   const { prompt, simulateOutage = false } = req.body || {};
   const queryPrompt = prompt || "You are an expert customer success assistant for an e-commerce brand. Please draft an empathetic return policy response for Order #89211.";
   const startTime = Date.now();
@@ -1519,7 +1545,7 @@ app.post('/api/demo/failover', async (req, res) => {
         success: false,
         failoverOccurred: true,
         primary: {
-          provider: 'Gemini 3.6 Flash',
+          provider: 'Gemini 3.5 Flash Lite',
           status: 503,
           state: 'FAILED',
           error: 'HTTP 503: High upstream model load / simulated 503 outage'
@@ -1546,21 +1572,42 @@ app.post('/api/demo/failover', async (req, res) => {
         secondaryRes = await routeMultiModel({ prompt: queryPrompt, preferredProvider: 'claude' });
       }
       const endTime = Date.now();
+      if (!secondaryRes || !secondaryRes.success) {
+        return res.json({
+          success: false,
+          failoverOccurred: true,
+          primary: {
+            provider: 'Gemini 3.5 Flash Lite',
+            status: 503,
+            state: 'FAILED',
+            error: 'HTTP 503: High upstream model load / simulated 503 outage'
+          },
+          secondary: {
+            provider: secondaryRes?.provider || 'Backup Provider',
+            status: secondaryRes?.status || 502,
+            state: 'FAILED',
+            error: secondaryRes?.error || 'Secondary provider failover failed to deliver response'
+          },
+          failoverLatencyMs: endTime - failoverStart,
+          totalLatencyMs: endTime - startTime
+        });
+      }
+
       return res.json({
         success: true,
         failoverOccurred: true,
         primary: {
-          provider: 'Gemini 3.6 Flash',
+          provider: 'Gemini 3.5 Flash Lite',
           status: 503,
           state: 'FAILED',
           error: 'HTTP 503: High upstream model load / simulated 503 outage'
         },
         secondary: {
-          provider: secondaryRes?.provider || 'Claude 3.5 Sonnet',
+          provider: secondaryRes?.provider || 'Claude Sonnet 4.6',
           status: 200,
           state: 'SUCCESS',
-          model: secondaryRes?.model || 'claude-3-5-sonnet',
-          output: secondaryRes?.text || secondaryRes?.output || 'Output delivered from secondary provider.'
+          model: secondaryRes?.model || 'claude-sonnet-4-6',
+          output: secondaryRes?.output || secondaryRes?.text || 'Output delivered from secondary provider.'
         },
         failoverLatencyMs: endTime - failoverStart,
         totalLatencyMs: endTime - startTime
@@ -1571,7 +1618,7 @@ app.post('/api/demo/failover', async (req, res) => {
         success: false,
         failoverOccurred: true,
         primary: {
-          provider: 'Gemini 3.6 Flash',
+          provider: 'Gemini 3.5 Flash Lite',
           status: 503,
           state: 'FAILED',
           error: 'HTTP 503: High upstream model load / simulated 503 outage'
@@ -2057,7 +2104,7 @@ if (require.main === module) {
     console.log(`  Router Endpoint: http://localhost:${PORT}/api/model/route`);
     console.log(`  Live Email Endpoint: http://localhost:${PORT}/api/send-single-email`);
     console.log(`  Scheduler: ${scheduledJobsEnabled() ? 'Active (6:00 AM CST Intake / 8:00 AM CST Dispatch / 00:00 Midnight CST Reset)' : 'OFF (ENABLE_SCHEDULED_JOBS not set to true)'}`);
-    console.log(`  Token Governance: Active (Flash Tier 87.6% Efficiency Enforced)`);
+    console.log(`  Token Governance: Active (Flash Tier ${formatEfficiencyDisplay(tokenGovernance.reductionTargetPct)} Efficiency Enforced)`);
     console.log(`  Data Isolation: Production Receipts vs Sandbox Tests ISOLATED`);
     console.log(`===================================================================`);
 

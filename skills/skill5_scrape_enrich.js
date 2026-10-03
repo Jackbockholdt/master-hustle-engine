@@ -31,8 +31,7 @@ function estimateAgencyLLMBurn(employees = 10, industry = 'Digital Marketing') {
 
   return {
     estimatedMonthlyLLMBurnUSD: Math.max(1500, estBurn),
-    estimatedMonthlySavingsUSD: Math.max(975, potentialSavings),
-    tokenReductionFactor: "8.06x"
+    estimatedMonthlySavingsUSD: Math.max(975, potentialSavings)
   };
 }
 
@@ -76,7 +75,9 @@ async function scrapeAndEnrichLead(leadData = {}) {
     lead: enrichment,
     governance: {
       modelTier: 'FLASH_BUDGET',
-      tokensSavedEstimate: route.tokensSavedEstimate || 2190
+      tokensSavedEstimate: (route && route.tokensSavedEstimate !== undefined && route.tokensSavedEstimate !== null)
+        ? route.tokensSavedEstimate
+        : 'not measured yet'
     }
   };
 }

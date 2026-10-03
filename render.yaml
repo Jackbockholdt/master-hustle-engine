@@ -22,9 +22,19 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-1.5-flash
+        value: gemini-3.5-flash-lite
       - key: GEMINI_FLAGSHIP_MODEL
-        value: gemini-1.5-pro
+        value: gemini-3.8-flash
+      - key: ROUTER_API_KEYS
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: API_POOL
+        sync: false
       - key: SMTP_HOST
         value: smtp.gmail.com
       - key: SMTP_PORT

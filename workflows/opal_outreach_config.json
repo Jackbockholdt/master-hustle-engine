@@ -3,16 +3,14 @@
   "environment": "Gemini Opal / AI Studio Production Pipeline",
   "version": "4.1.0",
   "optimization": {
-    "token_reduction_target_pct": 87.6,
-    "standard_tokens_per_lead": 2500,
-    "optimized_tokens_per_lead": 310,
+    "token_reduction_target_pct": "not measured yet",
     "daily_batch_limit": 25
   },
   "pipeline_routing_rules": [
     {
       "tier": 1,
       "name": "ICP Fast Qualifier",
-      "model": "gemini-1.5-flash",
+      "model": "gemini-3.5-flash-lite",
       "eval_conditions": {
         "required_fields": ["company_name"],
         "contact_fields": ["email", "phone"],
@@ -24,20 +22,20 @@
     {
       "tier": 2,
       "name": "Deep Researcher & Hook Extractor",
-      "model": "gemini-1.5-flash",
+      "model": "gemini-3.5-flash-lite",
       "extract_fields": ["core_value_prop", "pain_point", "hook"],
       "action": "proceed_to_tier_3"
     },
     {
       "tier": 3,
       "name": "High-Converting Copywriter",
-      "model": "gemini-1.5-flash",
+      "model": "gemini-3.5-flash-lite",
       "outputs": ["subject_line", "email_body", "sms_body"],
       "dispatch_targets": ["email_smtp", "sms_gateway", "webhook_endpoint"]
     }
   ],
   "flagship_access_control": {
-    "flagship_model": "gemini-1.5-pro",
+    "flagship_model": "gemini-3.8-flash",
     "access": "STRICTLY_HUMAN_TRIGGERED_ONLY",
     "header_required": "X-Human-Trigger: true",
     "body_param_required": "humanTriggered: true",

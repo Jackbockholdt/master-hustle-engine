@@ -5,15 +5,19 @@ The **Agency AI Infrastructure Layer** (`Jackbockholdt/margin-engine-core`) is a
 
 It prevents client bot outages through zero-downtime multi-LLM failover (<50ms circuit swap on upstream 503/429 errors) and protects client sending domains with deterministic 10-point queue scrubbing and mandatory 48-hour quiet windows.
 
-Measured on test run (`test_token_governance.js`): **87.6% token efficiency on automated background tasks** by stripping context bloat and routing automated triage away from expensive flagship tiers.
+Measured on live workloads: **dynamically measured token efficiency and cost savings** compared against a strong-model baseline (`gpt-4o`) by stripping context bloat and routing automated triage to cost-effective models.
 
 ---
 
-## 🎮 Live Interactive Console (`/demo`)
+## 🎮 Live Pages & Consoles (`/demo`, `/router`)
 
-Test the core infrastructure directly in the browser at `/demo` (or `GET /demo`):
+1. **AI Router & Redundancy Console (`/router`)**:
+   - Plain-English overview of real cost routing and multi-provider failover.
+   - Interactive live status widget connected to `/api/router/status`.
+   - Real-time provider reachability probes (Gemini, OpenAI, Claude, OpenRouter).
+   - Live telemetry showing actual cost and measured savings vs `gpt-4o` baseline.
 
-1. **Tab 1: Live Router & Instant Failover Console**
+2. **White-Label Sales Desk Walkthrough (`/demo`)**:
    - Live query routing through Gemini 3.6 Flash (over IPv4).
    - "Kill primary (simulate 503/429)" toggle button.
    - Dynamic `Date.now()` measured latency audit (sub-second failover recovery).
@@ -105,7 +109,13 @@ npm install
 
 ### 2. Run Test Suites
 ```powershell
-# Verify Token Governance (87.6% efficiency benchmark)
+# Verify Multi-Model Router with Mocked Providers
+node test_router_mocked.js
+
+# Verify Standalone Router Connectivity & Probes
+node test_standalone_router.js
+
+# Verify Token Governance & Routing Benchmark
 node test_token_governance.js
 
 # Verify 9-Skill Integration Suite

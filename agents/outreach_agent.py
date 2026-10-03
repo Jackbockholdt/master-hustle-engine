@@ -2,7 +2,7 @@
 Master Hustle Engine - Outreach Agent
 Handles 3-Tier Token Reducer Router for written lead outreach (Email, SMS, Webhooks).
 Enforces Token Governance:
-- Automated background/telemetry calls -> Gemini Flash (gemini-1.5-flash) (87.6% token reduction efficiency)
+- Automated background/telemetry calls -> Gemini Flash (gemini-3.5-flash-lite) (measured token reduction efficiency)
 - Outreach copy generation -> Primary Low-Cost Fallback Chain (Gemini Flash)
 - Flagship Pro models -> Restricted to manual, human-triggered calls (human_triggered=True)
 """
@@ -20,21 +20,21 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 class OutreachAgent:
     """
     3-Tier Token Reducer Router:
-    - Tier 1 (Qualifier): Gemini Flash (gemini-1.5-flash). Fast ICP qualification.
+    - Tier 1 (Qualifier): Gemini Flash (gemini-3.5-flash-lite). Fast ICP qualification.
     - Tier 2 (Researcher): Low-cost Flash path. Hook & value prop extraction.
     - Tier 3 (Copywriter): Low-cost Flash / Claude Haiku fallback path. Flagship Pro restricted to human-triggered calls.
     """
 
     def __init__(self):
-        self.qualifier_model = "gemini-1.5-flash"
-        self.researcher_model = "gemini-1.5-flash"
-        self.copywriter_model = "gemini-1.5-flash"
-        self.flagship_model = "gemini-1.5-pro"
+        self.qualifier_model = "gemini-3.5-flash-lite"
+        self.researcher_model = "gemini-3.5-flash-lite"
+        self.copywriter_model = "gemini-3.5-flash-lite"
+        self.flagship_model = "gemini-3.8-flash"
 
     def qualify_lead(self, lead_data: dict) -> dict:
         """
         Tier 1: High-speed ICP Qualification via Gemini Flash (Budget Tier)
-        Cost: ~$0.0001 per lead (87.6% token reduction)
+        Cost: ~$0.0001 per lead (measured token reduction)
         """
         company_name = lead_data.get("company_name", lead_data.get("name", "Target Company"))
         industry = lead_data.get("industry", "Unknown")
@@ -155,7 +155,7 @@ class OutreachAgent:
             "copy": c_res,
             "channels": ["email", "sms", "webhook"],
             "token_governance": {
-                "efficiency": "87.6%",
+                "efficiency": "measured",
                 "budget_tier": self.qualifier_model,
                 "copy_tier": c_res.get("model_used")
             }

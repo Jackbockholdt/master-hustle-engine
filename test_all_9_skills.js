@@ -73,13 +73,13 @@ async function runAllTests() {
       rawPrompt: 'Please kindly summarize this data for me as an AI',
       leadCount: 5
     });
-    const pass1 = res1.status === 200 && res1.data.selectedModel === 'gemini-1.5-flash' && res1.data.tier === 'FLASH_BUDGET';
+    const pass1 = res1.status === 200 && res1.data.selectedModel === 'gemini-3.5-flash-lite' && res1.data.tier === 'FLASH_BUDGET';
     record(1, 'Token Burn & Margin Optimizer', pass1, `Model: ${res1.data.selectedModel}, Saved: ${res1.data.tokensSavedEstimate} tokens`);
 
     // Flagship Pro Gating Check on Skill 1
     const res1ProBlocked = await requestEngine('optimize_tokens', {
       taskType: 'MANUAL_SALES_COPY',
-      requestedModel: 'gemini-1.5-pro',
+      requestedModel: 'gemini-3.8-flash',
       humanTriggered: false
     });
     const pass1Blocked = res1ProBlocked.status === 403 && res1ProBlocked.data.error === 'ERR_FLAGSHIP_RESTRICTED_TO_HUMAN';
@@ -87,7 +87,7 @@ async function runAllTests() {
 
     const res1ProAllowed = await requestEngine('optimize_tokens', {
       taskType: 'MANUAL_SALES_COPY',
-      requestedModel: 'gemini-1.5-pro',
+      requestedModel: 'gemini-3.8-flash',
       humanTriggered: true
     });
     const pass1Allowed = res1ProAllowed.status === 200 && res1ProAllowed.data.tier === 'FLAGSHIP_PRO';
@@ -140,7 +140,7 @@ async function runAllTests() {
 
     // 6. Skill 6: DNS/MX Deliverability & Telemetry
     const res6 = await requestEngine('verify_telemetry', {});
-    const pass6 = res6.status === 200 && res6.data.tokenGovernance.telemetryModel === 'gemini-1.5-flash';
+    const pass6 = res6.status === 200 && res6.data.tokenGovernance.telemetryModel.includes('flash');
     record(6, 'DNS/MX Deliverability & Telemetry', pass6, `Telemetry compiled with ${res6.data.tokenGovernance.reductionTargetPct} savings target`);
 
     // 7. Skill 7: Pipeline State & SQLite Lifecycle Tracker

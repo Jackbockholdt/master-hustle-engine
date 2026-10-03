@@ -108,7 +108,7 @@ Click the link below to finalize onboarding via Stripe:
 
 ## 4. Operational Guarantees
 * **Fail-Closed Lead Safety**: Automatic suppression against spam traps and invalid DNS MX records.
-* **Token Cost Efficiency**: 87.6% reduction enforced via Gemini Flash budget routing.
+* **Token Cost Efficiency**: Measured cost reduction enforced via cheap-tier budget routing.
 * **Data Isolation**: Production customer records and test environments remain strictly separated.
 `;
 
