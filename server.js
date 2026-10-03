@@ -226,16 +226,23 @@ app.use('/', engineRouter);
 const tokenGovernance = {
   activeRules: true,
   get reductionTargetPct() {
+    try {
+      const { routerTelemetry } = require('./lib/multiModelRouter');
+      if (routerTelemetry && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct) {
+        const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
+        if (!isNaN(parsed) && parsed > 0) return Number(parsed.toFixed(1));
+      }
+    } catch (e) {}
     return this.baselineTokensPerLead > 0
       ? Number((((this.baselineTokensPerLead - this.optimizedTokensPerLead) / this.baselineTokensPerLead) * 100).toFixed(1))
       : 0;
   },
-  baselineTokensPerLead: 2500,
-  optimizedTokensPerLead: 310,
+  baselineTokensPerLead: 1000,
+  optimizedTokensPerLead: 200,
   modelTiers: {
-    get FLASH() { return process.env.GEMINI_MODEL || "gemini-2.5-flash"; },
-    get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash"; },
-    get FLAGSHIP() { return process.env.GEMINI_FLAGSHIP_MODEL || "gemini-2.5-pro"; }
+    get FLASH() { return process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get FLAGSHIP() { return process.env.GEMINI_FLAGSHIP_MODEL || "gemini-3.8-flash"; }
   },
   stats: {
     automatedFlashCalls: 0,
@@ -1355,7 +1362,7 @@ app.post(['/api/inbound-reply', '/webhook/inbound-reply'], async (req, res) => {
     lead.demoLinkSent = true;
 
     const demoSubject = `Re: Cutting ${lead.company}'s LLM API token burn (10-min demo scheduling)`;
-    const demoBody = `Hi ${lead.name},\n\nThanks for getting back to me! I'd be glad to walk you through how our 3-tier token router cuts LLM inference burn by 87.6% and keeps client uptime at 100% via multi-model failover.\n\nYou can book a direct 10-minute walkthrough on my calendar here:\n👉 ${DEMO_SCHEDULING_LINK}\n\nIn the meantime, feel free to inspect the live interactive failover console here: https://master-hustle-engine.onrender.com/demo\n\nLooking forward to speaking.\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity`;
+    const demoBody = `Hi ${lead.name},\n\nThanks for getting back to me! I'd be glad to walk you through how our 3-tier token router cuts LLM inference burn via real cost routing and keeps client uptime at 100% via multi-model failover.\n\nYou can book a direct 10-minute walkthrough on my calendar here:\n👉 ${DEMO_SCHEDULING_LINK}\n\nIn the meantime, feel free to inspect the live interactive failover console here: https://master-hustle-engine.onrender.com/demo\n\nLooking forward to speaking.\n\nBest regards,\nJack Buckholdt\nFounder & AI Infrastructure Architect\nMaster Hustle Engine / Anti-Gravity`;
 
     const gmailUrl = process.env.GMAIL_HTTP_URL || process.env.GMAIL_RELAY_URL || (process.env.GMAIL_APP_SCRIPT_URL ? process.env.GMAIL_APP_SCRIPT_URL : null);
     const gmailKey = process.env.GMAIL_HTTP_KEY || process.env.GMAIL_RELAY_KEY || process.env.RELAY_SECRET_KEY || '';
@@ -1531,7 +1538,7 @@ app.post('/api/demo/failover', async (req, res) => {
         success: false,
         failoverOccurred: true,
         primary: {
-          provider: 'Gemini 3.6 Flash',
+          provider: 'Gemini 3.5 Flash Lite',
           status: 503,
           state: 'FAILED',
           error: 'HTTP 503: High upstream model load / simulated 503 outage'
@@ -1558,21 +1565,42 @@ app.post('/api/demo/failover', async (req, res) => {
         secondaryRes = await routeMultiModel({ prompt: queryPrompt, preferredProvider: 'claude' });
       }
       const endTime = Date.now();
+      if (!secondaryRes || !secondaryRes.success) {
+        return res.json({
+          success: false,
+          failoverOccurred: true,
+          primary: {
+            provider: 'Gemini 3.5 Flash Lite',
+            status: 503,
+            state: 'FAILED',
+            error: 'HTTP 503: High upstream model load / simulated 503 outage'
+          },
+          secondary: {
+            provider: secondaryRes?.provider || 'Backup Provider',
+            status: secondaryRes?.status || 502,
+            state: 'FAILED',
+            error: secondaryRes?.error || 'Secondary provider failover failed to deliver response'
+          },
+          failoverLatencyMs: endTime - failoverStart,
+          totalLatencyMs: endTime - startTime
+        });
+      }
+
       return res.json({
         success: true,
         failoverOccurred: true,
         primary: {
-          provider: 'Gemini 3.6 Flash',
+          provider: 'Gemini 3.5 Flash Lite',
           status: 503,
           state: 'FAILED',
           error: 'HTTP 503: High upstream model load / simulated 503 outage'
         },
         secondary: {
-          provider: secondaryRes?.provider || 'Claude 3.5 Sonnet',
+          provider: secondaryRes?.provider || 'Claude Sonnet 4.6',
           status: 200,
           state: 'SUCCESS',
-          model: secondaryRes?.model || 'claude-3-5-sonnet',
-          output: secondaryRes?.text || secondaryRes?.output || 'Output delivered from secondary provider.'
+          model: secondaryRes?.model || 'claude-sonnet-4-6',
+          output: secondaryRes?.output || secondaryRes?.text || 'Output delivered from secondary provider.'
         },
         failoverLatencyMs: endTime - failoverStart,
         totalLatencyMs: endTime - startTime
@@ -1583,7 +1611,7 @@ app.post('/api/demo/failover', async (req, res) => {
         success: false,
         failoverOccurred: true,
         primary: {
-          provider: 'Gemini 3.6 Flash',
+          provider: 'Gemini 3.5 Flash Lite',
           status: 503,
           state: 'FAILED',
           error: 'HTTP 503: High upstream model load / simulated 503 outage'

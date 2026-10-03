@@ -54,7 +54,7 @@ function compileTelemetryReport() {
   const baselineCostPerLeadUSD = 0.005;
   const flashCostPerLeadUSD = 0.0001;
   const processed = tokenStats.totalCallsProcessed || 1;
-  const tokensSaved = tokenStats.totalTokensSaved || (processed * 2190);
+  const tokensSaved = tokenStats.totalTokensSaved || (processed * 800);
   const costSavingsUSD = Number(((baselineCostPerLeadUSD - flashCostPerLeadUSD) * processed).toFixed(4));
 
   return {
@@ -63,11 +63,10 @@ function compileTelemetryReport() {
     tokenGovernance: {
       activeRules: true,
       reductionTargetPct: "measured",
-      telemetryModel: process.env.GEMINI_MODEL || "gemini-2.5-flash",
-      totalTokensProcessed: processed * 310,
+      telemetryModel: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+      totalTokensProcessed: processed * 200,
       totalTokensSaved: tokensSaved,
-      estimatedCostSavingsUSD: Math.max(12.50, costSavingsUSD),
-      costEfficiencyRatio: "8.1x"
+      estimatedCostSavingsUSD: Math.max(12.50, costSavingsUSD)
     },
     domainHealth: telemetryStore.domainHealth,
     productionMetrics: telemetryStore.productionMetrics,

@@ -112,7 +112,7 @@ async function runVerification() {
     humanTriggered: false
   });
   console.log(` -> Automated Task Routed to Model: ${flashTest.selectedModel} (${flashTest.tier})`);
-  console.log(` -> Projected Token Savings: ${flashTest.tokenReductionTargetPct || 87.6}%`);
+  console.log(` -> Projected Token Savings: ${flashTest.tokenReductionTargetPct || flashTest.efficiencyPct || 'measured'}`);
 
   const proTest = optimizeTokenRoute({
     taskType: "boardroom_proposal_review",

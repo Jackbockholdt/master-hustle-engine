@@ -43,7 +43,8 @@ The Offer:
 Tone: Senior technical architect to agency owner. Concise, zero fluff.
 `.trim();
 
-  const systemPrompt = context.systemPrompt || 'You are an enterprise B2B software architect pitching agency infrastructure to founders.';
+  // Block caller-supplied system prompt to prevent jailbreak / prompt injection bypasses
+  const systemPrompt = 'You are an enterprise B2B software architect pitching agency infrastructure to founders.';
 
   // Dispatch via Multi-Model Router
   const dispatchResult = await routeMultiModel({

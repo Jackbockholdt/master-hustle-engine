@@ -93,8 +93,8 @@ async function runVerificationSuite() {
     rule4_sandbox_isolation_verified: false
   };
 
-  const expectedFlash = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-  const expectedFlagship = process.env.GEMINI_FLAGSHIP_MODEL || 'gemini-2.5-pro';
+  const expectedFlash = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+  const expectedFlagship = process.env.GEMINI_FLAGSHIP_MODEL || 'gemini-3.8-flash';
 
   // Test 0: Single Source of Truth Router Endpoint (/api/model/route)
   console.log("\n[Test 0] Testing /api/model/route Single Source of Truth...");

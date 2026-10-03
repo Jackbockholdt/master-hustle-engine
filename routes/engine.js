@@ -189,8 +189,13 @@ router.post('/engine', async (req, res) => {
       case 'route_model':
       case 'multi_model_dispatch':
       case 'ai_dispatch': {
-        const result = await routeMultiModel(payload);
-        return res.status(200).json(result);
+        let authed = false;
+        requireRouterApiKey(req, res, () => { authed = true; });
+        if (!authed) return;
+        const payloadClean = { ...(payload || {}), mock: false };
+        const result = await routeMultiModel(payloadClean);
+        const statusCode = result.success ? 200 : (result.attempts?.length ? 502 : 400);
+        return res.status(statusCode).json(result);
       }
 
       // -------------------------------------------------------------
@@ -432,7 +437,8 @@ router.post('/pipeline/process', async (req, res) => {
 // ===================================================================
 router.post('/router/dispatch', requireRouterApiKey, async (req, res) => {
   try {
-    const result = await routeMultiModel(req.body);
+    const payload = { ...(req.body || {}), mock: false };
+    const result = await routeMultiModel(payload);
     const statusCode = result.success ? 200 : (result.attempts?.length ? 502 : 400);
     return res.status(statusCode).json(result);
   } catch (err) {
@@ -474,8 +480,16 @@ router.post('/skills/context-building', (req, res) => {
 });
 
 // Skill 5: Copywriting
-router.post('/skills/copywriting', async (req, res) => {
-  const result = await generateCopywriting(req.body);
+router.post('/skills/copywriting', requireRouterApiKey, async (req, res) => {
+  const payload = { ...(req.body || {}) };
+  // Block caller-supplied system prompts to prevent prompt injection / unauthorized routing instructions
+  delete payload.systemPrompt;
+  if (payload.context && typeof payload.context === 'object') {
+    const cleanContext = { ...payload.context };
+    delete cleanContext.systemPrompt;
+    payload.context = cleanContext;
+  }
+  const result = await generateCopywriting(payload);
   return res.status(200).json(result);
 });
 

@@ -12,13 +12,13 @@
   <meta property="og:site_name" content="Master Hustle Engine">
   <meta property="og:url" content="https://master-hustle-engine.onrender.com/router">
   <meta property="og:title" content="Smart AI Router: Real Cost Routing & Provider Failover">
-  <meta property="og:description" content="Never drop an AI response. Routes prompts to the cheapest capable model, escalates on failure or empty output, and fails over across Gemini, OpenAI, Claude, and OpenRouter.">
+  <meta property="og:description" content="Protect AI availability. Routes prompts to the cheapest capable model, escalates on failure or empty output, and fails over across Gemini, OpenAI, Claude, and OpenRouter.">
   <meta property="og:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Smart AI Router: Real Cost Routing & Provider Failover">
-  <meta name="twitter:description" content="Never drop an AI response. Routes prompts to the cheapest capable model, escalates on failure, and fails over across 4 major providers.">
+  <meta name="twitter:description" content="Protect AI availability. Routes prompts to the cheapest capable model, escalates on failure, and fails over across 4 major providers.">
   <meta name="twitter:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
 
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
@@ -118,8 +118,8 @@
     <section class="hero">
       <div class="wrap">
         <span class="eyebrow">Enterprise Reliability &amp; Cost Routing</span>
-        <h1>Never drop an AI response.<br>Never overpay for routine tasks.</h1>
-        <p class="lead">The Master Hustle Engine AI Router sends every outbound prompt, reply classification, and follow-up draft to the most cost-effective model that can handle it. If a provider stalls or returns empty output, it immediately fails over across Gemini, OpenAI, Claude, and OpenRouter without faking responses.</p>
+        <h1>Protect AI availability.<br>Never overpay for routine tasks.</h1>
+        <p class="lead">The Master Hustle Engine AI Router sends every outbound prompt, reply classification, and follow-up draft to the most cost-effective model that can handle it. If a provider stalls or returns empty output, it cascades across Gemini, OpenAI, Claude, and OpenRouter without faking responses.</p>
         <div class="btn-row">
           <a class="btn btn-primary" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a 30-day pilot on one client</a>
           <a class="btn btn-ghost" href="#live-status">View live router telemetry</a>
@@ -143,17 +143,17 @@
           <div class="card">
             <span class="num">1</span>
             <h3>Cost-first dispatch</h3>
-            <p>Every incoming prompt starts on the cheap tier (<span class="model-pill">gemini-2.5-flash</span>, <span class="model-pill">gpt-4o-mini</span>, or <span class="model-pill">claude-3-5-haiku</span>). Routine message drafting and lead scoring rarely require heavy flagship compute.</p>
+            <p>Every incoming prompt starts on the cheap tier (<span class="model-pill">gemini-3.5-flash-lite</span>, <span class="model-pill">gpt-4o-mini</span>, or <span class="model-pill">claude-haiku-4-5-20251001</span>). Routine message drafting and lead scoring rarely require heavy flagship compute.</p>
           </div>
           <div class="card">
             <span class="num">2</span>
             <h3>Cascading failover</h3>
-            <p>If the primary provider hits a rate limit (429), network timeout, or service error (500), the router instantly cascades to the next cheap provider in line without dropping the client's request.</p>
+            <p>If the primary provider hits a rate limit (429), network timeout, or service error (500), the router cascades smoothly to the next cheap provider in line without failing the client's request.</p>
           </div>
           <div class="card">
             <span class="num">3</span>
             <h3>Capability escalation</h3>
-            <p>If cheap models fail or return an empty answer, the router automatically escalates to a strong flagship model (<span class="model-pill">gemini-2.5-pro</span>, <span class="model-pill">gpt-4o</span>, or <span class="model-pill">claude-3-5-sonnet</span>) to complete the job.</p>
+            <p>If cheap models fail or return an empty answer, the router automatically escalates to a strong flagship model (<span class="model-pill">gemini-3.8-flash</span>, <span class="model-pill">gpt-4o</span>, or <span class="model-pill">claude-sonnet-4-6</span>) to complete the job.</p>
           </div>
           <div class="card">
             <span class="num">4</span>
@@ -201,13 +201,13 @@
 
           <div style="margin-top:24px;">
             <span style="color:#94a3b8; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.04em; font-weight:600;">Active Routing Order</span>
-            <div class="grid grid-3" style="margin-top:10px; gap:12px;">
+            <div class="grid grid-4" style="margin-top:10px; gap:12px;">
               <div class="provider-card">
                 <div class="provider-header">
                   <strong>Primary Route</strong>
                   <span class="dot-indicator dot-green"></span>
                 </div>
-                <div style="font-size:0.95rem; color:#f8fafc;" id="route-primary">gemini-2.5-flash</div>
+                <div style="font-size:0.95rem; color:#f8fafc;" id="route-primary">gemini-3.5-flash-lite</div>
                 <small style="color:#94a3b8;">Cheap tier (first choice)</small>
               </div>
               <div class="provider-card">
@@ -223,8 +223,16 @@
                   <strong>Tertiary Route</strong>
                   <span class="dot-indicator dot-yellow" id="route-tertiary-dot"></span>
                 </div>
-                <div style="font-size:0.95rem; color:#f8fafc;" id="route-tertiary">claude-3-5-haiku</div>
+                <div style="font-size:0.95rem; color:#f8fafc;" id="route-tertiary">claude-haiku-4-5-20251001</div>
                 <small style="color:#94a3b8;">High resilience failover</small>
+              </div>
+              <div class="provider-card">
+                <div class="provider-header">
+                  <strong>OpenRouter Route</strong>
+                  <span class="dot-indicator dot-yellow" id="route-openrouter-dot"></span>
+                </div>
+                <div style="font-size:0.95rem; color:#f8fafc;" id="route-quaternary">google/gemini-3.5-flash-lite</div>
+                <small style="color:#94a3b8;">Multi-provider fallback</small>
               </div>
             </div>
           </div>
@@ -296,7 +304,7 @@
           <p class="lead">Test the white-label sales desk and multi-model router on a single client account before rolling it out across your roster.</p>
           <ol class="checklist">
             <li><strong>Pick one client.</strong> A locksmith, HVAC company, roofer, or any business that lives on booked calls and jobs.</li>
-            <li><strong>We configure your router &amp; sales desk,</strong> connecting your preferred AI keys or using our managed pool.</li>
+            <li><strong>We configure your router &amp; sales desk,</strong> connecting your preferred AI keys.</li>
             <li><strong>It runs for 30 days under your brand.</strong> You see every message, reply, booking, and token metric.</li>
             <li><strong>We review the results together</strong> and decide whether to expand across your other agency clients.</li>
           </ol>
@@ -304,7 +312,7 @@
         </div>
         <div class="cta-box">
           <h3>Ready to run a pilot?</h3>
-          <p>Email Jack with your agency's name and the client trade you want to start with. We reply within one business day.</p>
+          <p>Email Jack with your agency's name and the client trade you want to start with.</p>
           <a class="btn btn-primary" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a 30-day pilot on one client</a>
           <a class="btn btn-ghost" href="/demo">Walk through the sales desk demo</a>
           <div class="contact">
@@ -334,20 +342,34 @@
           if (!res.ok) throw new Error('HTTP ' + res.status);
           var data = await res.json();
 
-          // Health badge
-          badge.textContent = data.status || 'Active';
-          badge.className = 'status-badge ' + (data.status === 'healthy' ? 'healthy' : (data.status === 'degraded' ? 'degraded' : 'offline'));
+          // Health badge: don't say healthy when no providers are configured
+          if (!data.configuredProviders || data.configuredProviders.length === 0 || data.status === 'unconfigured') {
+            badge.textContent = 'Unconfigured';
+            badge.className = 'status-badge offline';
+          } else {
+            badge.textContent = data.status || 'Active';
+            badge.className = 'status-badge ' + (data.status === 'healthy' ? 'healthy' : (data.status === 'degraded' ? 'degraded' : 'offline'));
+          }
 
-          // Metrics
-          var savings = data.measuredSavingsPct !== undefined ? data.measuredSavingsPct : (data.costSavingsPct || 0);
-          document.getElementById('metric-savings').textContent = savings + '%';
-          document.getElementById('metric-requests').textContent = (data.totalRequests || 0).toLocaleString();
-          document.getElementById('metric-cost').textContent = '$' + (Number(data.totalActualCost) || 0).toFixed(4);
+          // Metrics: read telemetry.costs.measuredSavingsPct, telemetry.totalDispatches, telemetry.costs.actualCostUSD
+          var tel = data.telemetry || {};
+          var costs = tel.costs || {};
+          var savings = (costs.measuredSavingsPct !== undefined && costs.measuredSavingsPct !== null)
+            ? costs.measuredSavingsPct
+            : (data.measuredSavingsPct || '--%');
+          document.getElementById('metric-savings').textContent = typeof savings === 'string' && savings.endsWith('%') ? savings : (savings + '%');
+
+          var totalDispatches = (tel.totalDispatches !== undefined) ? tel.totalDispatches : (data.totalRequests || 0);
+          document.getElementById('metric-requests').textContent = Number(totalDispatches).toLocaleString();
+
+          var actualCost = (costs.actualCostUSD !== undefined) ? costs.actualCostUSD : (Number(data.totalActualCost) || 0);
+          document.getElementById('metric-cost').textContent = '$' + Number(actualCost).toFixed(4);
 
           // Routes
           if (data.primaryProvider) document.getElementById('route-primary').textContent = data.primaryProvider;
           if (data.secondaryProvider) document.getElementById('route-secondary').textContent = data.secondaryProvider;
           if (data.tertiaryProvider) document.getElementById('route-tertiary').textContent = data.tertiaryProvider;
+          if (data.quaternaryProvider) document.getElementById('route-quaternary').textContent = data.quaternaryProvider;
 
           // Probes & Reachability
           var reach = data.reachability || {};

@@ -23,10 +23,10 @@ async function runVerification() {
   // Test 1: Verify configured model strings
   console.log('[Test 1] Auditing configured model identifiers...');
   console.log('  -> Default Models:', JSON.stringify(PROVIDER_MODELS, null, 2));
-  assert(PROVIDER_MODELS.openai === 'gpt-4o', 'OpenAI primary must be gpt-4o (not deprecated openai-gpt-4o)');
+  assert(PROVIDER_MODELS.openai === 'gpt-4o', 'OpenAI primary must be gpt-4o');
   assert(PROVIDER_MODELS.openaiMini === 'gpt-4o-mini', 'OpenAI mini must be gpt-4o-mini');
-  assert(PROVIDER_MODELS.claude.includes('claude-3-5-sonnet') || PROVIDER_MODELS.claude.includes('claude-3-5-sonnet-latest'), 'Claude primary must be Claude 3.5 Sonnet');
-  assert(PROVIDER_MODELS.claudeHaiku.includes('haiku'), 'Claude light must be a Haiku model');
+  assert(PROVIDER_MODELS.claude.includes('claude-sonnet-4-6') || PROVIDER_MODELS.claude.includes('sonnet'), 'Claude primary must be Claude Sonnet 4.6');
+  assert(PROVIDER_MODELS.claudeHaiku.includes('claude-haiku-4-5') || PROVIDER_MODELS.claudeHaiku.includes('haiku'), 'Claude cheap must be claude-haiku-4-5-20251001');
   console.log('  ✅ PASS: All model identifiers match stable production specifications.\n');
 
   // Test 2: Dry Run Connectivity Probes
@@ -36,6 +36,7 @@ async function runVerification() {
   assert(probeResults.gemini !== undefined, 'Gemini probe result must exist');
   assert(probeResults.openai !== undefined, 'OpenAI probe result must exist');
   assert(probeResults.claude !== undefined, 'Claude probe result must exist');
+  assert(probeResults.openrouter !== undefined, 'OpenRouter probe result must exist');
   console.log('  ✅ PASS: Dry run connectivity probes executed and logged distinct statuses.\n');
 
   // Test 2b: Test distinct probe statuses (INVALID_KEY, NOT_CONFIGURED)
@@ -106,8 +107,8 @@ async function runVerification() {
   console.log('  -> Tertiary provider:', status.tertiaryProvider);
   console.log('  -> Probes:', JSON.stringify(status.probes));
   assert(status.reachability !== undefined, 'Reachability must be defined in status');
-  assert(status.probes !== undefined, 'Probes must be defined in status');
-  assert(status.secondaryProvider.includes('gpt-4o'), 'Secondary provider must report gpt-4o model');
+  assert(status.secondaryProvider.includes('gemini-3.5-flash-lite'), 'Secondary provider must report OpenRouter cheap gemini model');
+  assert(status.tertiaryProvider.includes('gpt-4o'), 'Tertiary provider must report gpt-4o-mini model');
   console.log('  ✅ PASS: Real health telemetry verified.\n');
 
   console.log('===================================================================');

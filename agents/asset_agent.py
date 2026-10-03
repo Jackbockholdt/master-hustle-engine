@@ -29,7 +29,7 @@ class AssetAgent:
                 "version": "1.2",
                 "endpoint": "/api/assets/financial-model",
                 "type": "CSV / Excel / JSON",
-                "description": "Unit economics, token cost reduction projections (87.6% savings), and margin analysis."
+                "description": "Unit economics, token cost reduction projections (measured savings), and margin analysis."
             },
             "system_blueprint": {
                 "title": "Antigravity Multi-Agent Token Router Architecture Blueprint",

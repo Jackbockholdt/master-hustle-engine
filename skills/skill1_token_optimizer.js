@@ -12,17 +12,17 @@ function calculateEfficiency(baseline, optimized) {
 }
 
 const tokenStats = {
-  baselineTokensPerUnit: 2500,
-  optimizedTokensPerUnit: 310,
+  baselineTokensPerUnit: 1000,
+  optimizedTokensPerUnit: 200,
   get targetEfficiencyPct() {
     return calculateEfficiency(this.baselineTokensPerUnit, this.optimizedTokensPerUnit);
   },
   totalCallsProcessed: 0,
   totalTokensSaved: 0,
   modelTiers: {
-    get FLASH() { return process.env.GEMINI_MODEL || "gemini-2.5-flash"; },
-    get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash"; },
-    get FLAGSHIP() { return process.env.GEMINI_FLAGSHIP_MODEL || "gemini-2.5-pro"; }
+    get FLASH() { return process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get FLAGSHIP() { return process.env.GEMINI_FLAGSHIP_MODEL || "gemini-3.8-flash"; }
   },
   marginTiers: {
     RETAINER: { name: "Managed Agency Retainer", dueAtSigningUSD: 4000, setupFeeUSD: 2500, monthlyPriceUSD: 1500, stripeLink: "https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G" },

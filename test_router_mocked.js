@@ -38,15 +38,14 @@ async function runMockedTests() {
   // 1. Model Configuration & Tiers
   // -----------------------------------------------------------------
   console.log('[Test 1] Verifying current model names and cheap/strong tiers...');
-  assert(PROVIDER_MODELS.tiers.gemini.cheap, 'Gemini cheap tier must be defined');
-  assert(PROVIDER_MODELS.tiers.gemini.strong, 'Gemini strong tier must be defined');
-  assert(!PROVIDER_MODELS.tiers.gemini.cheap.includes('gemini-1.5-flash'), 'Gemini 1.5 Flash is retired, must use 2.x');
-  assert(PROVIDER_MODELS.tiers.openai.cheap === 'gpt-4o-mini', 'OpenAI cheap must be gpt-4o-mini');
-  assert(PROVIDER_MODELS.tiers.openai.strong === 'gpt-4o', 'OpenAI strong must be gpt-4o');
-  assert(PROVIDER_MODELS.tiers.claude.cheap.includes('haiku'), 'Claude cheap must be a Haiku model');
-  assert(PROVIDER_MODELS.tiers.claude.strong.includes('sonnet'), 'Claude strong must be a Sonnet model');
-  assert(PROVIDER_MODELS.tiers.openrouter.cheap, 'OpenRouter cheap must be defined');
-  assert(PROVIDER_MODELS.tiers.openrouter.strong, 'OpenRouter strong must be defined');
+  assert.strictEqual(PROVIDER_MODELS.tiers.gemini.cheap, 'gemini-3.5-flash-lite', 'Gemini cheap must be gemini-3.5-flash-lite');
+  assert.strictEqual(PROVIDER_MODELS.tiers.gemini.strong, 'gemini-3.8-flash', 'Gemini strong must be gemini-3.8-flash');
+  assert.strictEqual(PROVIDER_MODELS.tiers.openai.cheap, 'gpt-4o-mini', 'OpenAI cheap must be gpt-4o-mini');
+  assert.strictEqual(PROVIDER_MODELS.tiers.openai.strong, 'gpt-4o', 'OpenAI strong must be gpt-4o');
+  assert.strictEqual(PROVIDER_MODELS.tiers.claude.cheap, 'claude-haiku-4-5-20251001', 'Claude cheap must be claude-haiku-4-5-20251001');
+  assert.strictEqual(PROVIDER_MODELS.tiers.claude.strong, 'claude-sonnet-4-6', 'Claude strong must be claude-sonnet-4-6');
+  assert.strictEqual(PROVIDER_MODELS.tiers.openrouter.cheap, 'google/gemini-3.5-flash-lite', 'OpenRouter cheap must be google/gemini-3.5-flash-lite');
+  assert.strictEqual(PROVIDER_MODELS.tiers.openrouter.strong, 'anthropic/claude-sonnet-4.6', 'OpenRouter strong must be anthropic/claude-sonnet-4.6');
 
   // Verify env override capability
   const prevGeminiEnv = process.env.GEMINI_MODEL;
@@ -99,7 +98,7 @@ async function runMockedTests() {
 
   const resFailover = await routeMultiModel({ prompt: 'Generate fallback outreach' });
   assert.strictEqual(resFailover.success, true, 'Failover request should succeed on secondary');
-  assert.strictEqual(resFailover.provider, 'openai', 'Should failover to OpenAI cheap model');
+  assert.strictEqual(resFailover.provider, 'openrouter', 'Should failover to next cheapest provider (openrouter)');
   assert.strictEqual(resFailover.tier, 'cheap', 'Should remain on cheap tier during provider failover');
   assert.strictEqual(resFailover.attempts.length, 1, 'Should record failed Gemini attempt');
   assert.strictEqual(resFailover.attempts[0].provider, 'gemini', 'Recorded attempt provider must be gemini');
@@ -163,26 +162,46 @@ async function runMockedTests() {
     inputTokens: 1000,
     outputTokens: 500
   });
-  // Baseline (gpt-4o): (1000 * 2.50 + 500 * 10.00) / 1,000,000 = (2500 + 5000) / 1,000,000 = $0.00750
-  // Actual (gemini-2.5-flash): (1000 * 0.075 + 500 * 0.30) / 1,000,000 = (75 + 150) / 1,000,000 = $0.000225
+  // Baseline (gpt-4o: $2.50/$10.00): (1000 * 2.50 + 500 * 10.00) / 1,000,000 = (2500 + 5000) / 1,000,000 = $0.00750
+  // Actual (gemini-2.5-flash: $0.30 input / $2.50 output): (1000 * 0.30 + 500 * 2.50) / 1,000,000 = (300 + 1250) / 1,000,000 = $0.00155
   assert(sampleCalc.baselineCostUSD > sampleCalc.actualCostUSD, 'Baseline cost must exceed cheap model cost');
   assert(sampleCalc.savingsUSD > 0, 'Savings USD must be positive');
-  assert(sampleCalc.savingsPct > 90, `Savings percent should be ~97% for Gemini Flash (got ${sampleCalc.savingsPct}%)`);
+  assert(sampleCalc.savingsPct > 70 && sampleCalc.savingsPct < 85, `Savings percent should be ~79.3% for Gemini 2.5 Flash (got ${sampleCalc.savingsPct}%)`);
   console.log(`  -> Actual Cost: $${sampleCalc.actualCostUSD.toFixed(6)} vs Baseline: $${sampleCalc.baselineCostUSD.toFixed(6)} | Savings: ${sampleCalc.savingsPct}%`);
+
+  // Verify unknown model handling: excluded from savings math, no guessed price
+  const unknownCalc = calculateRequestCost({
+    model: 'unknown-custom-model-99',
+    inputTokens: 1000,
+    outputTokens: 500
+  });
+  assert.strictEqual(unknownCalc.excludedFromSavings, true, 'Unknown models must be excluded from savings math');
+  assert.strictEqual(unknownCalc.actualCostUSD, null, 'Unknown model cost must not be guessed (null)');
+  assert.strictEqual(unknownCalc.savingsUSD, null, 'Unknown model savings must be excluded (null)');
+  console.log('  ✅ PASS: Unknown models excluded from savings math without price guessing.');
   console.log('  ✅ PASS: Accurate token and cost calculation against baseline.\n');
 
   // -----------------------------------------------------------------
   // 7. Telemetry & /api/router/status Reflects Real Measured Savings
   // -----------------------------------------------------------------
-  console.log('[Test 7] Testing getRouterStatus() telemetry reporting...');
+  console.log('[Test 7] Testing getRouterStatus() telemetry reporting & mock isolation...');
   setMockDispatcher(async () => ({
     text: 'Telemetry test response',
     inputTokens: 200,
     outputTokens: 100
   }));
 
+  const dispatchesBefore = getRouterStatus().telemetry.totalDispatches;
+  // Live / mockDispatcher dispatch should increment
   await routeMultiModel({ prompt: 'Record telemetry test 1' });
   await routeMultiModel({ prompt: 'Record telemetry test 2' });
+  const dispatchesAfterLive = getRouterStatus().telemetry.totalDispatches;
+  assert.strictEqual(dispatchesAfterLive, dispatchesBefore + 2, 'Live route dispatches must be recorded');
+
+  // Mock simulation call MUST NOT feed or increment routerTelemetry costs or dispatches
+  await routeMultiModel({ prompt: 'Mock simulation call', mock: true });
+  const dispatchesAfterMock = getRouterStatus().telemetry.totalDispatches;
+  assert.strictEqual(dispatchesAfterMock, dispatchesAfterLive, 'Mock call must NOT increment totalDispatches');
 
   const status = getRouterStatus();
   assert(status.telemetry, 'Status must include telemetry');
@@ -195,12 +214,12 @@ async function runMockedTests() {
   assert(!status.telemetry.costs.measuredSavingsPct.includes('94.2%'), 'Must NOT hardcode 94.2% in measured savings');
   console.log(`  -> Measured Savings in Telemetry: ${status.telemetry.costs.measuredSavingsPct}`);
   console.log(`  -> Total Tokens: ${status.telemetry.tokens.totalTokens} | Total Actual Cost: $${status.telemetry.costs.actualCostUSD}`);
-  console.log('  ✅ PASS: Real measured telemetry verified without hardcoded numbers.\n');
+  console.log('  ✅ PASS: Real measured telemetry verified without hardcoded numbers & mock calls isolated.\n');
 
   // -----------------------------------------------------------------
   // 8. API Key Header Verification (ROUTER_API_KEYS)
   // -----------------------------------------------------------------
-  console.log('[Test 8] Testing requireRouterApiKey middleware security...');
+  console.log('[Test 8] Testing requireRouterApiKey middleware security & crypto.timingSafeEqual...');
   
   // 8a: ROUTER_API_KEYS unset -> 503
   const origKey = process.env.ROUTER_API_KEYS;
@@ -225,11 +244,16 @@ async function runMockedTests() {
   assert.strictEqual(statusCode, 401, 'Must return 401 when API key header is missing');
   assert.strictEqual(jsonBody.error, 'ERR_UNAUTHORIZED');
 
-  // 8c: ROUTER_API_KEYS set, invalid header -> 401
+  // 8c: ROUTER_API_KEYS set, invalid header (different length and same length) -> 401
   statusCode = 0;
   jsonBody = null;
-  requireRouterApiKey({ headers: { 'x-api-key': 'wrong-key' } }, mockRes, () => {});
-  assert.strictEqual(statusCode, 401, 'Must return 401 when invalid key provided');
+  requireRouterApiKey({ headers: { 'x-api-key': 'wrong' } }, mockRes, () => {});
+  assert.strictEqual(statusCode, 401, 'Must return 401 when different-length invalid key provided');
+
+  statusCode = 0;
+  jsonBody = null;
+  requireRouterApiKey({ headers: { 'x-api-key': 'test-secret-key-9' } }, mockRes, () => {});
+  assert.strictEqual(statusCode, 401, 'Must return 401 when same-length invalid key provided');
 
   // 8d: Valid x-api-key -> calls next()
   let nextCalled = false;
@@ -247,7 +271,7 @@ async function runMockedTests() {
   else delete process.env.ROUTER_API_KEYS;
   resetMockDispatcher();
 
-  console.log('  ✅ PASS: ROUTER_API_KEYS middleware correctly enforces security and fail-closed policies.\n');
+  console.log('  ✅ PASS: ROUTER_API_KEYS middleware correctly enforces security, timingSafeEqual, and fail-closed policies.\n');
 
   console.log('===================================================================');
   console.log('  🎉 ALL MOCKED PROVIDER ROUTER TESTS PASSED (100% OK)              ');
