@@ -134,7 +134,17 @@ router.post('/engine', async (req, res) => {
       case 'copywriting':
       case 'generate_copy':
       case 'outreach_copy': {
-        const result = await generateCopywriting(payload);
+        let authed = false;
+        requireRouterApiKey(req, res, () => { authed = true; });
+        if (!authed) return;
+        const copyPayload = { ...(payload || {}) };
+        delete copyPayload.systemPrompt;
+        if (copyPayload.context && typeof copyPayload.context === 'object') {
+          const cleanContext = { ...copyPayload.context };
+          delete cleanContext.systemPrompt;
+          copyPayload.context = cleanContext;
+        }
+        const result = await generateCopywriting(copyPayload);
         return res.status(200).json(result);
       }
 
@@ -144,7 +154,17 @@ router.post('/engine', async (req, res) => {
       case 'objection_handling':
       case 'handle_objection':
       case 'rebuttal': {
-        const result = await handleObjection(payload);
+        let authed = false;
+        requireRouterApiKey(req, res, () => { authed = true; });
+        if (!authed) return;
+        const objPayload = { ...(payload || {}) };
+        delete objPayload.systemPrompt;
+        if (objPayload.context && typeof objPayload.context === 'object') {
+          const cleanContext = { ...objPayload.context };
+          delete cleanContext.systemPrompt;
+          objPayload.context = cleanContext;
+        }
+        const result = await handleObjection(objPayload);
         return res.status(200).json(result);
       }
 
@@ -494,8 +514,15 @@ router.post('/skills/copywriting', requireRouterApiKey, async (req, res) => {
 });
 
 // Skill 6: Objection Handling
-router.post('/skills/objection-handling', async (req, res) => {
-  const result = await handleObjection(req.body);
+router.post('/skills/objection-handling', requireRouterApiKey, async (req, res) => {
+  const payload = { ...(req.body || {}) };
+  delete payload.systemPrompt;
+  if (payload.context && typeof payload.context === 'object') {
+    const cleanContext = { ...payload.context };
+    delete cleanContext.systemPrompt;
+    payload.context = cleanContext;
+  }
+  const result = await handleObjection(payload);
   return res.status(200).json(result);
 });
 

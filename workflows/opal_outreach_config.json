@@ -3,9 +3,7 @@
   "environment": "Gemini Opal / AI Studio Production Pipeline",
   "version": "4.1.0",
   "optimization": {
-    "token_reduction_target_pct": "measured",
-    "standard_tokens_per_lead": 1000,
-    "optimized_tokens_per_lead": 200,
+    "token_reduction_target_pct": "not measured yet",
     "daily_batch_limit": 25
   },
   "pipeline_routing_rules": [

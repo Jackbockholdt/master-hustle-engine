@@ -3,9 +3,7 @@
   "version": "4.1.0",
   "token_governance": {
     "active": true,
-    "efficiency_pct": "measured",
-    "baseline_tokens_per_lead": 1000,
-    "optimized_tokens_per_lead": 200,
+    "efficiency_pct": "not measured yet",
     "single_source_router_endpoint": "http://localhost:3005/api/model/route"
   },
   "routing_rules": [

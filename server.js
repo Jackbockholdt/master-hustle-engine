@@ -223,22 +223,27 @@ app.use('/', engineRouter);
 // ===================================================================
 // TOKEN GOVERNANCE & SINGLE SOURCE OF TRUTH MODEL ROUTER
 // ===================================================================
+function formatEfficiencyDisplay(val) {
+  if (!val || val === 'not measured yet') return 'not measured yet';
+  const str = String(val).trim();
+  return str.endsWith('%') ? str : `${str}%`;
+}
+
 const tokenGovernance = {
   activeRules: true,
   get reductionTargetPct() {
     try {
       const { routerTelemetry } = require('./lib/multiModelRouter');
       if (routerTelemetry && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct) {
+        if (typeof routerTelemetry.costs.measuredSavingsPct === 'number' && routerTelemetry.costs.measuredSavingsPct > 0) {
+          return `${Number(routerTelemetry.costs.measuredSavingsPct.toFixed(1))}%`;
+        }
         const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
-        if (!isNaN(parsed) && parsed > 0) return Number(parsed.toFixed(1));
+        if (!isNaN(parsed) && parsed > 0) return `${Number(parsed.toFixed(1))}%`;
       }
     } catch (e) {}
-    return this.baselineTokensPerLead > 0
-      ? Number((((this.baselineTokensPerLead - this.optimizedTokensPerLead) / this.baselineTokensPerLead) * 100).toFixed(1))
-      : 0;
+    return "not measured yet";
   },
-  baselineTokensPerLead: 1000,
-  optimizedTokensPerLead: 200,
   modelTiers: {
     get FLASH() { return process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
     get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
@@ -303,17 +308,19 @@ function routeTokenGovernance(taskType, isHumanTriggered = false, requestedModel
 
   // Background / Telemetry / Lead Scoring / Inbox Monitoring / Batch Dispatch -> Flash Budget Tier
   tokenGovernance.stats.automatedFlashCalls++;
-  const tokensSaved = tokenGovernance.baselineTokensPerLead - tokenGovernance.optimizedTokensPerLead;
-  tokenGovernance.stats.totalTokensSaved += tokensSaved;
+  const eff = tokenGovernance.reductionTargetPct;
+  const isMeasured = eff !== "not measured yet";
 
   return {
     allowed: true,
     statusCode: 200,
     selectedModel: tokenGovernance.modelTiers.FLASH,
     tier: 'FLASH_BUDGET',
-    tokensSavedPerUnit: tokensSaved,
-    efficiencyPct: tokenGovernance.reductionTargetPct,
-    note: `Routed to Flash tier for automated background/telemetry efficiency (${tokenGovernance.reductionTargetPct}% reduction).`
+    tokensSavedPerUnit: isMeasured ? tokenGovernance.stats.totalTokensSaved : "not measured yet",
+    efficiencyPct: eff,
+    note: isMeasured
+      ? `Routed to Flash tier for automated background/telemetry efficiency (${eff} reduction).`
+      : 'Routed to Flash tier for automated background/telemetry efficiency.'
   };
 }
 
@@ -368,9 +375,7 @@ function getCalculatedProductionMetrics() {
     sandboxMetrics: sandboxTestMetrics,
     tokenGovernance: {
       active: true,
-      reductionEfficiency: `${tokenGovernance.reductionTargetPct}%`,
-      baselineTokensPerLead: 2500,
-      optimizedTokensPerLead: 310,
+      reductionEfficiency: formatEfficiencyDisplay(tokenGovernance.reductionTargetPct),
       modelTiers: tokenGovernance.modelTiers,
       stats: tokenGovernance.stats
     }
@@ -537,7 +542,7 @@ app.post('/api/model/route', (req, res, next) => {
     humanTriggered: isHuman,
     selectedModel: govResult.selectedModel,
     tier: govResult.tier,
-    efficiencyPct: govResult.efficiencyPct ? `${govResult.efficiencyPct}%` : `${tokenGovernance.reductionTargetPct}%`,
+    efficiencyPct: formatEfficiencyDisplay(govResult.efficiencyPct || tokenGovernance.reductionTargetPct),
     note: govResult.note
   });
 });
@@ -706,7 +711,7 @@ app.get('/api/telemetry', (req, res) => {
     tokenGovernance: {
       ruleActive: true,
       telemetryModel: govResult.selectedModel,
-      efficiencyPct: `${tokenGovernance.reductionTargetPct}%`,
+      efficiencyPct: formatEfficiencyDisplay(tokenGovernance.reductionTargetPct),
       stats: tokenGovernance.stats
     },
     productionMetrics: getCalculatedProductionMetrics(),
@@ -1149,7 +1154,7 @@ app.post('/api/v1/shovel/run-skill', async (req, res) => {
     targetCompany: targetCompany || "Commercial Manufacturer",
     modelUsed: gov.selectedModel,
     pitchSnippet: `Patent-Pending Self-Cleaning Shovel Licensing Overview for ${targetCompany || 'Manufacturing Partner'}. Engineered mechanical dirt-release blade system.`,
-    tokenSavings: gov.efficiencyPct ? `${gov.efficiencyPct}%` : `${tokenGovernance.reductionTargetPct}%`
+    tokenSavings: formatEfficiencyDisplay(gov.efficiencyPct || tokenGovernance.reductionTargetPct)
   });
 });
 
@@ -1190,7 +1195,7 @@ app.post('/api/v1/thca/run-skill', async (req, res) => {
       disclaimer: "Compliant with 2018 US Farm Bill (<0.3% Delta-9 THC)."
     },
     modelUsed: gov.selectedModel,
-    tokenSavings: gov.efficiencyPct ? `${gov.efficiencyPct}%` : `${tokenGovernance.reductionTargetPct}%`
+    tokenSavings: formatEfficiencyDisplay(gov.efficiencyPct || tokenGovernance.reductionTargetPct)
   });
 });
 
@@ -1518,7 +1523,10 @@ app.get(['/router', '/router.html'], (req, res) => {
 });
 
 // Demo API: Live Provider Failover (no longer used by /demo; kept for existing scripts)
-app.post('/api/demo/failover', async (req, res) => {
+app.post('/api/demo/failover', (req, res, next) => {
+  const { requireRouterApiKey } = require('./lib/multiModelRouter');
+  return requireRouterApiKey(req, res, next);
+}, async (req, res) => {
   const { prompt, simulateOutage = false } = req.body || {};
   const queryPrompt = prompt || "You are an expert customer success assistant for an e-commerce brand. Please draft an empathetic return policy response for Order #89211.";
   const startTime = Date.now();
@@ -2097,7 +2105,7 @@ if (require.main === module) {
     console.log(`  Router Endpoint: http://localhost:${PORT}/api/model/route`);
     console.log(`  Live Email Endpoint: http://localhost:${PORT}/api/send-single-email`);
     console.log(`  Scheduler: ${scheduledJobsEnabled() ? 'Active (6:00 AM CST Intake / 8:00 AM CST Dispatch / 00:00 Midnight CST Reset)' : 'OFF (ENABLE_SCHEDULED_JOBS not set to true)'}`);
-    console.log(`  Token Governance: Active (Flash Tier ${tokenGovernance.reductionTargetPct}% Efficiency Enforced)`);
+    console.log(`  Token Governance: Active (Flash Tier ${formatEfficiencyDisplay(tokenGovernance.reductionTargetPct)} Efficiency Enforced)`);
     console.log(`  Data Isolation: Production Receipts vs Sandbox Tests ISOLATED`);
     console.log(`===================================================================`);
 

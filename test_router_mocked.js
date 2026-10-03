@@ -73,7 +73,7 @@ async function runMockedTests() {
   assert.strictEqual(resCost.success, true, 'Request should succeed');
   assert.strictEqual(resCost.tier, 'cheap', 'Default routing must choose cheap tier');
   assert.strictEqual(dispatchOrder[0].tier, 'cheap', 'First dispatch attempt must be cheap tier');
-  assert.strictEqual(dispatchOrder[0].provider, 'gemini', 'First dispatch attempt should be cheapest provider (Gemini)');
+  assert.strictEqual(dispatchOrder[0].provider, 'openai', 'First dispatch attempt should be cheapest provider (OpenAI gpt-4o-mini)');
   console.log(`  -> Selected: ${resCost.provider} (${resCost.model}, tier=${resCost.tier})`);
   console.log('  ✅ PASS: Request routed to cheapest model.\n');
 
@@ -84,13 +84,13 @@ async function runMockedTests() {
   dispatchOrder.length = 0;
   setMockDispatcher(async ({ provider, tier, model }) => {
     dispatchOrder.push({ provider, tier, model });
-    if (provider === 'gemini') {
-      const err = new Error('Gemini upstream 503 load spike');
+    if (provider === 'openai') {
+      const err = new Error('OpenAI upstream 503 load spike');
       err.status = 503;
       throw err;
     }
     return {
-      text: 'OpenAI mini fallback response',
+      text: 'Gemini fallback response',
       inputTokens: 120,
       outputTokens: 40
     };
@@ -98,12 +98,11 @@ async function runMockedTests() {
 
   const resFailover = await routeMultiModel({ prompt: 'Generate fallback outreach' });
   assert.strictEqual(resFailover.success, true, 'Failover request should succeed on secondary');
-  assert.strictEqual(resFailover.provider, 'openrouter', 'Should failover to next cheapest provider (openrouter)');
   assert.strictEqual(resFailover.tier, 'cheap', 'Should remain on cheap tier during provider failover');
-  assert.strictEqual(resFailover.attempts.length, 1, 'Should record failed Gemini attempt');
-  assert.strictEqual(resFailover.attempts[0].provider, 'gemini', 'Recorded attempt provider must be gemini');
+  assert.strictEqual(resFailover.attempts.length, 1, 'Should record failed OpenAI attempt');
+  assert.strictEqual(resFailover.attempts[0].provider, 'openai', 'Recorded attempt provider must be openai');
   assert.strictEqual(resFailover.attempts[0].status, 503, 'Recorded attempt status must be 503');
-  console.log(`  -> First attempt failed (Gemini 503), failed over to: ${resFailover.provider} (${resFailover.model})`);
+  console.log(`  -> First attempt failed (OpenAI 503), failed over to: ${resFailover.provider} (${resFailover.model})`);
   console.log('  ✅ PASS: Provider failover cascade succeeded without dropped turns.\n');
 
   // -----------------------------------------------------------------

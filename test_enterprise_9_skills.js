@@ -8,27 +8,40 @@ const http = require('http');
 const engineRouter = require('./routes/engine');
 const { setMockDispatcher, resetMockDispatcher } = require('./lib/multiModelRouter');
 
+const { requireRouterApiKey } = require('./lib/multiModelRouter');
+
 const app = express();
 app.use(express.json());
 app.use('/api', engineRouter);
+
+app.post('/api/demo/failover', (req, res, next) => {
+  return requireRouterApiKey(req, res, next);
+}, (req, res) => {
+  res.json({ success: true });
+});
 
 let server = null;
 const TEST_PORT = 3007;
 process.env.ROUTER_API_KEYS = process.env.ROUTER_API_KEYS || 'test-enterprise-key';
 
-function makeRequest(path, method = 'POST', postBody = null) {
+function makeRequest(path, method = 'POST', postBody = null, customHeaders = null) {
   return new Promise((resolve, reject) => {
     const payload = postBody ? JSON.stringify(postBody) : null;
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {})
+    };
+    if (customHeaders !== null) {
+      Object.assign(headers, customHeaders);
+    } else {
+      headers['x-api-key'] = (process.env.ROUTER_API_KEYS || 'test-enterprise-key').split(',')[0].trim();
+    }
     const req = http.request({
       hostname: 'localhost',
       port: TEST_PORT,
       path,
       method,
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': (process.env.ROUTER_API_KEYS || 'test-enterprise-key').split(',')[0].trim(),
-        ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {})
-      }
+      headers
     }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -158,7 +171,22 @@ async function runEnterpriseTests() {
       mock: true
     });
     const pass6 = res6.status === 200 && res6.data.category === 'PRICE_BUDGET';
-    record(6, 'Objection Handling', pass6, `(Classified: ${res6.data.category}, Angle: "${res6.data.playbook?.coreAngle}")`);
+
+    // Verify ROUTER_API_KEYS enforcement on guarded endpoints
+    const noKeyObj = await makeRequest('/api/skills/objection-handling', 'POST', { objectionText: 'Budget is too tight', mock: true }, {});
+    const passObjAuth = noKeyObj.status === 401;
+
+    const noKeyCopyEngine = await makeRequest('/api/engine', 'POST', { action: 'copywriting', payload: { lead: res2.data.entities, context: res4.data, mock: true } }, {});
+    const passCopyEngineAuth = noKeyCopyEngine.status === 401;
+
+    const noKeyObjEngine = await makeRequest('/api/engine', 'POST', { action: 'objection_handling', payload: { objectionText: 'Budget is too tight', mock: true } }, {});
+    const passObjEngineAuth = noKeyObjEngine.status === 401;
+
+    const noKeyFailover = await makeRequest('/api/demo/failover', 'POST', { prompt: 'Draft email', simulateOutage: true }, {});
+    const passFailoverAuth = noKeyFailover.status === 401;
+
+    const authChecksPassed = passObjAuth && passCopyEngineAuth && passObjEngineAuth && passFailoverAuth;
+    record(6, 'Objection Handling & Auth Gating', pass6 && authChecksPassed, `(Classified: ${res6.data.category}, Auth Gating: ${authChecksPassed ? 'ALL ENFORCED' : 'FAILED'})`);
 
     // -------------------------------------------------------------
     // SKILL 7: Scheduling & Dispatch

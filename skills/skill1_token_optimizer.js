@@ -6,16 +6,23 @@
  * - Tier 3: Flagship Pro (Gemini Pro) -> Strictly gated to verified human triggers (HTTP 403 enforcement)
  */
 
-function calculateEfficiency(baseline, optimized) {
-  if (!baseline || baseline <= 0) return 0;
-  return Number((((baseline - optimized) / baseline) * 100).toFixed(1));
+function getMeasuredSavings() {
+  try {
+    const { routerTelemetry } = require('../lib/multiModelRouter');
+    if (routerTelemetry && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct) {
+      if (typeof routerTelemetry.costs.measuredSavingsPct === 'number' && routerTelemetry.costs.measuredSavingsPct > 0) {
+        return `${Number(routerTelemetry.costs.measuredSavingsPct.toFixed(1))}%`;
+      }
+      const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
+      if (!isNaN(parsed) && parsed > 0) return `${Number(parsed.toFixed(1))}%`;
+    }
+  } catch (e) {}
+  return "not measured yet";
 }
 
 const tokenStats = {
-  baselineTokensPerUnit: 1000,
-  optimizedTokensPerUnit: 200,
   get targetEfficiencyPct() {
-    return calculateEfficiency(this.baselineTokensPerUnit, this.optimizedTokensPerUnit);
+    return getMeasuredSavings();
   },
   totalCallsProcessed: 0,
   totalTokensSaved: 0,
@@ -100,23 +107,20 @@ function optimizeTokenRoute(params = {}) {
   }
 
   // Flash Budget / Background Automated Tier (Dynamic measured reduction)
-  const tokensSaved = (tokenStats.baselineTokensPerUnit - tokenStats.optimizedTokensPerUnit) * leadCount;
-  tokenStats.totalTokensSaved += tokensSaved;
-  const measuredEfficiencyPct = calculateEfficiency(tokenStats.baselineTokensPerUnit, tokenStats.optimizedTokensPerUnit);
-  const reductionFactor = (tokenStats.baselineTokensPerUnit / Math.max(1, tokenStats.optimizedTokensPerUnit)).toFixed(1);
+  const measuredEfficiency = getMeasuredSavings();
+  const isMeasured = measuredEfficiency !== "not measured yet";
 
   return {
     success: true,
     statusCode: 200,
     selectedModel: tokenStats.modelTiers.FLASH,
     tier: 'FLASH_BUDGET',
-    efficiencyPct: `${measuredEfficiencyPct}%`,
-    tokensSavedEstimate: tokensSaved,
+    efficiencyPct: measuredEfficiency,
+    tokensSavedEstimate: isMeasured ? tokenStats.totalTokensSaved : "not measured yet",
     estimatedCostPerUnitUSD: 0.0001,
     marginTierRecommended: tokenStats.marginTiers.STARTER,
     financialMetrics: {
-      measuredSavingsPct: `${measuredEfficiencyPct}%`,
-      costReductionFactor: `${reductionFactor}x`,
+      measuredSavingsPct: measuredEfficiency,
       leadUnitCostUSD: 0.0001
     },
     cleanedPrompt
