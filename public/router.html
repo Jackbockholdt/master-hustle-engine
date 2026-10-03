@@ -356,8 +356,12 @@
           var costs = tel.costs || {};
           var savings = (costs.measuredSavingsPct !== undefined && costs.measuredSavingsPct !== null)
             ? costs.measuredSavingsPct
-            : (data.measuredSavingsPct || '--%');
-          document.getElementById('metric-savings').textContent = typeof savings === 'string' && savings.endsWith('%') ? savings : (savings + '%');
+            : (data.measuredSavingsPct || 'not measured yet');
+          if (savings === 'not measured yet' || savings === '--%') {
+            document.getElementById('metric-savings').textContent = savings;
+          } else {
+            document.getElementById('metric-savings').textContent = typeof savings === 'string' && savings.endsWith('%') ? savings : (savings + '%');
+          }
 
           var totalDispatches = (tel.totalDispatches !== undefined) ? tel.totalDispatches : (data.totalRequests || 0);
           document.getElementById('metric-requests').textContent = Number(totalDispatches).toLocaleString();

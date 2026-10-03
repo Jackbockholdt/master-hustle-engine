@@ -234,8 +234,8 @@ const tokenGovernance = {
   get reductionTargetPct() {
     try {
       const { routerTelemetry } = require('./lib/multiModelRouter');
-      const hasTraffic = routerTelemetry && (routerTelemetry.successfulDispatches > 0 || routerTelemetry.totalDispatches > 0);
-      if (hasTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null) {
+      const hasSuccessfulTraffic = routerTelemetry && routerTelemetry.successfulDispatches > 0;
+      if (hasSuccessfulTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null && routerTelemetry.costs.measuredSavingsPct !== "not measured yet") {
         const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
         if (!isNaN(parsed)) return `${Number(parsed.toFixed(1))}%`;
         return String(routerTelemetry.costs.measuredSavingsPct);
@@ -929,7 +929,7 @@ app.get('/api/assets/pitch-deck', (req, res) => {
         </div>
         <div class="metric">
           <div>ICP Qualification Cost</div>
-          <div class="metric-val">$0.0001 / lead</div>
+          <div class="metric-val">not measured yet</div>
         </div>
         <div class="metric">
           <div>Daily Batch Cap</div>
@@ -952,7 +952,7 @@ app.get('/api/assets/financial-model', (req, res) => {
 Projected ARR,$150000,$480000,$1200000
 Gross Margin (Token Savings),Measured,Measured,Measured
 Token Savings Efficiency,Measured,Measured,Measured
-Avg Qualification Cost / Lead,$0.0001,$0.0001,$0.0001
+Avg Qualification Cost / Lead,not measured yet,not measured yet,not measured yet
 Monthly Active Subscribers (Est),15,40,100
 `;
   res.setHeader('Content-Type', 'text/csv');

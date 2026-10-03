@@ -1,7 +1,7 @@
 /**
  * Skill 1: Financial Margin & Token Burn Optimizer
  * 3-Tier Token Reducer Architecture:
- * - Tier 1: Qualifier / Background Telemetry (Gemini Flash) -> Real measured cost reduction (~$0.0001/lead)
+ * - Tier 1: Qualifier / Background Telemetry (Gemini Flash) -> Real measured cost reduction
  * - Tier 2: Research & Copy Drafting (Primary Low-Cost Fallback: Gemini Flash / Claude Haiku)
  * - Tier 3: Flagship Pro (Gemini Pro) -> Strictly gated to verified human triggers (HTTP 403 enforcement)
  */
@@ -9,8 +9,8 @@
 function getMeasuredSavings() {
   try {
     const { routerTelemetry } = require('../lib/multiModelRouter');
-    const hasTraffic = routerTelemetry && (routerTelemetry.successfulDispatches > 0 || routerTelemetry.totalDispatches > 0);
-    if (hasTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null) {
+    const hasSuccessfulTraffic = routerTelemetry && routerTelemetry.successfulDispatches > 0;
+    if (hasSuccessfulTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null && routerTelemetry.costs.measuredSavingsPct !== "not measured yet") {
       const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
       if (!isNaN(parsed)) return `${Number(parsed.toFixed(1))}%`;
       return String(routerTelemetry.costs.measuredSavingsPct);
@@ -99,7 +99,7 @@ function optimizeTokenRoute(params = {}) {
       statusCode: 200,
       selectedModel: tokenStats.modelTiers.LOW_COST_COPY,
       tier: 'LOW_COST_FALLBACK',
-      estimatedCostPerUnitUSD: 0.0001,
+      estimatedCostPerUnitUSD: "not measured yet",
       cleanedPrompt,
       marginTierRecommended: tokenStats.marginTiers.RETAINER
     };
@@ -116,11 +116,11 @@ function optimizeTokenRoute(params = {}) {
     tier: 'FLASH_BUDGET',
     efficiencyPct: measuredEfficiency,
     tokensSavedEstimate: isMeasured ? tokenStats.totalTokensSaved : "not measured yet",
-    estimatedCostPerUnitUSD: 0.0001,
+    estimatedCostPerUnitUSD: "not measured yet",
     marginTierRecommended: tokenStats.marginTiers.STARTER,
     financialMetrics: {
       measuredSavingsPct: measuredEfficiency,
-      leadUnitCostUSD: 0.0001
+      leadUnitCostUSD: "not measured yet"
     },
     cleanedPrompt
   };

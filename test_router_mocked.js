@@ -56,6 +56,22 @@ async function runMockedTests() {
   console.log('  ✅ PASS: Current model tiers and env overrides verified.\n');
 
   // -----------------------------------------------------------------
+  // 1b. Verify Initial & All-Failed Telemetry Reports "not measured yet"
+  // -----------------------------------------------------------------
+  console.log('[Test 1b] Testing telemetry reporting when every request fails...');
+  setMockDispatcher(async () => {
+    const err = new Error('Upstream down');
+    err.status = 503;
+    throw err;
+  });
+  await routeMultiModel({ prompt: 'Initial failing request' });
+  const failStatus = getRouterStatus();
+  assert(failStatus.telemetry.totalDispatches > 0, 'Dispatches should be counted');
+  assert.strictEqual(failStatus.telemetry.successfulDispatches, 0, 'No successful dispatches');
+  assert.strictEqual(failStatus.telemetry.costs.measuredSavingsPct, 'not measured yet', 'Must show "not measured yet" instead of "0%" when every request fails');
+  console.log('  ✅ PASS: Telemetry shows "not measured yet" when every request fails.\n');
+
+  // -----------------------------------------------------------------
   // 2. Real Cost Routing: Starts on Cheapest Model
   // -----------------------------------------------------------------
   console.log('[Test 2] Testing real cost routing to cheapest available model...');
