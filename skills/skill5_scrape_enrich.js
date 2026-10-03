@@ -30,8 +30,8 @@ function estimateAgencyLLMBurn(employees = 10, industry = 'Digital Marketing') {
   const potentialSavings = Math.round(estBurn * 0.65);
 
   return {
-    estimatedMonthlyLLMBurnUSD: Math.max(1500, estBurn),
-    estimatedMonthlySavingsUSD: Math.max(975, potentialSavings)
+    estimatedMonthlyLLMBurnUSD: estBurn,
+    estimatedMonthlySavingsUSD: potentialSavings
   };
 }
 

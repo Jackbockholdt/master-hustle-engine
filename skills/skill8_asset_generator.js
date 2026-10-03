@@ -38,7 +38,7 @@ Our proprietary orchestrator acts as a single source of truth across all LLM int
                 ▼
 ┌────────────────────────────────────────────────────────┐
 │  Tier 1: Context Bloat Stripper & Fast Qualifier       │
-│  Model: Gemini 2.5 Flash (~$0.0001 / lead)             │
+│  Model: Cheap Tier (Real Cost Routing)                 │
 │  Result: Dynamic Cost Reduction via Cheap Tier Routing │
 └───────────────────────┬────────────────────────────────┘
                         │ (If Qualified)
@@ -59,18 +59,7 @@ Our proprietary orchestrator acts as a single source of truth across all LLM int
 
 ---
 
-### 3. Financial ROI & Margin Recovery Matrix for ${agencyName}
-
-| Metric | Unoptimized Baseline | With Margin Engine | Total Improvement |
-| :--- | :--- | :--- | :--- |
-| **Average Cost / Lead** | $0.0050 USD | $0.0001 USD | **50x Cost Reduction** |
-| **Monthly Token Burn** | $${burnEst.toLocaleString()} USD | $${Math.round(burnEst * 0.35).toLocaleString()} USD | **+$${Math.round(burnEst * 0.65).toLocaleString()} Profit/mo** |
-| **Annualized Recovery** | $${annualBurn.toLocaleString()} USD | $${Math.round(annualBurn * 0.35).toLocaleString()} USD | **+$${annualSavings.toLocaleString()} USD / yr** |
-| **Gross Margin Impact** | ~55-65% | **Expanded Margin** | **High Margin Recovery** |
-
----
-
-### 4. Available Licensing Options
+### 3. Available Licensing Options
 
 1. **Agency Private-Label ($497 setup + $199/mo)**
    * Turnkey deployment of Multi-LLM Failover Router & Safe Outreach Scrubber.

@@ -137,8 +137,6 @@ async function run25LeadBatch() {
     appendT2Log(`📩 Telemetry: Dispatched ${r.dispatched || 25} Simulated Leads`);
     appendT2Log(`📊 Status: ${r.status || 'PASS'} (Isolated in Sandbox Metrics)`);
 
-    appendT1Log(`⚡ Token Router Optimized 25 Leads: Saved ${(25 * 2190).toLocaleString()} Tokens!`);
-
     fetchMetrics();
   } catch (err) {
     appendT2Log(`❌ ROUTE EXECUTION ERROR: ${err.message}`);
@@ -178,6 +176,7 @@ async function sendSingleTestEmail() {
 }
 
 // Stripe Checkout Launcher
+function launchCheckout(tier) {
   const link = tier === 'buyout' ? 'https://buy.stripe.com/bJecN4al44iL5C7bsX0000H' : 'https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G';
   window.open(link, '_blank');
 }

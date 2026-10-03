@@ -34,7 +34,7 @@ class OutreachAgent:
     def qualify_lead(self, lead_data: dict) -> dict:
         """
         Tier 1: High-speed ICP Qualification via Gemini Flash (Budget Tier)
-        Cost: ~$0.0001 per lead (measured token reduction)
+        Cost: Real measured cost (cheap tier)
         """
         company_name = lead_data.get("company_name", lead_data.get("name", "Target Company"))
         industry = lead_data.get("industry", "Unknown")

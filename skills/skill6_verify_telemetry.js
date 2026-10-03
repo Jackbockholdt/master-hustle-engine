@@ -53,14 +53,14 @@ function verifyDomainMX(domain) {
 function compileTelemetryReport() {
   let reductionTargetPct = "not measured yet";
   let totalTokensProcessed = "not measured yet";
-  let totalTokensSaved = "not measured yet";
+  let totalTokensSaved = "not tracked";
   let estimatedCostSavingsUSD = "not measured yet";
 
   try {
     const { routerTelemetry } = require('../lib/multiModelRouter');
-    const hasTraffic = routerTelemetry && (routerTelemetry.successfulDispatches > 0 || routerTelemetry.totalDispatches > 0);
-    if (hasTraffic) {
-      if (routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null) {
+    const hasSuccessfulTraffic = routerTelemetry && routerTelemetry.successfulDispatches > 0;
+    if (hasSuccessfulTraffic) {
+      if (routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null && routerTelemetry.costs.measuredSavingsPct !== "not measured yet") {
         const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
         reductionTargetPct = !isNaN(parsed) ? `${Number(parsed.toFixed(1))}%` : String(routerTelemetry.costs.measuredSavingsPct);
       }
@@ -70,10 +70,10 @@ function compileTelemetryReport() {
       if (routerTelemetry.costs && routerTelemetry.costs.totalSavingsUSD !== undefined) {
         estimatedCostSavingsUSD = Number(routerTelemetry.costs.totalSavingsUSD.toFixed(4));
       }
-      if (tokenStats && typeof tokenStats.totalTokensSaved === 'number') {
+      if (tokenStats && typeof tokenStats.totalTokensSaved === 'number' && tokenStats.totalTokensSaved > 0) {
         totalTokensSaved = tokenStats.totalTokensSaved;
       } else {
-        totalTokensSaved = 0;
+        totalTokensSaved = "not tracked";
       }
     }
   } catch (e) {}
