@@ -211,7 +211,7 @@ async function runAgencyLicensingPipeline() {
       stage: 'proposed',
       qualificationScore: triageRes.score,
       qualificationTier: triageRes.qualificationTier,
-      tokenSavingsPct: "87.6%",
+      tokenSavingsPct: `${optimizeTokenRoute({ prompt: 'test' }).efficiencyPercentage}%`,
       proposalId: proposalRes.proposalId,
       stripePaymentLink: proposalRes.stripeCheckout.paymentLink,
       outreachSequence: {

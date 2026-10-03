@@ -13,6 +13,7 @@ app.use('/api', engineRouter);
 
 let server = null;
 const TEST_PORT = 3007;
+process.env.ROUTER_API_KEYS = process.env.ROUTER_API_KEYS || 'test-enterprise-key';
 
 function makeRequest(path, method = 'POST', postBody = null) {
   return new Promise((resolve, reject) => {
@@ -24,6 +25,7 @@ function makeRequest(path, method = 'POST', postBody = null) {
       method,
       headers: {
         'Content-Type': 'application/json',
+        'x-api-key': process.env.ROUTER_API_KEYS,
         ...(payload ? { 'Content-Length': Buffer.byteLength(payload) } : {})
       }
     }, (res) => {

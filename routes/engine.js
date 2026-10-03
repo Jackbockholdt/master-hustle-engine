@@ -36,7 +36,7 @@ const { validateSchema, validateAgainstSchema, SCHEMAS } = require('../skills/sk
 const { triggerEscalation, getActiveIncidents, SEVERITY_LEVELS } = require('../skills/skill9_escalation');
 
 // Multi-Model Failover Router
-const { routeMultiModel, getRouterStatus } = require('../lib/multiModelRouter');
+const { routeMultiModel, getRouterStatus, requireRouterApiKey } = require('../lib/multiModelRouter');
 
 // Outscraper Agency Intake Engine
 const { runIntakeScrape, targetingConfig } = require('../lib/outscraperIntake');
@@ -430,10 +430,11 @@ router.post('/pipeline/process', async (req, res) => {
 // ===================================================================
 // 3. MULTI-MODEL ROUTER ENDPOINTS
 // ===================================================================
-router.post('/router/dispatch', async (req, res) => {
+router.post('/router/dispatch', requireRouterApiKey, async (req, res) => {
   try {
     const result = await routeMultiModel(req.body);
-    return res.status(200).json(result);
+    const statusCode = result.success ? 200 : (result.attempts?.length ? 502 : 400);
+    return res.status(statusCode).json(result);
   } catch (err) {
     return res.status(err.statusCode || 500).json({ success: false, error: err.message, attempts: err.attempts });
   }
@@ -650,7 +651,7 @@ router.get(['/admin/status', '/engine/admin/status'], (req, res) => {
   const routerStatus = getRouterStatus();
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
-    primaryProvider: routerStatus.primaryProvider || "gemini-1.5-flash",
+    primaryProvider: routerStatus.primaryProvider || "gemini-2.5-flash",
     secondaryProvider: routerStatus.secondaryProvider || "gpt-4o",
     tertiaryProvider: routerStatus.tertiaryProvider || "claude-3-5-sonnet-20241022",
     fallbackProviders: routerStatus.configuredProviders || ["gemini", "openai", "claude", "openrouter"],

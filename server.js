@@ -225,13 +225,17 @@ app.use('/', engineRouter);
 // ===================================================================
 const tokenGovernance = {
   activeRules: true,
-  reductionTargetPct: 87.6,
+  get reductionTargetPct() {
+    return this.baselineTokensPerLead > 0
+      ? Number((((this.baselineTokensPerLead - this.optimizedTokensPerLead) / this.baselineTokensPerLead) * 100).toFixed(1))
+      : 0;
+  },
   baselineTokensPerLead: 2500,
   optimizedTokensPerLead: 310,
   modelTiers: {
-    FLASH: process.env.GEMINI_MODEL || "gemini-1.5-flash",       // Lowest cost budget tier for background/telemetry/scoring
-    LOW_COST_COPY: process.env.COPY_MODEL || "gemini-1.5-flash", // Low-cost fallback chain for outreach copy
-    FLAGSHIP: process.env.GEMINI_FLAGSHIP_MODEL || "gemini-1.5-pro"       // Strictly restricted to manual, human-triggered endpoints
+    get FLASH() { return process.env.GEMINI_MODEL || "gemini-2.5-flash"; },
+    get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-2.5-flash"; },
+    get FLAGSHIP() { return process.env.GEMINI_FLAGSHIP_MODEL || "gemini-2.5-pro"; }
   },
   stats: {
     automatedFlashCalls: 0,
@@ -302,7 +306,7 @@ function routeTokenGovernance(taskType, isHumanTriggered = false, requestedModel
     tier: 'FLASH_BUDGET',
     tokensSavedPerUnit: tokensSaved,
     efficiencyPct: tokenGovernance.reductionTargetPct,
-    note: 'Routed to Flash tier for automated background/telemetry efficiency (87.6% reduction).'
+    note: `Routed to Flash tier for automated background/telemetry efficiency (${tokenGovernance.reductionTargetPct}% reduction).`
   };
 }
 
@@ -357,7 +361,7 @@ function getCalculatedProductionMetrics() {
     sandboxMetrics: sandboxTestMetrics,
     tokenGovernance: {
       active: true,
-      reductionEfficiency: "87.6%",
+      reductionEfficiency: `${tokenGovernance.reductionTargetPct}%`,
       baselineTokensPerLead: 2500,
       optimizedTokensPerLead: 310,
       modelTiers: tokenGovernance.modelTiers,
@@ -493,7 +497,10 @@ app.get('/api/routes', (req, res) => {
 });
 
 // Single Source of Truth Model Router Endpoint
-app.post('/api/model/route', (req, res) => {
+app.post('/api/model/route', (req, res, next) => {
+  const { requireRouterApiKey } = require('./lib/multiModelRouter');
+  return requireRouterApiKey(req, res, next);
+}, (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   const b = req.body || {};
   const taskType = b.taskType || b.task_type || b.task || 'BACKGROUND_TASK';
@@ -523,7 +530,7 @@ app.post('/api/model/route', (req, res) => {
     humanTriggered: isHuman,
     selectedModel: govResult.selectedModel,
     tier: govResult.tier,
-    efficiencyPct: govResult.efficiencyPct || "87.6%",
+    efficiencyPct: govResult.efficiencyPct ? `${govResult.efficiencyPct}%` : `${tokenGovernance.reductionTargetPct}%`,
     note: govResult.note
   });
 });
@@ -692,7 +699,7 @@ app.get('/api/telemetry', (req, res) => {
     tokenGovernance: {
       ruleActive: true,
       telemetryModel: govResult.selectedModel,
-      efficiencyPct: "87.6%",
+      efficiencyPct: `${tokenGovernance.reductionTargetPct}%`,
       stats: tokenGovernance.stats
     },
     productionMetrics: getCalculatedProductionMetrics(),
@@ -706,9 +713,9 @@ app.get('/api/telemetry/governance', (req, res) => {
   res.json({
     success: true,
     tokenGovernanceRules: {
-      rule1_automated_background: "Route all background/telemetry/scoring/monitoring to Flash/Flash-Lite (gemini-1.5-flash) maintaining 87.6% efficiency",
+      rule1_automated_background: `Route all background/telemetry/scoring/monitoring to Flash/Flash-Lite (${tokenGovernance.modelTiers.FLASH}) maintaining high token efficiency`,
       rule2_outreach_copy: "Route outreach copy generation via primary low-cost fallback chain (Gemini Flash / OpenAI)",
-      rule3_flagship_restriction: "High-cost flagship models (gemini-1.5-pro) strictly restricted to manual, human-triggered endpoints (HTTP 403 enforcement)"
+      rule3_flagship_restriction: `High-cost flagship models (${tokenGovernance.modelTiers.FLAGSHIP}) strictly restricted to manual, human-triggered endpoints (HTTP 403 enforcement)`
     },
     modelTiers: tokenGovernance.modelTiers,
     stats: tokenGovernance.stats
@@ -907,7 +914,7 @@ app.get('/api/assets/pitch-deck', (req, res) => {
         <p><strong>System Architecture:</strong> Antigravity Multi-Agent 3-Tier Token Reducer Router</p>
         <div class="metric">
           <div>Token Cost Savings</div>
-          <div class="metric-val">87.6% Reduction</div>
+          <div class="metric-val">Measured Real Cost</div>
         </div>
         <div class="metric">
           <div>ICP Qualification Cost</div>
@@ -919,7 +926,7 @@ app.get('/api/assets/pitch-deck', (req, res) => {
         </div>
         <h2>Core Value Proposition</h2>
         <ul>
-          <li><strong>3-Skill Cascade:</strong> Gemini 3 Flash ($0.0001) qualifies -> Gemini 3 Pro ($0.001) extracts hooks -> Low-Cost Fallback Chain ($0.0001) writes copy.</li>
+          <li><strong>Real-Cost Cascade:</strong> Cheap model qualifies -> Escalates to Strong model on complex tasks or failure.</li>
           <li><strong>Flagship Access Control:</strong> Automated calls to flagship models restricted via HTTP 403 authorization guard.</li>
           <li><strong>Turn-Key Commercial Pricing:</strong> Agency Private-Label ($497 setup + $199/mo), Commercial Codebase License ($4,500 one-time).</li>
         </ul>
@@ -932,8 +939,8 @@ app.get('/api/assets/pitch-deck', (req, res) => {
 app.get('/api/assets/financial-model', (req, res) => {
   const csvData = `Category,Year 1 Target,Year 2 Projection,Year 3 Projection
 Projected ARR,$150000,$480000,$1200000
-Gross Margin (Token Savings),92.4%,92.4%,92.4%
-Token Savings Efficiency,87.6%,87.6%,87.6%
+Gross Margin (Token Savings),Measured,Measured,Measured
+Token Savings Efficiency,Measured,Measured,Measured
 Avg Qualification Cost / Lead,$0.0001,$0.0001,$0.0001
 Monthly Active Subscribers (Est),15,40,100
 `;
@@ -1135,7 +1142,7 @@ app.post('/api/v1/shovel/run-skill', async (req, res) => {
     targetCompany: targetCompany || "Commercial Manufacturer",
     modelUsed: gov.selectedModel,
     pitchSnippet: `Patent-Pending Self-Cleaning Shovel Licensing Overview for ${targetCompany || 'Manufacturing Partner'}. Engineered mechanical dirt-release blade system.`,
-    tokenSavings: gov.efficiencyPct || "87.6%"
+    tokenSavings: gov.efficiencyPct ? `${gov.efficiencyPct}%` : `${tokenGovernance.reductionTargetPct}%`
   });
 });
 
@@ -1176,7 +1183,7 @@ app.post('/api/v1/thca/run-skill', async (req, res) => {
       disclaimer: "Compliant with 2018 US Farm Bill (<0.3% Delta-9 THC)."
     },
     modelUsed: gov.selectedModel,
-    tokenSavings: gov.efficiencyPct || "87.6%"
+    tokenSavings: gov.efficiencyPct ? `${gov.efficiencyPct}%` : `${tokenGovernance.reductionTargetPct}%`
   });
 });
 
@@ -1496,6 +1503,11 @@ app.get(['/api/router-health'], (req, res) => {
 
 app.get(['/demo', '/demo.html', '/demo-v2', '/demo-v2.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'demo.html'));
+});
+
+// AI Router Walkthrough Page
+app.get(['/router', '/router.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'router.html'));
 });
 
 // Demo API: Live Provider Failover (no longer used by /demo; kept for existing scripts)
@@ -2057,7 +2069,7 @@ if (require.main === module) {
     console.log(`  Router Endpoint: http://localhost:${PORT}/api/model/route`);
     console.log(`  Live Email Endpoint: http://localhost:${PORT}/api/send-single-email`);
     console.log(`  Scheduler: ${scheduledJobsEnabled() ? 'Active (6:00 AM CST Intake / 8:00 AM CST Dispatch / 00:00 Midnight CST Reset)' : 'OFF (ENABLE_SCHEDULED_JOBS not set to true)'}`);
-    console.log(`  Token Governance: Active (Flash Tier 87.6% Efficiency Enforced)`);
+    console.log(`  Token Governance: Active (Flash Tier ${tokenGovernance.reductionTargetPct}% Efficiency Enforced)`);
     console.log(`  Data Isolation: Production Receipts vs Sandbox Tests ISOLATED`);
     console.log(`===================================================================`);
 
