@@ -1,162 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>White-Label AI Infrastructure for Agencies</title>
-<meta name="description" content="Deploy automated lead routing, client follow-ups, and custom AI workflows under your own brand." />
-<style>
-  :root{--bg:#07080c;--card:#11141d;--card2:#141826;--line:#232838;--text:#eef1f7;--muted:#9aa4b8;--a:#6ee7b7;--b:#60a5fa;--max:1140px}
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth}
-  body{background:radial-gradient(900px 500px at 15% -10%,rgba(96,165,250,.16),transparent 60%),radial-gradient(800px 500px at 90% 0,rgba(110,231,183,.12),transparent 55%),var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:var(--max);margin:0 auto;padding:0 20px}
-  header{padding:24px 0}
-  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-  .logo{display:flex;align-items:center;gap:10px;font-weight:700}
-  .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--a),var(--b))}
-  .nav-links{display:flex;gap:22px}
-  .nav-links a{color:var(--muted);text-decoration:none;font-size:.95rem}
-  .nav-links a:hover{color:var(--text)}
-  .btn{display:inline-block;padding:14px 26px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid transparent;transition:transform .15s}
-  .btn:hover{transform:translateY(-2px)}
-  .p1{background:linear-gradient(135deg,var(--a),var(--b));color:#06121a}
-  .gh{border-color:var(--line);color:var(--text)}
-  .hero{padding:60px 0 36px;text-align:center}
-  .badge{display:inline-block;padding:7px 15px;border-radius:999px;background:rgba(110,231,183,.1);border:1px solid rgba(110,231,183,.32);color:var(--a);font-size:.78rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase}
-  h1{margin:22px auto 0;max-width:17ch;font-size:clamp(2.1rem,6vw,3.8rem);line-height:1.08;letter-spacing:-.035em;font-weight:800;background:linear-gradient(180deg,#fff,#b9c3d6);-webkit-background-clip:text;background-clip:text;color:transparent}
-  .sub{margin:20px auto 0;max-width:60ch;color:var(--muted);font-size:clamp(1rem,2.4vw,1.18rem)}
-  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:30px}
-  .trust{margin-top:16px;color:#6f7a90;font-size:.85rem}
-  section{padding:52px 0}
-  .head{text-align:center;margin-bottom:32px}
-  .head h2{font-size:clamp(1.6rem,4vw,2.3rem);letter-spacing:-.03em;font-weight:800}
-  .head p{color:var(--muted);margin-top:10px}
-  .video{position:relative;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,var(--card),#0d1017);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;text-align:center;overflow:hidden}
-  .play{width:72px;height:72px;border-radius:50%;margin:0 auto 14px;background:linear-gradient(135deg,var(--a),var(--b));display:flex;align-items:center;justify-content:center}
-  .play span{width:0;height:0;margin-left:5px;border-left:21px solid #06121a;border-top:13px solid transparent;border-bottom:13px solid transparent}
-  .video p{color:var(--muted);font-size:.92rem;margin-top:6px}
-  .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-  .f{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px}
-  .f .ic{width:38px;height:38px;border-radius:11px;background:rgba(96,165,250,.14);border:1px solid rgba(96,165,250,.3);margin-bottom:14px}
-  .f h3{font-size:1.05rem;margin-bottom:6px}
-  .f p{color:var(--muted);font-size:.94rem}
-  .f ul{margin:10px 0 0 18px;color:var(--muted);font-size:.9rem}
-  /* Single offer — one centered card rather than a menu of tiers. */
-  .pricing{display:grid;grid-template-columns:1fr;gap:20px;align-items:stretch;max-width:520px;margin:0 auto}
-  .card{position:relative;background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:20px;padding:30px;display:flex;flex-direction:column}
-  .card.hot{border-color:rgba(110,231,183,.45);box-shadow:0 24px 60px -30px rgba(110,231,183,.5)}
-  .tag{position:absolute;top:-12px;right:22px;background:linear-gradient(135deg,var(--a),var(--b));color:#06121a;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px}
-  .card h3{font-size:1.18rem;letter-spacing:-.02em}
-  .blurb{color:var(--muted);font-size:.93rem;margin-top:6px}
-  .price{margin:18px 0 2px;font-size:clamp(1.7rem,3.6vw,2.2rem);font-weight:800;letter-spacing:-.03em}
-  .price small{display:block;font-size:.95rem;font-weight:600;color:var(--muted);margin-top:4px}
-  ul.list{list-style:none;margin:18px 0 24px;display:grid;gap:10px}
-  ul.list li{position:relative;padding-left:26px;color:#c8d0e0;font-size:.93rem}
-  ul.list li::before{content:"";position:absolute;left:0;top:7px;width:15px;height:15px;border-radius:50%;background:rgba(110,231,183,.14);border:1px solid rgba(110,231,183,.45)}
-  .card .btn{margin-top:auto;text-align:center;display:block}
-  .faq{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-  .faq div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
-  .faq h4{font-size:1rem;margin-bottom:6px}
-  .faq p{color:var(--muted);font-size:.93rem}
-  .final{text-align:center;background:linear-gradient(180deg,var(--card2),var(--card));border:1px solid var(--line);border-radius:22px;padding:46px 24px}
-  footer{border-top:1px solid var(--line);padding:28px 0;color:#6f7a90;font-size:.87rem;text-align:center}
-  @media(max-width:960px){.g3,.pricing,.faq{grid-template-columns:1fr}.nav-links{display:none}section{padding:40px 0}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Master Hustle Engine | White-label AI sales desk for agencies</title>
+  <meta name="description" content="Master Hustle Engine is a white-label AI sales desk your agency resells under its own brand. It finds leads, writes outreach, follows up, handles replies, and books calls and jobs. Start a 30-day pilot on one client.">
+  <link rel="canonical" href="https://master-hustle-engine.onrender.com/">
+  <meta name="theme-color" content="#0f172a">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Master Hustle Engine">
+  <meta property="og:url" content="https://master-hustle-engine.onrender.com/">
+  <meta property="og:title" content="Master Hustle Engine: the white-label AI sales desk for agencies">
+  <meta property="og:description" content="Leads found, outreach written, follow-ups sent, replies handled, jobs booked. Under your agency's brand, at your price. Start a 30-day pilot on one client.">
+  <meta property="og:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+  <meta property="og:image:secure_url" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Master Hustle Engine: your agency's AI sales desk, under your brand">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Master Hustle Engine: the white-label AI sales desk for agencies">
+  <meta name="twitter:description" content="Leads found, outreach written, follow-ups sent, replies handled, jobs booked. Under your agency's brand, at your price.">
+  <meta name="twitter:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+  <meta name="twitter:image:alt" content="Master Hustle Engine: your agency's AI sales desk, under your brand">
+
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/site.css">
 </head>
 <body>
-<header><div class="wrap nav">
-  <div class="logo"><div class="mark"></div> Your Agency</div>
-  <nav class="nav-links"><a href="#demo">Demo</a><a href="#features">Platform</a><a href="#pricing">Pricing</a><a href="#faq">FAQ</a></nav>
-  <a class="btn gh" href="#pricing">Get Started</a>
-</div></header>
-
-<main>
-  <section class="hero wrap">
-    <span class="badge">White-Label Infrastructure</span>
-    <h1>Scale Your Agency With Turnkey AI Automation</h1>
-    <p class="sub">Deploy automated lead routing, client follow-ups, and custom AI workflows under your own brand.</p>
-    <div class="cta-row">
-      <a class="btn p1" href="#demo">Watch the 60-Second Demo</a>
-      <a class="btn gh" href="#pricing">See Pricing</a>
+  <header class="nav">
+    <div class="wrap">
+      <a class="logo" href="/"><img src="/assets/favicon.svg" alt="" width="30" height="30">Master Hustle Engine</a>
+      <nav class="nav-links" aria-label="Main">
+        <a class="hide-sm" href="/demo">Demo</a>
+        <a class="hide-sm" href="/router">AI Router</a>
+        <a class="hide-sm" href="#pilot">Pilot</a>
+        <a class="btn btn-primary btn-sm" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a pilot</a>
+      </nav>
     </div>
-    <p class="trust">Fully rebrandable · Live in days · You own the client relationship</p>
-  </section>
+  </header>
 
-  <section id="demo" class="wrap">
-    <div class="head"><h2>See the engine running</h2><p>Sixty seconds, end to end: lead in, routed, followed up, logged.</p></div>
-    <div class="video"><div>
-      <div class="play"><span></span></div>
-      <strong>60-Second Workflow Demo</strong>
-      <p>Loom embed container — drop your iframe here.</p>
-    </div></div>
-  </section>
-
-  <section id="features" class="wrap">
-    <div class="head"><h2>What you're deploying</h2><p>Production infrastructure, running under your logo and your domain.</p></div>
-    <div class="g3">
-      <div class="f"><div class="ic"></div><h3>Multi-Provider Failover Router</h3>
-        <p>Automatic failover across model providers, so one provider going down doesn't stop your client workflows.</p>
-        <ul><li>Gemini &rarr; OpenAI &rarr; Anthropic chain</li><li>Automatic retry on rate limits</li><li>Failover events logged and reported daily</li></ul></div>
-      <div class="f"><div class="ic"></div><h3>Automated Outbound Engine</h3>
-        <p>The workflow layer that does the actual work — ingest, qualify, pitch, follow up, report.</p>
-        <ul><li>Lead ingestion &amp; qualification screening</li><li>AI pitch copy, delivery, multi-step follow-up</li><li>Opt-out compliance &amp; daily health digest</li></ul></div>
-      <div class="f"><div class="ic"></div><h3>Full White-Label Layer</h3>
-        <p>Your brand end to end — domain, logo, sender identity, and client-facing reporting.</p>
-        <ul><li>Custom domain &amp; branding</li><li>Client-ready dashboards</li><li>No vendor attribution anywhere</li></ul></div>
-    </div>
-  </section>
-
-  <section id="pricing" class="wrap">
-    <div class="head"><h2>One price. Everything included.</h2><p>We build it, brand it, host it, and maintain it. You sell it.</p></div>
-    <div class="pricing">
-
-      <div class="card hot"><span class="tag">White-Label Agency AI Infrastructure</span>
-        <h3>Done-For-You Deployment</h3>
-        <p class="blurb">We build, brand, host, and maintain the whole stack.</p>
-        <div class="price">$4,000 to start <small>then $1,500/mo</small></div>
-        <p class="blurb">$2,500 setup + your first month, billed together at signing.</p>
-        <ul class="list">
-          <li>Full white-label build under your brand</li>
-          <li>Routing, follow-ups, and AI workflows configured</li>
-          <li>Hosting, monitoring, and maintenance included</li>
-          <li>Unlimited client workspaces under your brand</li>
-          <li>Priority support and monthly optimization</li>
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow">White-label AI sales desk for agencies</span>
+        <h1>Give every client an AI sales desk.<br>Sold under your agency's brand.</h1>
+        <p class="lead">Master Hustle Engine finds leads, writes personalized outreach, follows up on its own, helps handle replies, and books the calls and jobs. You resell it to your clients as your own service, set your own price, and keep the margin.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a 30-day pilot on one client</a>
+          <a class="btn btn-ghost" href="/demo">See the 2-minute demo</a>
+        </div>
+        <ul class="hero-points">
+          <li>Your brand, not ours</li>
+          <li>You set the price</li>
+          <li>You keep the margin</li>
+          <li>Pilot on one client first</li>
         </ul>
-        <a class="btn p1" href="https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G">Start Deployment</a>
       </div>
+    </section>
 
+    <section class="section" aria-labelledby="does-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="does-title">What the desk does for each client</h2>
+          <p>It works the whole path from a new lead to a booked call or job, so your client's team only shows up for the work.</p>
+        </div>
+        <div class="grid grid-5">
+          <div class="card"><span class="num">1</span><h3>Finds leads</h3><p>Picks up new inquiries the moment they land and finds new prospects who fit the client's market.</p></div>
+          <div class="card"><span class="num">2</span><h3>Writes the outreach</h3><p>Personal messages based on what each lead actually asked for, in the client's voice.</p></div>
+          <div class="card"><span class="num">3</span><h3>Follows up</h3><p>Sends polite follow-ups on a schedule, so leads stop going cold in the inbox.</p></div>
+          <div class="card"><span class="num">4</span><h3>Handles replies</h3><p>Reads each reply, answers the common questions, and passes anything unusual to a person.</p></div>
+          <div class="card"><span class="num">5</span><h3>Books the call or job</h3><p>Offers real times, confirms the booking, and sends reminders.</p></div>
+        </div>
+        <div class="btn-row" style="margin-top:24px">
+          <a class="btn btn-ghost" href="/demo">Walk through a locksmith, HVAC, or roofing lead</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" aria-labelledby="resell-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="resell-title">Built for agencies to resell</h2>
+          <p>Your clients buy it from you, as part of your service. We stay in the background.</p>
+        </div>
+        <div class="grid grid-4">
+          <div class="card"><h3>Your brand</h3><p>The desk, the reports, and the client updates carry your agency's name and colors. Your clients never see ours.</p></div>
+          <div class="card"><h3>Your price</h3><p>You decide what each client pays. Package it with your lead-gen, ads, or retainer however you like.</p></div>
+          <div class="card"><h3>Your margin</h3><p>Your client pays you. You keep the difference between what you charge and what it costs you.</p></div>
+          <div class="card"><h3>We run the engine</h3><p>Setup, sending, follow-ups, and upkeep are handled for you. You stay the face of the work.</p></div>
+        </div>
+        <h3 style="margin-top:34px">A good fit if you are</h3>
+        <ul class="pill-list">
+          <li>A lead-gen agency for locksmiths, HVAC, roofing, or other home services</li>
+          <li>A fractional CMO</li>
+          <li>An outbound or appointment-setting agency</li>
+          <li>Any small agency whose clients live on booked calls and jobs</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="pilot" aria-labelledby="pilot-title">
+      <div class="wrap pilot">
+        <div>
+          <h2 id="pilot-title">Start with a 30-day pilot on one client</h2>
+          <p class="lead">Prove it on one account before you offer it to the rest. The pilot runs under your agency's brand from day one.</p>
+          <ol class="checklist">
+            <li><strong>Pick one client.</strong> A locksmith, HVAC company, roofer, or any business that lives on booked calls and jobs.</li>
+            <li><strong>We set up the desk under your brand,</strong> using that client's services, hours, service area, and rules.</li>
+            <li><strong>It runs for 30 days.</strong> You see every lead, message, reply, and booking as it happens.</li>
+            <li><strong>We review the results together</strong> and you decide whether to roll it out to more clients.</li>
+          </ol>
+          <p class="hint">Pricing is shared one on one, so it fits how your agency already sells.</p>
+        </div>
+        <div class="cta-box">
+          <h3>Ready to try it on one client?</h3>
+          <p>Email Jack with your agency's name and the client you have in mind. He will reply to set up a short call.</p>
+          <a class="btn btn-primary" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a 30-day pilot on one client</a>
+          <a class="btn btn-ghost" href="https://forms.gle/LU6ktmBdWjkLUfq49" target="_blank" rel="noopener">Or fill out the short form</a>
+          <div class="contact">
+            Jack Bockholdt, Master Hustle Engine<br>
+            <a href="mailto:hello@master-hustle-engine.com">hello@master-hustle-engine.com</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>&copy; 2026 Master Hustle Engine. The white-label AI sales desk for agencies.</span>
+      <span><a href="/demo">Demo</a> &nbsp;&middot;&nbsp; <a href="/router">AI Router</a> &nbsp;&middot;&nbsp; <a href="mailto:hello@master-hustle-engine.com">hello@master-hustle-engine.com</a></span>
     </div>
-    <p class="sub" style="text-align:center;margin-top:24px">
-      Prefer to own the codebase outright instead of licensing it? A full IP buyout runs $25,000 one-time —
-      <a href="#pricing">ask about it on the demo call</a>. Most agencies find the license pays for itself long before that math works.
-    </p>
-  </section>
-
-  <section id="faq" class="wrap">
-    <div class="head"><h2>Common questions</h2></div>
-    <div class="faq">
-      <div><h4>Is it genuinely white-label?</h4><p>Yes. Your brand, your domain, your client relationships. Nothing points back to us.</p></div>
-      <div><h4>How fast does it go live?</h4><p>Standard deployments run days, not months, once branding and access are provided.</p></div>
-      <div><h4>What exactly is the $4,000?</h4><p>The $2,500 setup fee plus your first month, billed together at signing. After that it's a flat $1,500/month. No usage surcharges, no tiers.</p></div>
-      <div><h4>Can I buy the codebase instead?</h4><p>A full IP buyout is $25,000 one-time. If you go that route later, your setup fee and paid license months are credited toward it.</p></div>
-      <div><h4>What do you need from me?</h4><p>Logo, domain, inbox and CRM access, and your offer details. We handle the build.</p></div>
-      <div><h4>What happens if a model provider goes down?</h4><p>The router fails over to the next provider in the chain automatically, so a rate limit or outage at one vendor doesn't stall your client workflows.</p></div>
-      <div><h4>Do you work with my stack?</h4><p>The engine integrates with mainstream CRMs, inboxes, and billing systems. Ask about anything unusual.</p></div>
-    </div>
-  </section>
-
-  <section class="wrap"><div class="final">
-    <h2 style="font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.03em">Watch the 60-second demo, then start your deployment.</h2>
-    <p class="sub">$4,000 to start, then $1,500/month. One price, everything included.</p>
-    <div class="cta-row">
-      <a class="btn p1" href="#pricing">See Pricing</a>
-      <a class="btn gh" href="#demo">Watch Demo</a>
-    </div>
-  </div></section>
-</main>
-
-<footer><div class="wrap">© <span id="y"></span> Your Agency. All rights reserved.</div></footer>
-<script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+  </footer>
 </body>
 </html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart AI Router: Real Cost Routing & Provider Failover | Master Hustle Engine</title>
+  <meta name="description" content="How Master Hustle Engine routes AI prompts across Gemini, OpenAI, Claude, and OpenRouter. Cheapest model first, automatic provider failover, capability escalation, and measured token savings.">
+  <link rel="canonical" href="https://master-hustle-engine.onrender.com/router">
+  <meta name="theme-color" content="#0f172a">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Master Hustle Engine">
+  <meta property="og:url" content="https://master-hustle-engine.onrender.com/router">
+  <meta property="og:title" content="Smart AI Router: Real Cost Routing & Provider Failover">
+  <meta property="og:description" content="Protect AI availability. Routes prompts to the cheapest capable model, escalates on failure or empty output, and fails over across Gemini, OpenAI, Claude, and OpenRouter.">
+  <meta property="og:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Smart AI Router: Real Cost Routing & Provider Failover">
+  <meta name="twitter:description" content="Protect AI availability. Routes prompts to the cheapest capable model, escalates on failure, and fails over across 4 major providers.">
+  <meta name="twitter:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/site.css">
+  <style>
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .status-badge.healthy {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .status-badge.degraded {
+      background: rgba(245, 158, 11, 0.15);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .status-badge.offline {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .provider-card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .provider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .dot-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-green { background: #10b981; box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
+    .dot-yellow { background: #f59e0b; }
+    .dot-gray { background: #64748b; }
+    .stats-metric {
+      font-size: 1.85rem;
+      font-weight: 700;
+      color: #f8fafc;
+      line-height: 1.2;
+    }
+    .stats-subtext {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+    .model-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <div class="wrap">
+      <a class="logo" href="/"><img src="/assets/favicon.svg" alt="" width="30" height="30">Master Hustle Engine</a>
+      <nav class="nav-links" aria-label="Main">
+        <a class="hide-sm" href="/demo">Demo</a>
+        <a class="hide-sm" href="#how-it-works">How It Works</a>
+        <a class="hide-sm" href="#live-status">Live Status</a>
+        <a class="hide-sm" href="#pilot">Pilot</a>
+        <a class="btn btn-primary btn-sm" href="mailto:hello@master-hustle-engine.com?subject=AI%20Router%20inquiry%20from%20agency">Start a pilot</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow">Enterprise Reliability &amp; Cost Routing</span>
+        <h1>Protect AI availability.<br>Never overpay for routine tasks.</h1>
+        <p class="lead">The Master Hustle Engine AI Router sends every outbound prompt, reply classification, and follow-up draft to the most cost-effective model that can handle it. If a provider stalls or returns empty output, it cascades across Gemini, OpenAI, Claude, and OpenRouter without faking responses.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a 30-day pilot on one client</a>
+          <a class="btn btn-ghost" href="#live-status">View live router telemetry</a>
+        </div>
+        <ul class="hero-points">
+          <li>Cheapest capable model first</li>
+          <li>Failover across 4 providers</li>
+          <li>Escalates to strong tier on failure</li>
+          <li>Measured savings, no synthetic stats</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="how-it-works" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="how-title">How real cost routing works in plain English</h2>
+          <p>Most AI systems either overpay by running everything on the most expensive model, or crash when their single vendor has an outage. Here is how our router handles both problems.</p>
+        </div>
+        <div class="grid grid-4">
+          <div class="card">
+            <span class="num">1</span>
+            <h3>Cost-first dispatch</h3>
+            <p>Every incoming prompt starts on the cheap tier (<span class="model-pill">gemini-3.5-flash-lite</span>, <span class="model-pill">gpt-4o-mini</span>, or <span class="model-pill">claude-haiku-4-5-20251001</span>). Routine message drafting and lead scoring rarely require heavy flagship compute.</p>
+          </div>
+          <div class="card">
+            <span class="num">2</span>
+            <h3>Cascading failover</h3>
+            <p>If the primary provider hits a rate limit (429), network timeout, or service error (500), the router cascades smoothly to the next cheap provider in line without failing the client's request.</p>
+          </div>
+          <div class="card">
+            <span class="num">3</span>
+            <h3>Capability escalation</h3>
+            <p>If cheap models fail or return an empty answer, the router automatically escalates to a strong flagship model (<span class="model-pill">gemini-3.8-flash</span>, <span class="model-pill">gpt-4o</span>, or <span class="model-pill">claude-sonnet-4-6</span>) to complete the job.</p>
+          </div>
+          <div class="card">
+            <span class="num">4</span>
+            <h3>Zero fake outputs</h3>
+            <p>We never return canned placeholder text or simulated responses. If all configured providers fail, callers receive an honest, structured error status so downstream workflows fail safely.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="live-status" aria-labelledby="status-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="status-title">Live router health &amp; telemetry</h2>
+          <p>Real-time metrics queried directly from the running engine's status endpoint (<span class="model-pill">/api/router/status</span>).</p>
+        </div>
+
+        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom: 16px;">
+            <div>
+              <span style="color:#94a3b8; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.04em; font-weight:600;">System Health</span>
+              <div style="margin-top:4px;">
+                <span id="router-health-badge" class="status-badge healthy">Connecting...</span>
+              </div>
+            </div>
+            <div style="text-align:right;">
+              <button id="refresh-status-btn" type="button" class="btn btn-ghost btn-sm" style="font-size:0.8rem;">Refresh Status</button>
+            </div>
+          </div>
+
+          <div class="grid grid-3" style="gap:16px;">
+            <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+              <div class="stats-metric" id="metric-savings">--%</div>
+              <div class="stats-subtext">Measured cost savings vs strong-model baseline (<span class="model-pill">gpt-4o</span>)</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+              <div class="stats-metric" id="metric-requests">0</div>
+              <div class="stats-subtext">Total requests routed across all providers</div>
+            </div>
+            <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+              <div class="stats-metric" id="metric-cost">$0.0000</div>
+              <div class="stats-subtext">Cumulative actual model spend recorded</div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;">
+            <span style="color:#94a3b8; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.04em; font-weight:600;">Active Routing Order</span>
+            <div class="grid grid-4" style="margin-top:10px; gap:12px;">
+              <div class="provider-card">
+                <div class="provider-header">
+                  <strong>Primary Route</strong>
+                  <span class="dot-indicator dot-green"></span>
+                </div>
+                <div style="font-size:0.95rem; color:#f8fafc;" id="route-primary">gpt-4o-mini</div>
+                <small style="color:#94a3b8;">Cheap tier (first choice)</small>
+              </div>
+              <div class="provider-card">
+                <div class="provider-header">
+                  <strong>Secondary Route</strong>
+                  <span class="dot-indicator dot-yellow" id="route-secondary-dot"></span>
+                </div>
+                <div style="font-size:0.95rem; color:#f8fafc;" id="route-secondary">gemini-3.5-flash-lite</div>
+                <small style="color:#94a3b8;">Automatic fallback</small>
+              </div>
+              <div class="provider-card">
+                <div class="provider-header">
+                  <strong>Tertiary Route</strong>
+                  <span class="dot-indicator dot-yellow" id="route-tertiary-dot"></span>
+                </div>
+                <div style="font-size:0.95rem; color:#f8fafc;" id="route-tertiary">google/gemini-3.5-flash-lite</div>
+                <small style="color:#94a3b8;">OpenRouter cheap fallback</small>
+              </div>
+              <div class="provider-card">
+                <div class="provider-header">
+                  <strong>Claude Route</strong>
+                  <span class="dot-indicator dot-yellow" id="route-openrouter-dot"></span>
+                </div>
+                <div style="font-size:0.95rem; color:#f8fafc;" id="route-quaternary">claude-haiku-4-5-20251001</div>
+                <small style="color:#94a3b8;">High resilience failover</small>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:20px;">
+            <span style="color:#94a3b8; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.04em; font-weight:600;">Provider Reachability &amp; Latency</span>
+            <div class="provider-grid" id="provider-probe-grid">
+              <div class="provider-card">
+                <div class="provider-header">
+                  <span>Google Gemini</span>
+                  <span class="dot-indicator dot-gray" id="dot-gemini"></span>
+                </div>
+                <div id="status-gemini" style="font-size:0.85rem; color:#cbd5e1;">Checking...</div>
+              </div>
+              <div class="provider-card">
+                <div class="provider-header">
+                  <span>OpenAI</span>
+                  <span class="dot-indicator dot-gray" id="dot-openai"></span>
+                </div>
+                <div id="status-openai" style="font-size:0.85rem; color:#cbd5e1;">Checking...</div>
+              </div>
+              <div class="provider-card">
+                <div class="provider-header">
+                  <span>Anthropic Claude</span>
+                  <span class="dot-indicator dot-gray" id="dot-claude"></span>
+                </div>
+                <div id="status-claude" style="font-size:0.85rem; color:#cbd5e1;">Checking...</div>
+              </div>
+              <div class="provider-card">
+                <div class="provider-header">
+                  <span>OpenRouter</span>
+                  <span class="dot-indicator dot-gray" id="dot-openrouter"></span>
+                </div>
+                <div id="status-openrouter" style="font-size:0.85rem; color:#cbd5e1;">Checking...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="why-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="why-title">Why agency clients need multi-model redundancy</h2>
+          <p>When an agency runs lead capture and sales follow-ups for home service contractors, downtime means missed calls and lost jobs.</p>
+        </div>
+        <div class="grid grid-3">
+          <div class="card">
+            <h3>Outages kill conversions</h3>
+            <p>If an API provider goes down on a Saturday morning when emergency HVAC leads are coming in, a single-model app stops responding. The multi-model router automatically shifts traffic to a live backup provider without dropping requests.</p>
+          </div>
+          <div class="card">
+            <h3>Zero rate limit freezes</h3>
+            <p>High-volume outbound campaigns can bump into provider TPM (tokens per minute) or RPM limits. The router recognizes 429 status codes and immediately dispatches pending tasks to backup providers.</p>
+          </div>
+          <div class="card">
+            <h3>Margin protection</h3>
+            <p>Agencies operate on predictable client retainers. By routing routine prompts to efficient cheap models while preserving strong-tier quality when needed, your API margins remain healthy.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="pilot" aria-labelledby="pilot-title">
+      <div class="wrap pilot">
+        <div>
+          <h2 id="pilot-title">Start with a 30-day pilot on one client</h2>
+          <p class="lead">Test the white-label sales desk and multi-model router on a single client account before rolling it out across your roster.</p>
+          <ol class="checklist">
+            <li><strong>Pick one client.</strong> A locksmith, HVAC company, roofer, or any business that lives on booked calls and jobs.</li>
+            <li><strong>We configure your router &amp; sales desk,</strong> connecting your preferred AI keys.</li>
+            <li><strong>It runs for 30 days under your brand.</strong> You see every message, reply, booking, and token metric.</li>
+            <li><strong>We review the results together</strong> and decide whether to expand across your other agency clients.</li>
+          </ol>
+          <p class="hint">No forced long-term contracts. Transparent pricing shared one-on-one.</p>
+        </div>
+        <div class="cta-box">
+          <h3>Ready to run a pilot?</h3>
+          <p>Email Jack with your agency's name and the client trade you want to start with.</p>
+          <a class="btn btn-primary" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a 30-day pilot on one client</a>
+          <a class="btn btn-ghost" href="/demo">Walk through the sales desk demo</a>
+          <div class="contact">
+            Jack Bockholdt, Master Hustle Engine<br>
+            <a href="mailto:hello@master-hustle-engine.com">hello@master-hustle-engine.com</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>&copy; 2026 Master Hustle Engine. The white-label AI sales desk for agencies.</span>
+      <span><a href="/">Home</a> &nbsp;&middot;&nbsp; <a href="/demo">Demo</a> &nbsp;&middot;&nbsp; <a href="/router">AI Router</a> &nbsp;&middot;&nbsp; <a href="mailto:hello@master-hustle-engine.com">hello@master-hustle-engine.com</a></span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      async function fetchRouterStatus() {
+        var badge = document.getElementById('router-health-badge');
+        try {
+          var res = await fetch('/api/router/status');
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          var data = await res.json();
+
+          // Health badge: don't say healthy when no providers are configured
+          if (!data.configuredProviders || data.configuredProviders.length === 0 || data.status === 'unconfigured') {
+            badge.textContent = 'Unconfigured';
+            badge.className = 'status-badge offline';
+          } else {
+            badge.textContent = data.status || 'Active';
+            badge.className = 'status-badge ' + (data.status === 'healthy' ? 'healthy' : (data.status === 'degraded' ? 'degraded' : 'offline'));
+          }
+
+          // Metrics: read telemetry.costs.measuredSavingsPct, telemetry.totalDispatches, telemetry.costs.actualCostUSD
+          var tel = data.telemetry || {};
+          var costs = tel.costs || {};
+          var savings = (costs.measuredSavingsPct !== undefined && costs.measuredSavingsPct !== null)
+            ? costs.measuredSavingsPct
+            : (data.measuredSavingsPct || 'not measured yet');
+          if (savings === 'not measured yet' || savings === '--%') {
+            document.getElementById('metric-savings').textContent = savings;
+          } else {
+            document.getElementById('metric-savings').textContent = typeof savings === 'string' && savings.endsWith('%') ? savings : (savings + '%');
+          }
+
+          var totalDispatches = (tel.totalDispatches !== undefined) ? tel.totalDispatches : (data.totalRequests || 0);
+          document.getElementById('metric-requests').textContent = Number(totalDispatches).toLocaleString();
+
+          var actualCost = (costs.actualCostUSD !== undefined) ? costs.actualCostUSD : (Number(data.totalActualCost) || 0);
+          document.getElementById('metric-cost').textContent = '$' + Number(actualCost).toFixed(4);
+
+          // Routes
+          if (data.primaryProvider) document.getElementById('route-primary').textContent = data.primaryProvider;
+          if (data.secondaryProvider) document.getElementById('route-secondary').textContent = data.secondaryProvider;
+          if (data.tertiaryProvider) document.getElementById('route-tertiary').textContent = data.tertiaryProvider;
+          if (data.quaternaryProvider) document.getElementById('route-quaternary').textContent = data.quaternaryProvider;
+
+          // Probes & Reachability
+          var reach = data.reachability || {};
+          var probes = data.probes || {};
+
+          updateProviderBadge('gemini', reach.gemini, probes.gemini);
+          updateProviderBadge('openai', reach.openai, probes.openai);
+          updateProviderBadge('claude', reach.claude, probes.claude);
+          updateProviderBadge('openrouter', reach.openrouter, probes.openrouter);
+
+        } catch (err) {
+          badge.textContent = 'Unavailable';
+          badge.className = 'status-badge offline';
+          console.warn('[Router UI] Could not load live status:', err);
+        }
+      }
+
+      function updateProviderBadge(name, isReachable, probeInfo) {
+        var dot = document.getElementById('dot-' + name);
+        var label = document.getElementById('status-' + name);
+        if (!dot || !label) return;
+
+        if (isReachable) {
+          dot.className = 'dot-indicator dot-green';
+          label.textContent = probeInfo && probeInfo.latencyMs ? 'Online (' + probeInfo.latencyMs + 'ms)' : 'Reachable';
+        } else if (probeInfo && probeInfo.status === 'NOT_CONFIGURED') {
+          dot.className = 'dot-indicator dot-gray';
+          label.textContent = 'Unconfigured';
+        } else if (probeInfo && probeInfo.status === 'ZERO_BALANCE') {
+          dot.className = 'dot-indicator dot-yellow';
+          label.textContent = 'Quota/Balance Needed';
+        } else {
+          dot.className = 'dot-indicator dot-gray';
+          label.textContent = probeInfo && probeInfo.status ? probeInfo.status : 'Standby / Unreachable';
+        }
+      }
+
+      document.getElementById('refresh-status-btn').addEventListener('click', function () {
+        var btn = this;
+        btn.textContent = 'Refreshing...';
+        fetchRouterStatus().finally(function () {
+          setTimeout(function () { btn.textContent = 'Refresh Status'; }, 500);
+        });
+      });
+
+      fetchRouterStatus();
+    })();
+  </script>
+</body>
+</html>

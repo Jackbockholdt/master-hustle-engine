@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demo: White-label AI sales desk for agencies | Master Hustle Engine</title>
+  <meta name="description" content="See how Master Hustle Engine works: a white-label AI sales desk your agency resells under its own brand. It finds leads, writes outreach, follows up, handles replies, and books calls and jobs.">
+  <link rel="canonical" href="https://master-hustle-engine.onrender.com/demo">
+  <meta name="theme-color" content="#0f172a">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Master Hustle Engine">
+  <meta property="og:url" content="https://master-hustle-engine.onrender.com/demo">
+  <meta property="og:title" content="Master Hustle Engine: the white-label AI sales desk for agencies">
+  <meta property="og:description" content="Leads found, outreach written, follow-ups sent, replies handled, jobs booked. Under your agency's brand, at your price. Start a 30-day pilot on one client.">
+  <meta property="og:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+  <meta property="og:image:secure_url" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Master Hustle Engine: your agency's AI sales desk, under your brand">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Master Hustle Engine: the white-label AI sales desk for agencies">
+  <meta name="twitter:description" content="Leads found, outreach written, follow-ups sent, replies handled, jobs booked. Under your agency's brand, at your price.">
+  <meta name="twitter:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+  <meta name="twitter:image:alt" content="Master Hustle Engine: your agency's AI sales desk, under your brand">
+
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+<body data-demo="sales-desk">
+  <a class="skip" href="#walkthrough">Skip to the walkthrough</a>
+
+  <header class="nav">
+    <div class="wrap">
+      <a class="logo" href="/"><img src="/assets/favicon.svg" alt="" width="30" height="30">Master Hustle Engine</a>
+      <nav class="nav-links" aria-label="Main">
+        <a class="hide-sm" href="#walkthrough">Walkthrough</a>
+        <a class="hide-sm" href="#pilot">Pilot</a>
+        <a class="btn btn-primary btn-sm js-pilot" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a pilot</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <span class="eyebrow">White-label AI sales desk for agencies</span>
+        <h1>Give every client an AI sales desk.<br>Sold under your agency's brand.</h1>
+        <p class="lead">Master Hustle Engine finds leads, writes personalized outreach, follows up on its own, helps handle replies, and books the calls and jobs. You resell it to your clients as your own service, set your own price, and keep the margin.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary js-pilot" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a 30-day pilot on one client</a>
+          <a class="btn btn-ghost" href="#walkthrough">See it work on a real-looking lead</a>
+        </div>
+        <ul class="hero-points">
+          <li>Your brand, not ours</li>
+          <li>You set the price</li>
+          <li>You keep the margin</li>
+          <li>Pilot on one client first</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="walkthrough" aria-labelledby="walkthrough-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="walkthrough-title">Watch one lead go from first contact to a booked job</h2>
+          <p>Pick a trade, type in your agency's name, and step through it. Everything here is sample data, so you can see exactly what the desk does without waiting on a real lead.</p>
+        </div>
+
+        <div class="demo-shell">
+          <div class="demo-controls">
+            <div class="card">
+              <span class="ctrl-label" id="trade-label">Client's trade</span>
+              <div class="seg" role="group" aria-labelledby="trade-label">
+                <button type="button" data-scenario="locksmith" aria-pressed="true">Locksmith</button>
+                <button type="button" data-scenario="hvac" aria-pressed="false">HVAC</button>
+                <button type="button" data-scenario="roofing" aria-pressed="false">Roofing</button>
+              </div>
+
+              <label class="ctrl-label" for="agency-name" style="margin-top:16px">Your agency's name</label>
+              <input class="field" id="agency-name" type="text" maxlength="40" value="Brightline Local" autocomplete="organization">
+              <div class="swatches" role="group" aria-label="Your brand color">
+                <button type="button" data-color="#ea580c" style="background:#ea580c" aria-label="Orange" aria-pressed="true"></button>
+                <button type="button" data-color="#2563eb" style="background:#2563eb" aria-label="Blue" aria-pressed="false"></button>
+                <button type="button" data-color="#059669" style="background:#059669" aria-label="Green" aria-pressed="false"></button>
+                <button type="button" data-color="#7c3aed" style="background:#7c3aed" aria-label="Purple" aria-pressed="false"></button>
+                <button type="button" data-color="#0f172a" style="background:#0f172a" aria-label="Black" aria-pressed="false"></button>
+              </div>
+            </div>
+
+            <div class="card">
+              <span class="ctrl-label" id="steps-label">Steps</span>
+              <ol class="steps" aria-labelledby="steps-label">
+                <li><button type="button" data-step="1"><span class="dot">1</span>Lead comes in</button></li>
+                <li><button type="button" data-step="2"><span class="dot">2</span>AI writes the outreach</button></li>
+                <li><button type="button" data-step="3"><span class="dot">3</span>Follow-up goes out</button></li>
+                <li><button type="button" data-step="4"><span class="dot">4</span>Reply handled</button></li>
+                <li><button type="button" data-step="5"><span class="dot">5</span>Job booked</button></li>
+              </ol>
+              <div class="demo-nav" style="margin-top:12px">
+                <button type="button" class="btn btn-ghost btn-sm" id="prev-step">Back</button>
+                <button type="button" class="btn btn-primary btn-sm" id="next-step">Next step</button>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" id="play-all" style="width:100%;margin-top:8px">Play the whole thing</button>
+            </div>
+          </div>
+
+          <div class="desk" id="desk" aria-live="polite">
+            <div class="desk-top">
+              <div class="desk-brand"><span class="mark" id="brand-mark">BL</span><span id="brand-name">Brightline Local Sales Desk</span></div>
+              <small id="client-label">Client: Keyline Lock &amp; Key</small>
+            </div>
+            <div class="desk-sub">
+              <span>What your client sees: <strong>your agency's brand</strong>. What their customers see: <strong id="sender-label">messages from Keyline Lock &amp; Key</strong>.</span>
+              <span class="demo-badge">Demo, sample data</span>
+            </div>
+            <div class="feed" id="feed">
+              <noscript><p class="empty">Turn on JavaScript to run the walkthrough. In short: a lead comes in, the desk writes a personal message within minutes, follows up when there is no answer, answers the reply, and books the job on the client's calendar.</p></noscript>
+            </div>
+          </div>
+        </div>
+        <p class="hint">Names, businesses, and messages above are examples written for this demo. In a pilot, the desk uses your client's real services, hours, service area, and rules for what it can say on its own.</p>
+      </div>
+    </section>
+
+    <section class="section alt" aria-labelledby="does-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="does-title">What the desk does for each client</h2>
+          <p>It works the whole path from a new lead to a booked call or job, so your client's team only shows up for the work.</p>
+        </div>
+        <div class="grid grid-5">
+          <div class="card"><span class="num">1</span><h3>Finds leads</h3><p>Picks up new inquiries the moment they land and finds new prospects who fit the client's market.</p></div>
+          <div class="card"><span class="num">2</span><h3>Writes the outreach</h3><p>Personal messages based on what each lead actually asked for, in the client's voice.</p></div>
+          <div class="card"><span class="num">3</span><h3>Follows up</h3><p>Sends polite follow-ups on a schedule, so leads stop going cold in the inbox.</p></div>
+          <div class="card"><span class="num">4</span><h3>Handles replies</h3><p>Reads each reply, answers the common questions, and passes anything unusual to a person.</p></div>
+          <div class="card"><span class="num">5</span><h3>Books the call or job</h3><p>Offers real times, confirms the booking, and sends reminders.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="resell-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="resell-title">Built for agencies to resell</h2>
+          <p>Your clients buy it from you, as part of your service. We stay in the background.</p>
+        </div>
+        <div class="grid grid-4">
+          <div class="card"><h3>Your brand</h3><p>The desk, the reports, and the client updates carry your agency's name and colors. Your clients never see ours.</p></div>
+          <div class="card"><h3>Your price</h3><p>You decide what each client pays. Package it with your lead-gen, ads, or retainer however you like.</p></div>
+          <div class="card"><h3>Your margin</h3><p>Your client pays you. You keep the difference between what you charge and what it costs you.</p></div>
+          <div class="card"><h3>We run the engine</h3><p>Setup, sending, follow-ups, and upkeep are handled for you. You stay the face of the work.</p></div>
+        </div>
+        <h3 style="margin-top:34px">A good fit if you are</h3>
+        <ul class="pill-list">
+          <li>A lead-gen agency for locksmiths, HVAC, roofing, or other home services</li>
+          <li>A fractional CMO</li>
+          <li>An outbound or appointment-setting agency</li>
+          <li>Any small agency whose clients live on booked calls and jobs</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section alt" id="pilot" aria-labelledby="pilot-title">
+      <div class="wrap pilot">
+        <div>
+          <h2 id="pilot-title">Start with a 30-day pilot on one client</h2>
+          <p class="lead">Prove it on one account before you offer it to the rest. The pilot runs under your agency's brand from day one.</p>
+          <ol class="checklist">
+            <li><strong>Pick one client.</strong> A locksmith, HVAC company, roofer, or any business that lives on booked calls and jobs.</li>
+            <li><strong>We set up the desk under your brand,</strong> using that client's services, hours, service area, and rules.</li>
+            <li><strong>It runs for 30 days.</strong> You see every lead, message, reply, and booking as it happens.</li>
+            <li><strong>We review the results together</strong> and you decide whether to roll it out to more clients.</li>
+          </ol>
+          <p class="hint">Pricing is shared one on one, so it fits how your agency already sells.</p>
+        </div>
+        <div class="cta-box">
+          <h3>Ready to try it on one client?</h3>
+          <p>Email Jack with your agency's name and the client you have in mind. He will reply to set up a short call.</p>
+          <a class="btn btn-primary js-pilot" href="mailto:hello@master-hustle-engine.com?subject=30-day%20pilot%20on%20one%20client">Start a 30-day pilot on one client</a>
+          <a class="btn btn-ghost" href="https://forms.gle/LU6ktmBdWjkLUfq49" target="_blank" rel="noopener">Or fill out the short form</a>
+          <div class="contact">
+            Jack Bockholdt, Master Hustle Engine<br>
+            <a href="mailto:hello@master-hustle-engine.com">hello@master-hustle-engine.com</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>&copy; 2026 Master Hustle Engine. The white-label AI sales desk for agencies.</span>
+      <span><a href="/">Home</a> &nbsp;&middot;&nbsp; <a href="#walkthrough">Walkthrough</a> &nbsp;&middot;&nbsp; <a href="mailto:hello@master-hustle-engine.com">hello@master-hustle-engine.com</a></span>
+    </div>
+  </footer>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var PILOT_MAILTO = 'mailto:hello@master-hustle-engine.com'
+      + '?subject=' + encodeURIComponent('30-day pilot on one client')
+      + '&body=' + encodeURIComponent('Hi Jack,\n\nI saw the Master Hustle Engine demo and want to talk about a 30-day pilot.\n\nMy agency:\nClient for the pilot (business and city):\nBest time for a short call:\n');
+
+    var SCENARIOS = {
+      locksmith: {
+        client: { name: 'Keyline Lock & Key', rep: 'Sam' },
+        lead: {
+          name: 'Dana Ruiz', who: 'Homeowner', tag: 'New lead', source: 'Website form', time: 'Tue 9:42 PM',
+          need: 'Locked out of the back door. Also wants every lock rekeyed after moving in.',
+          area: 'East Austin, TX 78702',
+          signals: ['Moved in about 3 weeks ago, so a rekey is likely', 'After-hours request, so a fast reply matters', 'Two jobs in one visit: the lockout and the rekey'],
+          priority: 'High. Reply within 5 minutes.'
+        },
+        outreach: {
+          channel: 'Text', time: 'Tue 9:43 PM', delay: '1 minute after the lead came in',
+          basis: 'the late-night lockout, the recent move, and the service area',
+          text: 'Hi Dana, this is Sam with Keyline Lock & Key. Got your request about the back door. We have a tech about 20 minutes from East Austin tonight.\n\nSince you just moved in, we can also rekey every lock in the same visit so old keys stop working. Want me to send someone now?'
+        },
+        followup: {
+          time: 'Wed 8:05 AM', wait: 'No reply overnight',
+          text: 'Morning Dana, just checking in. If you got back in last night, we can still take care of the rekey. I have 10:30 AM or 2:00 PM open today, or Saturday morning. It takes about 45 minutes for the whole house.'
+        },
+        reply: {
+          time: 'Wed 8:31 AM',
+          text: 'Got in with a spare, thanks. How much is the rekey? And Saturday would be better.',
+          intent: 'Price question, prefers Saturday',
+          action: 'Answer using the client\'s pricing rule and offer Saturday times'
+        },
+        response: {
+          time: 'Wed 8:32 AM',
+          text: 'Glad you got in! The rekey is priced per lock, and the tech confirms the exact total before starting, so there are no surprises. Saturday I have 9:00 AM or 10:30 AM. Which works better?'
+        },
+        confirmIn: { time: 'Wed 8:40 AM', text: '10:30 works' },
+        booking: {
+          day: 'Saturday', dow: 'Sat', when: '10:30 AM', job: 'Rekey all exterior locks', where: 'East Austin',
+          note: 'New homeowner. Ask about a smart lock upgrade.',
+          reminder: 'Friday at 6:00 PM',
+          text: 'You\'re set for Saturday at 10:30 AM. Your tech will text when they\'re on the way. Reply here if anything changes.'
+        },
+        summary: [['1 min', 'from new lead to first reply'], ['4', 'messages written and sent by the desk'], ['0', 'calls the owner had to make']],
+        tryIt: {
+          price: 'The rekey is priced per lock, and the tech confirms the exact total before starting.',
+          slots: 'Saturday at 9:00 AM or 10:30 AM',
+          chips: ['How much is it?', 'Can you come tomorrow evening?', 'Yes, book it', 'We already found someone', 'Stop texting me']
+        }
+      },
+      hvac: {
+        client: { name: 'Summit Comfort Heating & Air', rep: 'Jen' },
+        lead: {
+          name: 'Mark Ellison', who: 'Homeowner', tag: 'New lead', source: 'Google Business Profile message', time: 'Mon 2:15 PM',
+          need: 'AC runs but blows warm air. The unit is about 14 years old.',
+          area: 'Westerville, OH 43081',
+          signals: ['14-year-old system, so this could become a replacement', 'Warm house, so he wants it fixed soon', 'Westerville is inside the service area'],
+          priority: 'High. Possible replacement lead.'
+        },
+        outreach: {
+          channel: 'Text and email', time: 'Mon 2:17 PM', delay: '2 minutes after the lead came in',
+          basis: 'the symptom, the age of the unit, and the neighborhood',
+          text: 'Hi Mark, Jen here with Summit Comfort. Sorry the AC is blowing warm. On a unit around 14 years old it\'s often a capacitor or low refrigerant, and both are quick to check.\n\nWe have a tech in Westerville tomorrow at 9:00 AM or 1:00 PM. Want one of those?'
+        },
+        followup: {
+          time: 'Tue 10:00 AM', wait: 'No reply in 20 hours',
+          text: 'Hi Mark, just making sure this didn\'t get buried. If daytime is hard, reply with a time that works for you and I\'ll get you on the schedule.'
+        },
+        reply: {
+          time: 'Tue 12:48 PM',
+          text: 'I work days. Can you come after 5? Also do you do replacements if it\'s shot?',
+          intent: 'Needs an evening time, open to a replacement',
+          action: 'Offer an evening slot and flag a possible replacement for the sales team'
+        },
+        response: {
+          time: 'Tue 12:49 PM',
+          text: 'Yes to both. We have a 5:30 PM opening on Thursday. If the unit isn\'t worth fixing, the tech will walk you through repair and replacement options on the spot so you can compare. Should I lock in Thursday at 5:30?'
+        },
+        confirmIn: { time: 'Tue 1:02 PM', text: 'Yes book it' },
+        booking: {
+          day: 'Thursday', dow: 'Thu', when: '5:30 PM', job: 'AC diagnostic, possible replacement', where: 'Westerville',
+          note: 'Flagged for the comfort advisor: 14-year-old system.',
+          reminder: 'Thursday at 8:00 AM',
+          text: 'Done. Thursday at 5:30 PM is yours. We\'ll send a reminder Thursday morning, and your tech will text when they\'re on the way.'
+        },
+        summary: [['2 min', 'from new lead to first reply'], ['4', 'messages written and sent by the desk'], ['1', 'replacement lead flagged for sales']],
+        tryIt: {
+          price: 'The diagnostic visit is a flat fee, and the tech quotes any repair before doing the work.',
+          slots: 'Thursday at 5:30 PM or Friday at 8:00 AM',
+          chips: ['What does a visit cost?', 'Do you have anything Saturday?', 'Sure, let\'s do it', 'Not interested', 'Please remove me']
+        }
+      },
+      roofing: {
+        client: { name: 'Ridgeway Roofing', rep: 'Chris' },
+        lead: {
+          name: 'Carla Nguyen', who: 'Homeowner', tag: 'Lead found by the desk', source: 'Storm report and homeowner list', time: 'Mon 7:00 AM',
+          need: 'Home built in 2009 with the original roof. Hail was reported on her street last weekend.',
+          area: 'South Tulsa, OK 74137',
+          signals: ['Hail reported nearby 3 days ago', 'Original roof, about 17 years old', 'Never contacted by Ridgeway before'],
+          priority: 'Medium. Send during business hours.'
+        },
+        outreach: {
+          channel: 'Email', time: 'Mon 9:10 AM', delay: 'sent in the client\'s best send window',
+          basis: 'the storm, the age of the roof, and her neighborhood',
+          text: 'Hi Carla, I\'m Chris with Ridgeway Roofing here in Tulsa. The hail last weekend came through your part of South Tulsa, and roofs from around 2009 tend to show damage first.\n\nWe\'re doing free 20-minute inspections in your area this week, with photos either way. Would Thursday or Friday morning work?'
+        },
+        followup: {
+          time: 'Thu 9:05 AM', wait: 'No reply in 3 days',
+          text: 'Hi Carla, one quick follow-up. Even if there\'s no damage, the photos are good to keep on file for your insurance. I can still hold Friday at 9:00 AM for you.'
+        },
+        reply: {
+          time: 'Thu 11:20 AM',
+          text: 'Is this going to be a sales pitch? I don\'t want to deal with an insurance mess.',
+          intent: 'Worried about pressure and insurance hassle',
+          action: 'Answer the concern plainly and keep the offer low pressure'
+        },
+        response: {
+          time: 'Thu 11:21 AM',
+          text: 'Fair question. It\'s a free inspection with photos, no pressure and nothing to sign. If there\'s no damage, you\'ll have proof for your records. If there is, we explain your options and you decide. Want Friday at 9:00 AM?'
+        },
+        confirmIn: { time: 'Thu 12:05 PM', text: 'Ok, Friday 9 works' },
+        booking: {
+          day: 'Friday', dow: 'Fri', when: '9:00 AM', job: 'Free roof inspection with photos', where: 'South Tulsa',
+          note: 'Customer wants low pressure. Email the photos after.',
+          reminder: 'Thursday at 5:00 PM',
+          text: 'Great, you\'re booked for Friday at 9:00 AM. Chris will text when he\'s on the way, and you\'ll get the photos by email the same day.'
+        },
+        summary: [['4 days', 'from found lead to booked inspection'], ['4', 'messages written and sent by the desk'], ['0', 'cold calls made']],
+        tryIt: {
+          price: 'The inspection is free. If repairs are needed, you get a written estimate before any work starts.',
+          slots: 'Friday at 9:00 AM or Saturday at 10:00 AM',
+          chips: ['How much does this cost?', 'Can you come next week instead?', 'Ok, sign me up', 'No thanks', 'Unsubscribe']
+        }
+      }
+    };
+
+    var state = { scenario: 'locksmith', step: 0, agency: 'Brightline Local', color: '#ea580c', playing: null, typeToken: 0 };
+    var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var feed = document.getElementById('feed');
+    var desk = document.getElementById('desk');
+    var stepButtons = Array.prototype.slice.call(document.querySelectorAll('.steps button'));
+    var nextBtn = document.getElementById('next-step');
+    var prevBtn = document.getElementById('prev-step');
+    var playBtn = document.getElementById('play-all');
+
+    function el(tag, cls, text) {
+      var node = document.createElement(tag);
+      if (cls) node.className = cls;
+      if (text != null) node.textContent = text;
+      return node;
+    }
+
+    function initials(name) {
+      var words = name.trim().split(/\s+/).filter(Boolean);
+      if (!words.length) return 'AG';
+      return (words[0][0] + (words[1] ? words[1][0] : (words[0][1] || ''))).toUpperCase();
+    }
+
+    function typeInto(node, text, animate) {
+      if (!animate || reduceMotion) { node.textContent = text; return; }
+      var token = state.typeToken;
+      var i = 0;
+      node.textContent = '';
+      node.classList.add('caret');
+      (function tick() {
+        if (token !== state.typeToken) { node.textContent = text; node.classList.remove('caret'); return; }
+        i = Math.min(text.length, i + 3);
+        node.textContent = text.slice(0, i);
+        if (i < text.length) { setTimeout(tick, 12); } else { node.classList.remove('caret'); }
+      })();
+    }
+
+    function eventCard(tagText, tagClass, title, meta) {
+      var card = el('article', 'event');
+      var head = el('div', 'event-head');
+      var left = el('div');
+      left.appendChild(el('span', 'tag ' + tagClass, tagText));
+      left.appendChild(el('span', 'event-title', title));
+      head.appendChild(left);
+      if (meta) head.appendChild(el('span', 'event-meta', meta));
+      card.appendChild(head);
+      return card;
+    }
+
+    function bubble(kind, from, text, animate) {
+      var wrap = el('div', 'msg ' + (kind === 'out' ? 'msg-out' : 'msg-in'));
+      wrap.appendChild(el('div', 'msg-from', from));
+      var body = el('div');
+      wrap.appendChild(body);
+      if (kind === 'out') { typeInto(body, text, animate); } else { body.textContent = text; }
+      return wrap;
+    }
+
+    function notes(title, items) {
+      var box = el('div', 'notes');
+      box.appendChild(el('strong', null, title));
+      var ul = el('ul');
+      items.forEach(function (t) { ul.appendChild(el('li', null, t)); });
+      box.appendChild(ul);
+      return box;
+    }
+
+    function firstName(s) { return s.lead.name.split(' ')[0]; }
+    function senderLine(s) { return s.client.rep + ', ' + s.client.name; }
+
+    var builders = {
+      1: function (s) {
+        var card = eventCard(s.lead.tag, 'tag-lead', s.lead.name + ', ' + s.lead.who, s.lead.source + ' \u00b7 ' + s.lead.time);
+        var dl = el('dl', 'kv');
+        [['Needs', s.lead.need], ['Area', s.lead.area], ['Priority', s.lead.priority]].forEach(function (row) {
+          dl.appendChild(el('dt', null, row[0]));
+          dl.appendChild(el('dd', null, row[1]));
+        });
+        card.appendChild(dl);
+        card.appendChild(notes('What the desk noticed', s.lead.signals));
+        return card;
+      },
+      2: function (s, animate) {
+        var card = eventCard('Written by AI', 'tag-ai', 'Personal outreach sent as ' + s.client.name, s.outreach.channel + ' \u00b7 ' + s.outreach.time);
+        card.appendChild(bubble('out', senderLine(s), s.outreach.text, animate));
+        card.appendChild(el('p', 'hint', 'Sent ' + s.outreach.delay + '. Written from ' + s.outreach.basis + '.'));
+        return card;
+      },
+      3: function (s, animate) {
+        var card = eventCard('Automatic follow-up', 'tag-ai', s.followup.wait + ', so the desk followed up', s.followup.time);
+        card.appendChild(bubble('out', senderLine(s), s.followup.text, animate));
+        return card;
+      },
+      4: function (s, animate) {
+        var card = eventCard('Reply handled', 'tag-in', firstName(s) + ' replied', s.reply.time);
+        card.appendChild(bubble('in', s.lead.name, s.reply.text));
+        card.appendChild(notes('How the desk read it', ['Read as: ' + s.reply.intent, 'Next move: ' + s.reply.action]));
+        var spacer = el('div'); spacer.style.height = '10px'; card.appendChild(spacer);
+        card.appendChild(bubble('out', senderLine(s) + ' \u00b7 ' + s.response.time, s.response.text, animate));
+        card.appendChild(tryBox(s));
+        return card;
+      },
+      5: function (s, animate) {
+        var card = eventCard('Booked', 'tag-ok', 'On the calendar for ' + s.booking.day + ' at ' + s.booking.when, 'Added to ' + s.client.name + '\u2019s calendar');
+        card.appendChild(bubble('in', s.lead.name + ' \u00b7 ' + s.confirmIn.time, s.confirmIn.text));
+        var spacer = el('div'); spacer.style.height = '10px'; card.appendChild(spacer);
+        var booking = el('div', 'booking');
+        var cal = el('div', 'cal');
+        cal.appendChild(el('b', null, s.booking.dow));
+        cal.appendChild(el('span', null, s.booking.when.replace(/ (AM|PM)$/, '')));
+        cal.appendChild(el('small', null, s.booking.when.slice(-2)));
+        booking.appendChild(cal);
+        var dl = el('dl', 'kv');
+        [['Job', s.booking.job], ['Where', s.booking.where], ['Note for tech', s.booking.note], ['Reminder', 'Text to ' + firstName(s) + ' ' + s.booking.reminder]].forEach(function (row) {
+          dl.appendChild(el('dt', null, row[0]));
+          dl.appendChild(el('dd', null, row[1]));
+        });
+        booking.appendChild(dl);
+        card.appendChild(booking);
+        var spacer2 = el('div'); spacer2.style.height = '12px'; card.appendChild(spacer2);
+        card.appendChild(bubble('out', senderLine(s) + ' \u00b7 confirmation', s.booking.text, animate));
+        var sum = el('div', 'summary');
+        s.summary.forEach(function (row) {
+          var d = el('div');
+          d.appendChild(el('b', null, row[0]));
+          d.appendChild(el('small', null, row[1]));
+          sum.appendChild(d);
+        });
+        var spacer3 = el('div'); spacer3.style.height = '12px'; card.appendChild(spacer3);
+        card.appendChild(sum);
+        var cta = el('div', 'btn-row');
+        cta.style.marginTop = '14px';
+        var a = el('a', 'btn btn-primary', 'Start a 30-day pilot on one client');
+        a.href = PILOT_MAILTO;
+        cta.appendChild(a);
+        card.appendChild(cta);
+        return card;
+      }
+    };
+
+    var INTENTS = [
+      { id: 'stop', test: /\b(stop|unsubscribe|remove me|don'?t (text|email|contact)|do not (text|email|contact))\b/i,
+        label: 'Opt-out request', action: 'Opt-out recorded. No more messages to this lead.',
+        reply: function () { return 'Got it. You won\'t get any more messages from us.'; } },
+      { id: 'no', test: /\b(not interested|no thanks|no thank you|already (have|hired|found|booked)|went with|found someone|nope)\b/i,
+        label: 'Not interested', action: 'Closed politely. Follow-ups stopped.',
+        reply: function () { return 'Understood, thanks for letting me know. If anything changes, just reply here.'; } },
+      { id: 'price', test: /(price|pricing|cost|how much|quote|estimate|charge|fee|\$)/i,
+        label: 'Price question', action: 'Answered with the client\'s approved pricing rule, then offered times.',
+        reply: function (s) { return s.tryIt.price + ' I can get you in ' + s.tryIt.slots + '. Which works?'; } },
+      { id: 'time', test: /\b(today|tonight|tomorrow|weekend|monday|tuesday|wednesday|thursday|friday|saturday|sunday|morning|afternoon|evening|next week|later|when|available|time|after \d|before \d|\d\s?(am|pm))\b/i,
+        label: 'Scheduling question', action: 'Offered open times from the client\'s calendar.',
+        reply: function (s) { return 'No problem. I can do ' + s.tryIt.slots + ', or tell me a time that suits you and I\'ll check with the team.'; } },
+      { id: 'yes', test: /\b(yes|yeah|yep|sure|ok|okay|book|sign me up|sounds good|let'?s do|works|go ahead)\b/i,
+        label: 'Ready to book', action: 'Booked the first open time and sent a confirmation.',
+        reply: function (s) { return 'Great, you\'re booked for ' + s.tryIt.slots.split(' or ')[0] + '. I\'ll send a confirmation and a reminder the day before. Anything the tech should know?'; } }
+    ];
+    var FALLBACK_INTENT = {
+      id: 'other', label: 'Needs a person', action: 'Not sure, so the desk drafted an answer and flagged it for the owner to approve.',
+      reply: function () { return 'Good question. Let me check with the team and get right back to you.'; }
+    };
+
+    function classify(text) {
+      for (var i = 0; i < INTENTS.length; i++) { if (INTENTS[i].test.test(text)) return INTENTS[i]; }
+      return FALLBACK_INTENT;
+    }
+
+    function tryBox(s) {
+      var box = el('div', 'try');
+      box.style.marginTop = '14px';
+      var label = el('label', 'ctrl-label', 'Try it: write your own reply as ' + firstName(s));
+      label.htmlFor = 'try-input';
+      box.appendChild(label);
+      var input = el('textarea', 'field');
+      input.id = 'try-input';
+      input.maxLength = 280;
+      input.placeholder = 'Type anything a customer might say';
+      box.appendChild(input);
+      var row = el('div', 'try-row');
+      var send = el('button', 'btn btn-primary btn-sm', 'See how the desk answers');
+      send.type = 'button';
+      row.appendChild(send);
+      s.tryIt.chips.forEach(function (c) {
+        var chip = el('button', 'chip', c);
+        chip.type = 'button';
+        chip.addEventListener('click', function () { input.value = c; run(); });
+        row.appendChild(chip);
+      });
+      box.appendChild(row);
+      var out = el('div');
+      box.appendChild(out);
+
+      function run() {
+        var text = input.value.trim();
+        out.textContent = '';
+        if (!text) { out.appendChild(el('p', 'hint', 'Type a reply first, or tap one of the examples.')); return; }
+        stopPlaying();
+        state.typeToken++;
+        var intent = classify(text);
+        var spacer = el('div'); spacer.style.height = '10px'; out.appendChild(spacer);
+        out.appendChild(bubble('in', s.lead.name, text));
+        out.appendChild(notes('How the desk read it', ['Read as: ' + intent.label, 'Next move: ' + intent.action]));
+        var spacer2 = el('div'); spacer2.style.height = '10px'; out.appendChild(spacer2);
+        out.appendChild(bubble('out', senderLine(s), intent.reply(s), true));
+      }
+      send.addEventListener('click', run);
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); run(); }
+      });
+      box.appendChild(el('p', 'hint', 'This demo answers with fixed rules so it always works. In a pilot, replies are written for each conversation, and the client decides which ones go out on their own and which wait for approval.'));
+      return box;
+    }
+
+    function render(animateLatest) {
+      state.typeToken++;
+      var s = SCENARIOS[state.scenario];
+      feed.textContent = '';
+      for (var i = 1; i <= state.step; i++) {
+        feed.appendChild(builders[i](s, animateLatest && i === state.step));
+      }
+      stepButtons.forEach(function (b) {
+        var n = Number(b.getAttribute('data-step'));
+        b.classList.toggle('done', n < state.step);
+        b.classList.toggle('current', n === state.step);
+        if (n === state.step) { b.setAttribute('aria-current', 'step'); } else { b.removeAttribute('aria-current'); }
+      });
+      prevBtn.disabled = state.step <= 1;
+      nextBtn.textContent = state.step >= 5 ? 'Start over' : 'Next step';
+      document.getElementById('client-label').textContent = 'Client: ' + s.client.name;
+      document.getElementById('sender-label').textContent = 'messages from ' + s.client.name;
+      var latest = feed.lastElementChild;
+      if (animateLatest && latest && state.step > 1) {
+        var rect = latest.getBoundingClientRect();
+        if (rect.top < 70 || rect.top > window.innerHeight - 120) {
+          latest.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+        }
+      }
+    }
+
+    function goTo(step, animate) {
+      state.step = Math.max(1, Math.min(5, step));
+      render(animate);
+    }
+
+    function stopPlaying() {
+      if (state.playing) { clearInterval(state.playing); state.playing = null; playBtn.textContent = 'Play the whole thing'; }
+    }
+
+    function updateBrand() {
+      var name = state.agency.trim() || 'Your Agency';
+      document.getElementById('brand-name').textContent = name + ' Sales Desk';
+      document.getElementById('brand-mark').textContent = initials(name);
+      desk.style.setProperty('--brand', state.color);
+      document.querySelector('.demo-shell').style.setProperty('--brand', state.color);
+    }
+
+    document.querySelectorAll('[data-scenario]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        stopPlaying();
+        state.scenario = b.getAttribute('data-scenario');
+        document.querySelectorAll('[data-scenario]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        goTo(1, true);
+      });
+    });
+
+    document.querySelectorAll('[data-color]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        state.color = b.getAttribute('data-color');
+        document.querySelectorAll('[data-color]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        updateBrand();
+      });
+    });
+
+    document.getElementById('agency-name').addEventListener('input', function (e) {
+      state.agency = e.target.value;
+      updateBrand();
+    });
+
+    stepButtons.forEach(function (b) {
+      b.addEventListener('click', function () { stopPlaying(); goTo(Number(b.getAttribute('data-step')), true); });
+    });
+
+    nextBtn.addEventListener('click', function () {
+      stopPlaying();
+      goTo(state.step >= 5 ? 1 : state.step + 1, true);
+    });
+    prevBtn.addEventListener('click', function () { stopPlaying(); goTo(state.step - 1, false); });
+
+    playBtn.addEventListener('click', function () {
+      if (state.playing) { stopPlaying(); return; }
+      goTo(1, true);
+      playBtn.textContent = 'Pause';
+      state.playing = setInterval(function () {
+        if (state.step >= 5) { stopPlaying(); return; }
+        goTo(state.step + 1, true);
+      }, reduceMotion ? 2500 : 3600);
+    });
+
+    document.querySelectorAll('.js-pilot').forEach(function (a) { a.href = PILOT_MAILTO; });
+
+    updateBrand();
+    goTo(1, false);
+  })();
+  </script>
+</body>
+</html>
