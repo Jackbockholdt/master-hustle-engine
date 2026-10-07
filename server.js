@@ -165,7 +165,7 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
 
   // 4. Failover Router Health
   const { getRouterStatus } = require('./lib/multiModelRouter');
-  const routerStatus = getRouterStatus();
+  const routerStatus = getRouterStatus({ includeSavings: true });
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
     primaryProvider: routerStatus.primaryProvider || "gpt-4o-mini",
@@ -231,16 +231,8 @@ function formatEfficiencyDisplay(val) {
 
 const tokenGovernance = {
   activeRules: true,
+  // Savings are admin-only (/savings and /admin/status). Public responses never show a measured figure here.
   get reductionTargetPct() {
-    try {
-      const { routerTelemetry } = require('./lib/multiModelRouter');
-      const hasSuccessfulTraffic = routerTelemetry && routerTelemetry.successfulDispatches > 0;
-      if (hasSuccessfulTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null && routerTelemetry.costs.measuredSavingsPct !== "not measured yet") {
-        const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
-        if (!isNaN(parsed)) return `${Number(parsed.toFixed(1))}%`;
-        return String(routerTelemetry.costs.measuredSavingsPct);
-      }
-    } catch (e) {}
     return "not measured yet";
   },
   modelTiers: {
@@ -1519,6 +1511,34 @@ app.get(['/demo', '/demo.html', '/demo-v2', '/demo-v2.html'], (req, res) => {
 // AI Router Walkthrough Page
 app.get(['/router', '/router.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'router.html'));
+});
+
+// Private router savings report. Same auth as /admin/status (ADMIN_KEY via ?key= or x-admin-key).
+// Savings figures are shown only on this page.
+app.get('/savings', (req, res) => {
+  const crypto = require('crypto');
+  const adminKey = process.env.ADMIN_KEY;
+  if (!adminKey) {
+    return res.status(503).type('text/plain').send('Savings page is disabled: ADMIN_KEY is not set on this server');
+  }
+  const providedRaw = req.query.key || req.headers['x-admin-key'];
+  const providedKey = typeof providedRaw === 'string' ? providedRaw : '';
+  const a = Buffer.from(providedKey);
+  const b = Buffer.from(adminKey);
+  const keyMatches = a.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (!keyMatches) {
+    return res.status(401).type('text/plain').send('Unauthorized: Invalid or missing admin key');
+  }
+
+  try {
+    const { getUsageReport } = require('./lib/routerUsageLog');
+    const { renderSavingsPage } = require('./lib/savingsPage');
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(renderSavingsPage(getUsageReport()));
+  } catch (err) {
+    console.error('[Savings] Failed to build report:', err.message);
+    res.status(500).type('text/plain').send('Savings report unavailable: ' + err.message);
+  }
 });
 
 // Demo API: Live Provider Failover (no longer used by /demo; kept for existing scripts)
