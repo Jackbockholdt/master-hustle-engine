@@ -8,7 +8,8 @@
     "dev": "node server.js",
     "test": "node server.js --test",
     "test:usage": "node test_router_usage_log.js",
-    "test:report": "node test_client_report.js"
+    "test:report": "node test_client_report.js",
+    "test:ingest": "node test_outreach_ingest.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
