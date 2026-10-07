@@ -1513,6 +1513,77 @@ app.get(['/router', '/router.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'router.html'));
 });
 
+// ─── Per-agency client report (/report) ────────────────────────────────────────
+// Admin pages use the same ADMIN_KEY auth as /admin/status. Share links are read-only
+// and are HMAC tokens per account (REPORT_SHARE_SECRET, falling back to ADMIN_KEY).
+function requireReportAdmin(req, res, next) {
+  const crypto = require('crypto');
+  const adminKey = process.env.ADMIN_KEY;
+  if (!adminKey) {
+    return res.status(503).type('text/plain').send('Client report is disabled: ADMIN_KEY is not set on this server');
+  }
+  const providedRaw = req.query.key || req.headers['x-admin-key'];
+  const providedKey = typeof providedRaw === 'string' ? providedRaw : '';
+  const a = Buffer.from(providedKey);
+  const b = Buffer.from(adminKey);
+  const ok = a.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (!ok) return res.status(401).type('text/plain').send('Unauthorized: Invalid or missing admin key');
+  return next();
+}
+
+app.get('/report', requireReportAdmin, (req, res) => {
+  try {
+    const { loadAgencyConfig, buildAccountReports, shareToken } = require('./lib/agencyReport');
+    const { renderIndexPage } = require('./lib/reportPage');
+    const cfg = loadAgencyConfig();
+    const reports = buildAccountReports(cfg);
+    const base = `${req.protocol}://${req.get('host')}`;
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(renderIndexPage(reports, (id) => {
+      const t = shareToken(id);
+      return t ? `${base}/report/share/${t}` : null;
+    }));
+  } catch (err) {
+    console.error('[Report] Failed to build index:', err.message);
+    res.status(500).type('text/plain').send('Client report unavailable: ' + err.message);
+  }
+});
+
+app.get('/report/share/:token', (req, res) => {
+  try {
+    const { loadAgencyConfig, findAccountByShareToken, buildAccountReport, collectSources } = require('./lib/agencyReport');
+    const { renderAccountPage } = require('./lib/reportPage');
+    const cfg = loadAgencyConfig();
+    const account = findAccountByShareToken(req.params.token, cfg);
+    if (!account) return res.status(404).type('text/plain').send('Report link not found');
+    const report = buildAccountReport(account, cfg, collectSources(cfg));
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.type('html').send(renderAccountPage(report, { shared: true }));
+  } catch (err) {
+    console.error('[Report] Failed to build shared report:', err.message);
+    res.status(500).type('text/plain').send('Client report unavailable');
+  }
+});
+
+app.get('/report/:accountId', requireReportAdmin, (req, res) => {
+  try {
+    const { loadAgencyConfig, buildAccountReport, collectSources, shareToken } = require('./lib/agencyReport');
+    const { renderAccountPage } = require('./lib/reportPage');
+    const cfg = loadAgencyConfig();
+    const account = cfg.accounts.find((a) => a.id === req.params.accountId);
+    if (!account) return res.status(404).type('text/plain').send('No agency account with that id');
+    const report = buildAccountReport(account, cfg, collectSources(cfg));
+    const t = shareToken(account.id);
+    const shareUrl = t ? `${req.protocol}://${req.get('host')}/report/share/${t}` : null;
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(renderAccountPage(report, { shareUrl }));
+  } catch (err) {
+    console.error('[Report] Failed to build account report:', err.message);
+    res.status(500).type('text/plain').send('Client report unavailable: ' + err.message);
+  }
+});
+
 // Private router savings report. Same auth as /admin/status (ADMIN_KEY via ?key= or x-admin-key).
 // Savings figures are shown only on this page.
 app.get('/savings', (req, res) => {
