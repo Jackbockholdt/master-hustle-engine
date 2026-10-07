@@ -348,6 +348,7 @@
 
           // Metrics: request count only.
           var tel = data.telemetry || {};
+          var costs = tel.costs || {};
           var totalDispatches = (tel.totalDispatches !== undefined) ? tel.totalDispatches : (data.totalRequests || 0);
           document.getElementById('metric-requests').textContent = Number(totalDispatches).toLocaleString();
 
