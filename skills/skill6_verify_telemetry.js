@@ -60,15 +60,9 @@ function compileTelemetryReport() {
     const { routerTelemetry } = require('../lib/multiModelRouter');
     const hasSuccessfulTraffic = routerTelemetry && routerTelemetry.successfulDispatches > 0;
     if (hasSuccessfulTraffic) {
-      if (routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null && routerTelemetry.costs.measuredSavingsPct !== "not measured yet") {
-        const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
-        reductionTargetPct = !isNaN(parsed) ? `${Number(parsed.toFixed(1))}%` : String(routerTelemetry.costs.measuredSavingsPct);
-      }
+      // Savings figures are admin-only; this public report does not include them.
       if (routerTelemetry.tokens && routerTelemetry.tokens.totalTokens !== undefined) {
         totalTokensProcessed = routerTelemetry.tokens.totalTokens;
-      }
-      if (routerTelemetry.costs && routerTelemetry.costs.totalSavingsUSD !== undefined) {
-        estimatedCostSavingsUSD = Number(routerTelemetry.costs.totalSavingsUSD.toFixed(4));
       }
       if (tokenStats && typeof tokenStats.totalTokensSaved === 'number' && tokenStats.totalTokensSaved > 0) {
         totalTokensSaved = tokenStats.totalTokensSaved;

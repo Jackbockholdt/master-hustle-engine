@@ -6,16 +6,8 @@
  * - Tier 3: Flagship Pro (Gemini Pro) -> Strictly gated to verified human triggers (HTTP 403 enforcement)
  */
 
+// Savings figures are admin-only (/savings and /admin/status). Token-route responses never show one.
 function getMeasuredSavings() {
-  try {
-    const { routerTelemetry } = require('../lib/multiModelRouter');
-    const hasSuccessfulTraffic = routerTelemetry && routerTelemetry.successfulDispatches > 0;
-    if (hasSuccessfulTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null && routerTelemetry.costs.measuredSavingsPct !== "not measured yet") {
-      const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
-      if (!isNaN(parsed)) return `${Number(parsed.toFixed(1))}%`;
-      return String(routerTelemetry.costs.measuredSavingsPct);
-    }
-  } catch (e) {}
   return "not measured yet";
 }
 
