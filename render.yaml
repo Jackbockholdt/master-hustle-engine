@@ -6,7 +6,7 @@ services:
     region: oregon
     buildCommand: npm install
     startCommand: node server.js
-    autoDeploy: true
+    autoDeploy: false
     healthCheckPath: /api/health
     envVars:
       - key: PORT

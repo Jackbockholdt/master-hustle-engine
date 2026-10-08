@@ -10,7 +10,7 @@
  * 3. Cascade on provider error (401, 429, 500, timeout)
  * 4. Escalation to strong tier on empty output or when cheap tier is exhausted
  * 5. Never fake output: returns success: false with real error when all providers fail
- * 6. Real tokens and cost calculation compared to strong-model baseline (gpt-4o)
+ * 6. Real tokens and cost calculation compared to the baseline (claude-sonnet-4-6, most expensive default strong model)
  * 7. Real measured savings in telemetry and /api/router/status (no hardcoded 87.6% or 94.2%)
  * 8. Router API key verification middleware (ROUTER_API_KEYS)
  */
@@ -65,10 +65,13 @@ async function runMockedTests() {
     throw err;
   });
   await routeMultiModel({ prompt: 'Initial failing request' });
-  const failStatus = getRouterStatus();
+  const failStatus = getRouterStatus({ includeSavings: true });
   assert(failStatus.telemetry.totalDispatches > 0, 'Dispatches should be counted');
   assert.strictEqual(failStatus.telemetry.successfulDispatches, 0, 'No successful dispatches');
   assert.strictEqual(failStatus.telemetry.costs.measuredSavingsPct, 'not measured yet', 'Must show "not measured yet" instead of "0%" when every request fails');
+  const publicFail = getRouterStatus();
+  assert(!('measuredSavingsPct' in publicFail.telemetry.costs), 'Public status must not include savings fields');
+  assert(!('baselineModel' in publicFail), 'Public status must not include baselineModel');
   console.log('  ✅ PASS: Telemetry shows "not measured yet" when every request fails.\n');
 
   // -----------------------------------------------------------------
@@ -177,11 +180,11 @@ async function runMockedTests() {
     inputTokens: 1000,
     outputTokens: 500
   });
-  // Baseline (gpt-4o: $2.50/$10.00): (1000 * 2.50 + 500 * 10.00) / 1,000,000 = (2500 + 5000) / 1,000,000 = $0.00750
+  // Baseline (claude-sonnet-4-6: $3.00/$15.00): (1000 * 3.00 + 500 * 15.00) / 1,000,000 = $0.01050
   // Actual (gemini-2.5-flash: $0.30 input / $2.50 output): (1000 * 0.30 + 500 * 2.50) / 1,000,000 = (300 + 1250) / 1,000,000 = $0.00155
   assert(sampleCalc.baselineCostUSD > sampleCalc.actualCostUSD, 'Baseline cost must exceed cheap model cost');
   assert(sampleCalc.savingsUSD > 0, 'Savings USD must be positive');
-  assert(sampleCalc.savingsPct > 70 && sampleCalc.savingsPct < 85, `Savings percent should be ~79.3% for Gemini 2.5 Flash (got ${sampleCalc.savingsPct}%)`);
+  assert(sampleCalc.savingsPct > 84 && sampleCalc.savingsPct < 86, `Savings percent should be ~85.2% for Gemini 2.5 Flash vs Sonnet baseline (got ${sampleCalc.savingsPct}%)`);
   console.log(`  -> Actual Cost: $${sampleCalc.actualCostUSD.toFixed(6)} vs Baseline: $${sampleCalc.baselineCostUSD.toFixed(6)} | Savings: ${sampleCalc.savingsPct}%`);
 
   // Verify unknown model handling: excluded from savings math, no guessed price
@@ -218,7 +221,7 @@ async function runMockedTests() {
   const dispatchesAfterMock = getRouterStatus().telemetry.totalDispatches;
   assert.strictEqual(dispatchesAfterMock, dispatchesAfterLive, 'Mock call must NOT increment totalDispatches');
 
-  const status = getRouterStatus();
+  const status = getRouterStatus({ includeSavings: true });
   assert(status.telemetry, 'Status must include telemetry');
   assert(status.telemetry.totalDispatches > 0, 'Total dispatches must be tracked');
   assert(status.telemetry.tokens.totalTokens > 0, 'Tokens must be tracked');

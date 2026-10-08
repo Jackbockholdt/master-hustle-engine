@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Smart AI Router: Real Cost Routing & Provider Failover | Master Hustle Engine</title>
-  <meta name="description" content="How Master Hustle Engine routes AI prompts across Gemini, OpenAI, Claude, and OpenRouter. Cheapest model first, automatic provider failover, capability escalation, and measured token savings.">
+  <meta name="description" content="How Master Hustle Engine routes AI prompts across Gemini, OpenAI, Claude, and OpenRouter. Cheapest model first, automatic provider failover, and capability escalation.">
   <link rel="canonical" href="https://master-hustle-engine.onrender.com/router">
   <meta name="theme-color" content="#0f172a">
 
@@ -128,7 +128,6 @@
           <li>Cheapest capable model first</li>
           <li>Failover across 4 providers</li>
           <li>Escalates to strong tier on failure</li>
-          <li>Measured savings, no synthetic stats</li>
         </ul>
       </div>
     </section>
@@ -185,10 +184,6 @@
           </div>
 
           <div class="grid grid-3" style="gap:16px;">
-            <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
-              <div class="stats-metric" id="metric-savings">--%</div>
-              <div class="stats-subtext">Measured cost savings vs strong-model baseline (<span class="model-pill">gpt-4o</span>)</div>
-            </div>
             <div style="background:rgba(255,255,255,0.03); padding:16px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
               <div class="stats-metric" id="metric-requests">0</div>
               <div class="stats-subtext">Total requests routed across all providers</div>
@@ -351,18 +346,9 @@
             badge.className = 'status-badge ' + (data.status === 'healthy' ? 'healthy' : (data.status === 'degraded' ? 'degraded' : 'offline'));
           }
 
-          // Metrics: read telemetry.costs.measuredSavingsPct, telemetry.totalDispatches, telemetry.costs.actualCostUSD
+          // Metrics: request count only.
           var tel = data.telemetry || {};
           var costs = tel.costs || {};
-          var savings = (costs.measuredSavingsPct !== undefined && costs.measuredSavingsPct !== null)
-            ? costs.measuredSavingsPct
-            : (data.measuredSavingsPct || 'not measured yet');
-          if (savings === 'not measured yet' || savings === '--%') {
-            document.getElementById('metric-savings').textContent = savings;
-          } else {
-            document.getElementById('metric-savings').textContent = typeof savings === 'string' && savings.endsWith('%') ? savings : (savings + '%');
-          }
-
           var totalDispatches = (tel.totalDispatches !== undefined) ? tel.totalDispatches : (data.totalRequests || 0);
           document.getElementById('metric-requests').textContent = Number(totalDispatches).toLocaleString();
 

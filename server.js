@@ -165,7 +165,7 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
 
   // 4. Failover Router Health
   const { getRouterStatus } = require('./lib/multiModelRouter');
-  const routerStatus = getRouterStatus();
+  const routerStatus = getRouterStatus({ includeSavings: true });
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
     primaryProvider: routerStatus.primaryProvider || "gpt-4o-mini",
@@ -231,16 +231,8 @@ function formatEfficiencyDisplay(val) {
 
 const tokenGovernance = {
   activeRules: true,
+  // Savings are admin-only (/savings and /admin/status). Public responses never show a measured figure here.
   get reductionTargetPct() {
-    try {
-      const { routerTelemetry } = require('./lib/multiModelRouter');
-      const hasSuccessfulTraffic = routerTelemetry && routerTelemetry.successfulDispatches > 0;
-      if (hasSuccessfulTraffic && routerTelemetry.costs && routerTelemetry.costs.measuredSavingsPct !== undefined && routerTelemetry.costs.measuredSavingsPct !== null && routerTelemetry.costs.measuredSavingsPct !== "not measured yet") {
-        const parsed = parseFloat(routerTelemetry.costs.measuredSavingsPct);
-        if (!isNaN(parsed)) return `${Number(parsed.toFixed(1))}%`;
-        return String(routerTelemetry.costs.measuredSavingsPct);
-      }
-    } catch (e) {}
     return "not measured yet";
   },
   modelTiers: {
@@ -1521,6 +1513,105 @@ app.get(['/router', '/router.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'router.html'));
 });
 
+// ─── Per-agency client report (/report) ────────────────────────────────────────
+// Admin pages use the same ADMIN_KEY auth as /admin/status. Share links are read-only
+// and are HMAC tokens per account (REPORT_SHARE_SECRET, falling back to ADMIN_KEY).
+function requireReportAdmin(req, res, next) {
+  const crypto = require('crypto');
+  const adminKey = process.env.ADMIN_KEY;
+  if (!adminKey) {
+    return res.status(503).type('text/plain').send('Client report is disabled: ADMIN_KEY is not set on this server');
+  }
+  const providedRaw = req.query.key || req.headers['x-admin-key'];
+  const providedKey = typeof providedRaw === 'string' ? providedRaw : '';
+  const a = Buffer.from(providedKey);
+  const b = Buffer.from(adminKey);
+  const ok = a.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (!ok) return res.status(401).type('text/plain').send('Unauthorized: Invalid or missing admin key');
+  return next();
+}
+
+app.get('/report', requireReportAdmin, (req, res) => {
+  try {
+    const { loadAgencyConfig, buildAccountReports, shareToken } = require('./lib/agencyReport');
+    const { renderIndexPage } = require('./lib/reportPage');
+    const cfg = loadAgencyConfig();
+    const reports = buildAccountReports(cfg);
+    const base = `${req.protocol}://${req.get('host')}`;
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(renderIndexPage(reports, (id) => {
+      const t = shareToken(id);
+      return t ? `${base}/report/share/${t}` : null;
+    }));
+  } catch (err) {
+    console.error('[Report] Failed to build index:', err.message);
+    res.status(500).type('text/plain').send('Client report unavailable: ' + err.message);
+  }
+});
+
+app.get('/report/share/:token', (req, res) => {
+  try {
+    const { loadAgencyConfig, findAccountByShareToken, buildAccountReport, collectSources } = require('./lib/agencyReport');
+    const { renderAccountPage } = require('./lib/reportPage');
+    const cfg = loadAgencyConfig();
+    const account = findAccountByShareToken(req.params.token, cfg);
+    if (!account) return res.status(404).type('text/plain').send('Report link not found');
+    const report = buildAccountReport(account, cfg, collectSources(cfg));
+    res.set('Cache-Control', 'no-store');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.type('html').send(renderAccountPage(report, { shared: true }));
+  } catch (err) {
+    console.error('[Report] Failed to build shared report:', err.message);
+    res.status(500).type('text/plain').send('Client report unavailable');
+  }
+});
+
+app.get('/report/:accountId', requireReportAdmin, (req, res) => {
+  try {
+    const { loadAgencyConfig, buildAccountReport, collectSources, shareToken } = require('./lib/agencyReport');
+    const { renderAccountPage } = require('./lib/reportPage');
+    const cfg = loadAgencyConfig();
+    const account = cfg.accounts.find((a) => a.id === req.params.accountId);
+    if (!account) return res.status(404).type('text/plain').send('No agency account with that id');
+    const report = buildAccountReport(account, cfg, collectSources(cfg));
+    const t = shareToken(account.id);
+    const shareUrl = t ? `${req.protocol}://${req.get('host')}/report/share/${t}` : null;
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(renderAccountPage(report, { shareUrl }));
+  } catch (err) {
+    console.error('[Report] Failed to build account report:', err.message);
+    res.status(500).type('text/plain').send('Client report unavailable: ' + err.message);
+  }
+});
+
+// Private router savings report. Same auth as /admin/status (ADMIN_KEY via ?key= or x-admin-key).
+// Savings figures are shown only on this page.
+app.get('/savings', (req, res) => {
+  const crypto = require('crypto');
+  const adminKey = process.env.ADMIN_KEY;
+  if (!adminKey) {
+    return res.status(503).type('text/plain').send('Savings page is disabled: ADMIN_KEY is not set on this server');
+  }
+  const providedRaw = req.query.key || req.headers['x-admin-key'];
+  const providedKey = typeof providedRaw === 'string' ? providedRaw : '';
+  const a = Buffer.from(providedKey);
+  const b = Buffer.from(adminKey);
+  const keyMatches = a.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+  if (!keyMatches) {
+    return res.status(401).type('text/plain').send('Unauthorized: Invalid or missing admin key');
+  }
+
+  try {
+    const { getUsageReport } = require('./lib/routerUsageLog');
+    const { renderSavingsPage } = require('./lib/savingsPage');
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(renderSavingsPage(getUsageReport()));
+  } catch (err) {
+    console.error('[Savings] Failed to build report:', err.message);
+    res.status(500).type('text/plain').send('Savings report unavailable: ' + err.message);
+  }
+});
+
 // Demo API: Live Provider Failover (no longer used by /demo; kept for existing scripts)
 app.post('/api/demo/failover', (req, res, next) => {
   const { requireRouterApiKey } = require('./lib/multiModelRouter');
@@ -2085,6 +2176,27 @@ app.get(['/api/inbound/triage', '/api/triage/status', '/api/inbound/staged-draft
 });
 
 // Fallback to index.html
+// Outreach event ingest: the laptop sender posts sent / reply / bounce events here.
+// Auth is the same ADMIN_KEY as /admin/status. If ADMIN_KEY is unset, the route is disabled (503).
+app.post('/api/ingest/outreach', (req, res) => {
+  const adminKey = process.env.ADMIN_KEY;
+  if (!adminKey) {
+    return res.status(503).json({ success: false, error: 'Ingest is disabled: ADMIN_KEY is not set on this server' });
+  }
+  const providedKey = req.headers['x-admin-key'];
+  if (!providedKey || providedKey !== adminKey) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing admin key' });
+  }
+  try {
+    const { insertEvents } = require('./lib/outreachEvents');
+    const result = insertEvents(req.body);
+    return res.status(200).json({ success: true, ...result });
+  } catch (err) {
+    const status = /must be a JSON array|too large/.test(err.message) ? 400 : 500;
+    return res.status(status).json({ success: false, error: err.message });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
