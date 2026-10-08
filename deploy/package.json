@@ -1,0 +1,26 @@
+{
+  "name": "master-hustle-engine",
+  "version": "2.0.0",
+  "description": "Master Hustle Engine & Antigravity Architecture - Automated Lead Gen, Token Reduction & Written Outreach System",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "node server.js --test"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5"
+  },
+  "keywords": [
+    "lead-generation",
+    "ai-studio",
+    "gemini",
+    "gumloop",
+    "antigravity",
+    "token-reducer"
+  ],
+  "author": "Jack",
+  "license": "MIT"
+}

@@ -1,0 +1,16 @@
+{
+  "_note": "Agency accounts for the client report at /report. An account owns outreach campaign names (sends) and reply venture keys (replies). Edit freely; restart the server after changes. Metrics with no matching source show 'not tracked yet'.",
+  "timezone": "America/Chicago",
+  "sources": {
+    "outreachLogs": ["saas_outreach_log.jsonl", "shovel_outreach_log.jsonl"],
+    "replyLog": "inbound_triage_log.jsonl"
+  },
+  "accounts": [
+    {
+      "id": "white-label-saas",
+      "name": "White-label SaaS (agency outreach)",
+      "campaigns": ["WHITE_LABEL_SAAS_AUTOMATION"],
+      "ventures": ["WHITE_LABEL_SAAS"]
+    }
+  ]
+}

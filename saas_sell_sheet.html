@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turnkey White-Label SaaS &amp; Automation Engine — 1-Page Sell Sheet</title>
+  <meta name="description" content="Turnkey White-Label SaaS & Client Retention Automation Engine for Digital Agencies and B2B Service Companies.">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .sell-sheet-hero {
+      text-align: center;
+      padding: 36px 20px 24px;
+      margin-bottom: 28px;
+    }
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 230, 118, 0.12);
+      border: 1px solid rgba(0, 230, 118, 0.35);
+      color: var(--accent-green);
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .sell-sheet-title {
+      font-family: var(--font-display);
+      font-size: 38px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.8px;
+      margin-bottom: 14px;
+    }
+    .sell-sheet-title span {
+      background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-cyan) 50%, var(--accent-purple-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .sell-sheet-subtitle {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 780px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 768px) {
+      .pillars-grid {
+        grid-template-columns: 1fr;
+      }
+      .sell-sheet-title {
+        font-size: 28px;
+      }
+    }
+    .pillar-card {
+      background: rgba(12, 18, 29, 0.85);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      transition: var(--transition-smooth);
+      position: relative;
+    }
+    .pillar-card:hover {
+      border-color: var(--border-glow-green);
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px -10px rgba(0, 230, 118, 0.2);
+    }
+    .pillar-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    .icon-green { background: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.3); }
+    .icon-purple { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.3); }
+    .icon-cyan { background: rgba(0, 242, 254, 0.15); border: 1px solid rgba(0, 242, 254, 0.3); }
+    .icon-gold { background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.3); }
+
+    .pillar-title {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .pillar-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+    .pillar-features {
+      list-style: none;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .pillar-features li {
+      padding: 4px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pillar-features li::before {
+      content: '✓';
+      color: var(--accent-green);
+      font-weight: bold;
+    }
+    .cta-banner {
+      background: linear-gradient(135deg, rgba(0, 230, 118, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+      border: 1px solid var(--border-glow-green);
+      border-radius: var(--radius-lg);
+      padding: 32px 24px;
+      text-align: center;
+      margin-top: 24px;
+    }
+    .cta-button {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--accent-green) 0%, #00b050 100%);
+      color: #07090e;
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      text-decoration: none;
+      padding: 14px 32px;
+      border-radius: 999px;
+      margin-top: 18px;
+      box-shadow: 0 0 20px rgba(0, 230, 118, 0.4);
+      transition: var(--transition-smooth);
+    }
+    .cta-button:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 30px rgba(0, 230, 118, 0.6);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Top Brand Header -->
+    <header class="brand-header">
+      <a href="index.html" class="brand-logo">
+        <div class="logo-badge">⚡</div>
+        <div>
+          <h1 class="brand-title">MASTER <span>HUSTLE ENGINE</span></h1>
+          <p class="brand-subtitle">Enterprise White-Label SaaS &amp; Automation Infrastructure</p>
+        </div>
+      </a>
+      <div style="font-size: 13px; color: var(--text-secondary);">
+        1-Page Executive Solution Brief
+      </div>
+    </header>
+
+    <main>
+      <div class="glass-card">
+        
+        <!-- Hero Section -->
+        <div class="sell-sheet-hero">
+          <div class="hero-badge-tag">Turnkey Agency Expansion Module</div>
+          <h2 class="sell-sheet-title">Turn Your Agency Into a <span>Recurring SaaS Machine</span></h2>
+          <p class="sell-sheet-subtitle">
+            Deploy a fully branded, custom-domain client portal and 24/7 AI revenue recovery engine under your agency's logo. Stop trading hours for dollars—collect high-margin monthly software retainers with zero custom coding required.
+          </p>
+        </div>
+
+        <!-- 4 Core Pillars Architecture Grid -->
+        <div class="pillars-grid">
+
+          <!-- Pillar 1: Automated Lead Capture & Missed-Call Recovery -->
+          <div class="pillar-card">
+            <div class="pillar-icon icon-green">⚡</div>
+            <h3 class="pillar-title">1. Automated Lead Capture &amp; Missed-Call Recovery</h3>
+            <p class="pillar-desc">
+              Over 62% of inbound service calls go unanswered. Our instant AI SMS text-back and voice routing bot engages prospective customers in &lt;15 seconds, pre-qualifies their intent, and books jobs directly into your client's calendar.
+            </p>
+            <ul class="pillar-features">
+              <li>Instant 15-second SMS auto-response on missed calls</li>
+              <li>Two-way conversational AI appointment booking</li>
+              <li>Plugs into any existing phone carrier or Twilio/Vapi SIP</li>
+            </ul>
+          </div>
+
+          <!-- Pillar 2: Custom Branded Client Portal -->
+          <div class="pillar-card">
+            <div class="pillar-icon icon-purple">🏛️</div>
+            <h3 class="pillar-title">2. Custom-Branded Client Portal</h3>
+            <p class="pillar-desc">
+              Deliver a modern, obsidian-styled client dashboard hosted on your custom agency subdomain. Give clients real-time visibility into recovered leads, pipeline metrics, and conversion ROI without manual weekly reporting.
+            </p>
+            <ul class="pillar-features">
+              <li>100% white-label: your logo, brand colors &amp; custom CNAME</li>
+              <li>Multi-client access roles with isolated permissions</li>
+              <li>Live conversion tracking and real-time revenue analytics</li>
+            </ul>
+          </div>
+
+          <!-- Pillar 3: Multi-Channel Review & Reputation Engine -->
+          <div class="pillar-card">
+            <div class="pillar-icon icon-cyan">⭐</div>
+            <h3 class="pillar-title">3. Multi-Channel Review &amp; Reputation Engine</h3>
+            <p class="pillar-desc">
+              Automatically trigger post-service review requests via SMS and email. Route 5-star experiences directly to Google Business Profile and Facebook while intercepting negative feedback privately before it hurts client ratings.
+            </p>
+            <ul class="pillar-features">
+              <li>Automated post-job review request drip sequences</li>
+              <li>Negative feedback firewall &amp; manager alerts</li>
+              <li>Google Maps &amp; local SEO ranking booster</li>
+            </ul>
+          </div>
+
+          <!-- Pillar 4: Turnkey Billing & Stripe Monetization -->
+          <div class="pillar-card">
+            <div class="pillar-icon icon-gold">💳</div>
+            <h3 class="pillar-title">4. Turnkey Billing &amp; Stripe Monetization</h3>
+            <p class="pillar-desc">
+              Collect $299–$499/month per client on autopilot. Our integrated Stripe Connect gateway automates onboarding payments, recurring monthly retainers, and customer provisioning without ongoing administrative overhead.
+            </p>
+            <ul class="pillar-features">
+              <li>Direct Stripe billing with 100% automated payouts</li>
+              <li>Tiered pricing: Starter, Growth, and Unlimited Client plans</li>
+              <li>Cryptographically verified license key provisioning</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- Metric Highlights Barometer -->
+        <div class="barometer-box">
+          <div class="section-label">
+            <span>Average Agency Client Economics</span>
+            <span class="meta">ROI Benchmark</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 14px;">
+            <div class="receptor-stat">
+              <div class="receptor-title">Deployment Time</div>
+              <div class="receptor-rating" style="color: var(--accent-green);">&lt; 24 Hours</div>
+              <div class="receptor-desc">Pre-built turnkey infrastructure; zero engineering needed.</div>
+            </div>
+
+            <div class="receptor-stat">
+              <div class="receptor-title">Client Retention Uplift</div>
+              <div class="receptor-rating" style="color: var(--accent-purple-light);">+340%</div>
+              <div class="receptor-desc">Software sticky-factor locks clients in for 12+ months.</div>
+            </div>
+
+            <div class="receptor-stat">
+              <div class="receptor-title">Gross Profit Margin</div>
+              <div class="receptor-rating" style="color: var(--accent-cyan);">88.4%</div>
+              <div class="receptor-desc">Built on 3-tier token reduction &amp; lightweight server architecture.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Call To Action Section -->
+        <div class="cta-banner">
+          <h3 style="font-family: var(--font-display); font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 8px;">
+            Ready to deploy this software under your agency brand?
+          </h3>
+          <p style="color: var(--text-secondary); font-size: 14px; max-width: 600px; margin: 0 auto;">
+            Lock in a 5-minute live architecture demo to see how simple it is to activate recurring software retainers for your current client roster.
+          </p>
+          <a href="mailto:jbockholdt4@gmail.com?subject=White%20Label%20SaaS%20Walkthrough%20Request" class="cta-button">
+            Request 5-Minute Walkthrough →
+          </a>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; 2026 Master Hustle Engine • Enterprise B2B SaaS Infrastructure • Confidential Solution Brief</p>
+    </footer>
+
+  </div>
+</body>
+</html>
