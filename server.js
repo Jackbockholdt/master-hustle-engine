@@ -2176,6 +2176,27 @@ app.get(['/api/inbound/triage', '/api/triage/status', '/api/inbound/staged-draft
 });
 
 // Fallback to index.html
+// Outreach event ingest: the laptop sender posts sent / reply / bounce events here.
+// Auth is the same ADMIN_KEY as /admin/status. If ADMIN_KEY is unset, the route is disabled (503).
+app.post('/api/ingest/outreach', (req, res) => {
+  const adminKey = process.env.ADMIN_KEY;
+  if (!adminKey) {
+    return res.status(503).json({ success: false, error: 'Ingest is disabled: ADMIN_KEY is not set on this server' });
+  }
+  const providedKey = req.headers['x-admin-key'];
+  if (!providedKey || providedKey !== adminKey) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing admin key' });
+  }
+  try {
+    const { insertEvents } = require('./lib/outreachEvents');
+    const result = insertEvents(req.body);
+    return res.status(200).json({ success: true, ...result });
+  } catch (err) {
+    const status = /must be a JSON array|too large/.test(err.message) ? 400 : 500;
+    return res.status(status).json({ success: false, error: err.message });
+  }
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
