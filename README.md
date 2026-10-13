@@ -131,6 +131,21 @@ node server.js
 
 ---
 
+## 🔔 Reply Alert (`reply_alert.py`)
+
+Texts and/or emails Jack one line for each new reply to **hello@** or **Talha's campaign**:
+
+```
+Reply via hello@: Jane Doe <jane@prospect.io>: "Yes, send it over."
+```
+
+- Standalone: it reads the inbox itself (IMAP, read-only) and does not touch `send_batch.py`, `talha_batch.py` or the reply-check script.
+- Run it right after the reply-check on the same schedule, e.g. `python reply_check.py && python reply_alert.py`.
+- Alerts only Jack (`REPLY_ALERT_SMS_TO` via Twilio and/or `REPLY_ALERT_EMAIL_TO` via SMTP). Never contacts a prospect.
+- Skips auto-replies, bounces and our own outbound. Each reply alerts once (`reply_alert_state.json`, gitignored); a failed delivery is retried next run.
+- First run records existing replies as seen without alerting (`--backfill` to alert on them). `--dry-run` prints alerts and sends nothing.
+- Config is env-only — see the "Reply alert" block in `.env.example`. Tests: `python3 test_reply_alert.py`.
+
 ## 🔒 Security & Data Isolation Guarantees
 * **Live Latency Audits**: Real millisecond latency calculated dynamically with `Date.now()` (never hardcoded).
 * **Truthful Provider Reporting**: If backup API keys are unconfigured, router reports `backup not configured` instead of faking success.
