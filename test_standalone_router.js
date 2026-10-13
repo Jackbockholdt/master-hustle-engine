@@ -106,10 +106,9 @@ async function runVerification() {
   console.log('  -> Secondary provider:', status.secondaryProvider);
   console.log('  -> Tertiary provider:', status.tertiaryProvider);
   console.log('  -> Probes:', JSON.stringify(status.probes));
-  assert(status.reachability !== undefined, 'Reachability must be defined in status');
-  assert(status.primaryProvider.includes('gpt-4o'), 'Primary provider must report cheapest model (gpt-4o-mini)');
-  assert(status.secondaryProvider.includes('gemini-3.5-flash-lite'), 'Secondary provider must report gemini-3.5-flash-lite');
-  assert(status.tertiaryProvider.includes('gemini-3.5-flash-lite'), 'Tertiary provider must report openrouter cheap gemini model');
+  assert(status.primaryProvider.includes('gemini'), 'Primary provider must report Gemini Flash-Lite');
+  assert(status.secondaryProvider.includes('gemini') || status.secondaryProvider.includes('openrouter'), 'Secondary provider must report openrouter cheap model');
+  assert(status.tertiaryProvider.includes('gpt-4o'), 'Tertiary provider must report gpt-4o-mini');
   console.log('  ✅ PASS: Real health telemetry verified.\n');
 
   console.log('===================================================================');

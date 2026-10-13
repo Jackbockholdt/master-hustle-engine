@@ -168,11 +168,11 @@ app.get(['/admin/status', '/api/admin/status'], (req, res) => {
   const routerStatus = getRouterStatus({ includeSavings: true });
   const failoverRouterHealth = {
     status: routerStatus.status || "HEALTHY",
-    primaryProvider: routerStatus.primaryProvider || "gpt-4o-mini",
-    secondaryProvider: routerStatus.secondaryProvider || "gemini-3.5-flash-lite",
-    tertiaryProvider: routerStatus.tertiaryProvider || "google/gemini-3.5-flash-lite",
-    fallbackProviders: routerStatus.configuredProviders || ["openai", "gemini", "claude", "openrouter"],
-    activeChain: routerStatus.activeChain || "openai -> gemini -> openrouter -> claude",
+    primaryProvider: routerStatus.primaryProvider || "gemini-3.5-flash-lite",
+    secondaryProvider: routerStatus.secondaryProvider || "google/gemini-3.5-flash-lite",
+    tertiaryProvider: routerStatus.tertiaryProvider || "gpt-4o-mini",
+    fallbackProviders: routerStatus.configuredProviders || ["gemini", "openrouter", "openai", "claude"],
+    activeChain: routerStatus.activeChain || "gemini -> openrouter -> openai -> claude",
     reachability: routerStatus.reachability,
     probes: routerStatus.probes,
     averageLatencyMs: routerStatus.averageLatencyMs,

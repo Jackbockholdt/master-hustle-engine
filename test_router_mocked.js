@@ -75,9 +75,9 @@ async function runMockedTests() {
   console.log('  ✅ PASS: Telemetry shows "not measured yet" when every request fails.\n');
 
   // -----------------------------------------------------------------
-  // 2. Real Cost Routing: Starts on Cheapest Model
+  // 2. Real Cost Routing: Starts on Cheapest Model (Gemini Flash-Lite)
   // -----------------------------------------------------------------
-  console.log('[Test 2] Testing real cost routing to cheapest available model...');
+  console.log('[Test 2] Testing real cost routing to cheapest available model (Gemini Flash-Lite)...');
   const dispatchOrder = [];
   setMockDispatcher(async ({ provider, tier, model }) => {
     dispatchOrder.push({ provider, tier, model });
@@ -92,24 +92,24 @@ async function runMockedTests() {
   assert.strictEqual(resCost.success, true, 'Request should succeed');
   assert.strictEqual(resCost.tier, 'cheap', 'Default routing must choose cheap tier');
   assert.strictEqual(dispatchOrder[0].tier, 'cheap', 'First dispatch attempt must be cheap tier');
-  assert.strictEqual(dispatchOrder[0].provider, 'openai', 'First dispatch attempt should be cheapest provider (OpenAI gpt-4o-mini)');
+  assert.strictEqual(dispatchOrder[0].provider, 'gemini', 'First dispatch attempt should be Gemini Flash-Lite');
   console.log(`  -> Selected: ${resCost.provider} (${resCost.model}, tier=${resCost.tier})`);
   console.log('  ✅ PASS: Request routed to cheapest model.\n');
 
   // -----------------------------------------------------------------
-  // 3. Provider Failover: Cascades to Next Cheap Provider
+  // 3. Provider Failover: Cascades to Next Cheap Provider (OpenRouter)
   // -----------------------------------------------------------------
-  console.log('[Test 3] Testing provider failover cascade across cheap tier...');
+  console.log('[Test 3] Testing provider failover cascade across cheap tier (Gemini 503 -> OpenRouter)...');
   dispatchOrder.length = 0;
   setMockDispatcher(async ({ provider, tier, model }) => {
     dispatchOrder.push({ provider, tier, model });
-    if (provider === 'openai') {
-      const err = new Error('OpenAI upstream 503 load spike');
+    if (provider === 'gemini') {
+      const err = new Error('Gemini upstream 503 load spike');
       err.status = 503;
       throw err;
     }
     return {
-      text: 'Gemini fallback response',
+      text: 'OpenRouter fallback response',
       inputTokens: 120,
       outputTokens: 40
     };
@@ -118,10 +118,11 @@ async function runMockedTests() {
   const resFailover = await routeMultiModel({ prompt: 'Generate fallback outreach' });
   assert.strictEqual(resFailover.success, true, 'Failover request should succeed on secondary');
   assert.strictEqual(resFailover.tier, 'cheap', 'Should remain on cheap tier during provider failover');
-  assert.strictEqual(resFailover.attempts.length, 1, 'Should record failed OpenAI attempt');
-  assert.strictEqual(resFailover.attempts[0].provider, 'openai', 'Recorded attempt provider must be openai');
+  assert.strictEqual(resFailover.attempts.length, 1, 'Should record failed Gemini attempt');
+  assert.strictEqual(resFailover.attempts[0].provider, 'gemini', 'Recorded attempt provider must be gemini');
   assert.strictEqual(resFailover.attempts[0].status, 503, 'Recorded attempt status must be 503');
-  console.log(`  -> First attempt failed (OpenAI 503), failed over to: ${resFailover.provider} (${resFailover.model})`);
+  assert.strictEqual(resFailover.provider, 'openrouter', 'Recorded failover provider must be openrouter');
+  console.log(`  -> First attempt failed (Gemini 503), failed over to: ${resFailover.provider} (${resFailover.model})`);
   console.log('  ✅ PASS: Provider failover cascade succeeded without dropped turns.\n');
 
   // -----------------------------------------------------------------
