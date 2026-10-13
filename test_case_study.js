@@ -28,11 +28,10 @@ assert(/Austin/i.test(html), 'Case study must mention Austin');
 assert(/Oklahoma/i.test(html), 'Case study must mention Oklahoma');
 assert(/homepage mockup/i.test(html), 'Case study must mention the free homepage mockup offer');
 
-// 4. Blank spots for emails sent, replies, and calls booked
-assert(/metric-emails-sent/i.test(html), 'Must include element for emails sent metric');
-assert(/metric-replies/i.test(html), 'Must include element for replies metric');
-assert(/metric-calls-booked/i.test(html), 'Must include element for calls booked metric');
-assert(/\[\s*--\s*\]/.test(html), 'Must contain blank placeholder indicators like [ -- ]');
+// 4. Metric values from talha-report.html (26 sent, 0 replies, calls booked left blank)
+assert(/metric-emails-sent[\s\S]*?>26</.test(html), 'Emails sent must be 26 as reported in talha-report.html');
+assert(/metric-replies[\s\S]*?>0</.test(html), 'Replies received must be 0 as reported in talha-report.html');
+assert(/metric-calls-booked[\s\S]*?>&nbsp;</.test(html), 'Calls booked must be left blank because it is not in talha-report.html');
 
 // 5. Zero made-up numbers or savings claims
 assert(!/saved\s+\$/i.test(html), 'Must not include savings claims');
