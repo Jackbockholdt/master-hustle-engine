@@ -1,0 +1,39 @@
+email,domain,failure_type,detail,times_sent,action
+a.brinckerhoff@ames.com,ames.com,hard_bounce,550 address not found,1,never send again
+sabra@brittonmdg.com,brittonmdg.com,hard_bounce,address not found,4,never send again
+kstoltz@stoltzgroup.com,stoltzgroup.com,hard_bounce,address not found,1,never send again
+angrussell04@aol.com,aol.com,hard_bounce,552 address not found,1,never send again
+tkucinsky@catalystgetsit.com,catalystgetsit.com,blocked_by_admin,enterprise administrator blocked sender,4,CRITICAL never send again
+tedk@catalystgetsit.com,catalystgetsit.com,blocked_domain,domain admin blocked sender - sent again Jul 31 in error,1,CRITICAL never send again
+corrina.chavez@accentadv.com,accentadv.com,permanent_fail,recipient server refused after retries,3,never send again
+nfrench@westmichiganmarketing.com,westmichiganmarketing.com,permanent_fail,recipient server refused after retries,2,never send again
+shspanthers@empiremediaandmgmt.com,empiremediaandmgmt.com,permanent_fail,451 mail server error,1,never send again
+ktaylor@id121.com,id121.com,permanent_fail,remote server refused,1,never send again
+rebecca@thetagagency.com,thetagagency.com,dns_failure,no MX record,1,never send again
+supremejudicial@yahoo.com,yahoo.com,hard_bounce,552 address not found,1,never send again
+melissa@spaweekmedia.com,spaweekmedia.com,hard_bounce,account does not exist,1,never send again
+someone@gmail.com,gmail.com,test_artifact,placeholder address from smoke test,1,never a lead
+moon.technolabs@moontechnolabs.com,moontechnolabs.com,hard_bounce,account does not exist,1,never send again
+adenworth@woadigital.com,woadigital.com,hard_bounce,account does not exist,1,never send again
+abarker@barkerdzp.com,barkerdzp.com,blocked_by_admin,enterprise administrator blocked sender,1,never send again
+melanie.wilhoite@edelman.com,edelman.com,hard_bounce,address not found,1,never send again
+brianc@lunarsolargroup.com,lunarsolargroup.com,hard_bounce,550 address not found,1,never send again
+agustin@dial911fordesign.com,dial911fordesign.com,hard_bounce,550 address not found,1,never send again
+elsa@honchosearch.com,honchosearch.com,hard_bounce,address not found,1,never send again
+chris@ceekmarketing.com,ceekmarketing.com,permanent_fail,recipient server refused after retries,2,never send again
+matt@punchydigital.com,punchydigital.com,permanent_fail,recipient server refused after retries,2,never send again
+jonathan@jemso.io,jemso.io,domain_nonexistent,domain does not exist,2,never send again
+lisa@presshook.com,presshook.com,hard_bounce,account does not exist,2,never send again
+arthur@findymail.com,findymail.com,hard_bounce,account does not exist,2,never send again
+george@sendowl.com,sendowl.com,hard_bounce,550 address not found,2,never send again
+luke@gathercontent.com,gathercontent.com,hard_bounce,550 address not found,2,never send again
+robert@brightoak.com,brightoak.com,hard_bounce,550 address not found,1,never send again
+ryan@webcanopystudio.com,webcanopystudio.com,hard_bounce,account does not exist,1,never send again
+matt@sproutmediagroup.com,sproutmediagroup.com,hard_bounce,address not found,2,never send again
+matt@modusagency.com,modusagency.com,hard_bounce,550 address not found,1,never send again
+nick@adherecreative.com,adherecreative.com,hard_bounce,account does not exist,1,never send again
+sayhello@tinuiti.com,tinuiti.com,hard_bounce,550 5.1.1 address not found Jul 31,1,never send again
+hello@automationagency.com,automationagency.com,hard_bounce,550 address not found Jul 31,1,never send again
+maghannoum@gmail.com,gmail.com,no_reply,contacted Jul 29 no reply,1,do not send again
+l@gmail.com,gmail.com,malformed,truncated address,0,never a lead
+mpluim@pappasgroup.com,pappasgroup.com,hard_bounce,550 address not found Aug 8 - validator said Confirmed but was stale,1,never send again

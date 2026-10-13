@@ -1,0 +1,69 @@
+[
+  {
+    "timestamp": "2026-09-10T18:07:15.333Z",
+    "event": "INBOUND_REPLY_RECEIVED",
+    "sender": "johnathan@klientboost.com",
+    "company": "KlientBoost",
+    "subject": "Re: Cutting KlientBoost token burn",
+    "bodySnippet": "Hey Jack, saw the numbers. Can you send over the 10-minute demo link?",
+    "actionTaken": "DEMO_LINK_DISPATCHED",
+    "demoLink": "https://cal.com/jack-antigravity/15min"
+  },
+  {
+    "timestamp": "2026-09-10T18:09:27.373Z",
+    "event": "INBOUND_REPLY_RECEIVED",
+    "sender": "johnathan@klientboost.com",
+    "company": "KlientBoost",
+    "subject": "Re: Cutting KlientBoost's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "bodySnippet": "Hi Jack, we saw the note about 87.6% token reduction. Can you send over the 10-minute demo scheduling link?",
+    "actionTaken": "SUBSEQUENT_REPLY_LOGGED"
+  },
+  {
+    "timestamp": "2026-09-10T18:09:27.395Z",
+    "event": "INBOUND_REPLY_RECEIVED",
+    "sender": "johnathan@klientboost.com",
+    "company": "KlientBoost",
+    "subject": "Re: Technical Walkthrough",
+    "bodySnippet": "The demo was great. We want to sign up for the private-label agency retainer. Where do we send payment?",
+    "actionTaken": "STRIPE_CHECKOUT_ROUTED",
+    "stripeLink": "https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G"
+  },
+  {
+    "timestamp": "2026-09-10T18:09:27.428Z",
+    "event": "INBOUND_REPLY_RECEIVED",
+    "sender": "grayson@powerdigital.com",
+    "company": "Power Digital Marketing",
+    "subject": "Re: Outreach",
+    "bodySnippet": "Please unsubscribe us and remove from list.",
+    "actionTaken": "OPT_OUT_HALTED"
+  },
+  {
+    "timestamp": "2026-09-10T18:09:32.253Z",
+    "event": "INBOUND_REPLY_RECEIVED",
+    "sender": "johnathan@klientboost.com",
+    "company": "KlientBoost",
+    "subject": "Re: Cutting KlientBoost's LLM API token burn by 50-70% (Master Hustle / Anti-Gravity engine)",
+    "bodySnippet": "Hi Jack, we saw the note about 87.6% token reduction. Can you send over the 10-minute demo scheduling link?",
+    "actionTaken": "DEMO_LINK_DISPATCHED",
+    "demoLink": "https://cal.com/jack-antigravity/15min"
+  },
+  {
+    "timestamp": "2026-09-10T18:09:32.285Z",
+    "event": "INBOUND_REPLY_RECEIVED",
+    "sender": "johnathan@klientboost.com",
+    "company": "KlientBoost",
+    "subject": "Re: Technical Walkthrough",
+    "bodySnippet": "The demo was great. We want to sign up for the private-label agency retainer. Where do we send payment?",
+    "actionTaken": "STRIPE_CHECKOUT_ROUTED",
+    "stripeLink": "https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G"
+  },
+  {
+    "timestamp": "2026-09-10T18:09:32.314Z",
+    "event": "INBOUND_REPLY_RECEIVED",
+    "sender": "grayson@powerdigital.com",
+    "company": "Power Digital Marketing",
+    "subject": "Re: Outreach",
+    "bodySnippet": "Please unsubscribe us and remove from list.",
+    "actionTaken": "OPT_OUT_HALTED"
+  }
+]

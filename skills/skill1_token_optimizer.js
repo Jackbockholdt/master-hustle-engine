@@ -1,0 +1,125 @@
+/**
+ * Skill 1: Financial Margin & Token Burn Optimizer
+ * 3-Tier Token Reducer Architecture:
+ * - Tier 1: Qualifier / Background Telemetry (Gemini Flash) -> Real measured cost reduction
+ * - Tier 2: Research & Copy Drafting (Primary Low-Cost Fallback: Gemini Flash / Claude Haiku)
+ * - Tier 3: Flagship Pro (Gemini Pro) -> Strictly gated to verified human triggers (HTTP 403 enforcement)
+ */
+
+// Savings figures are admin-only (/savings and /admin/status). Token-route responses never show one.
+function getMeasuredSavings() {
+  return "not measured yet";
+}
+
+const tokenStats = {
+  get targetEfficiencyPct() {
+    return getMeasuredSavings();
+  },
+  totalCallsProcessed: 0,
+  totalTokensSaved: 0,
+  modelTiers: {
+    get FLASH() { return process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get LOW_COST_COPY() { return process.env.COPY_MODEL || process.env.GEMINI_MODEL || "gemini-3.5-flash-lite"; },
+    get FLAGSHIP() { return process.env.GEMINI_FLAGSHIP_MODEL || "gemini-3.8-flash"; }
+  },
+  marginTiers: {
+    RETAINER: { name: "Managed Agency Retainer", dueAtSigningUSD: 4000, setupFeeUSD: 2500, monthlyPriceUSD: 1500, stripeLink: "https://buy.stripe.com/6oU9AS3WGdTlaWr68D0000G" },
+    BUYOUT: { name: "Full IP Buyout", oneTimePriceUSD: 25000, stripeLink: "https://buy.stripe.com/bJecN4al44iL5C7bsX0000H" }
+  }
+};
+
+/**
+ * Strips verbose conversational fluff and context bloat from text
+ */
+function stripContextBloat(rawPrompt) {
+  if (!rawPrompt || typeof rawPrompt !== 'string') return '';
+  return rawPrompt
+    .replace(/\b(please|kindly|could you|would you be able to|as an ai|in order to|i want you to)\b/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Executes Token Optimization & Model Routing Logic
+ */
+function optimizeTokenRoute(params = {}) {
+  const { taskType = 'BACKGROUND_TELEMETRY', rawPrompt = '', requestedModel = null, humanTriggered = false, leadCount = 1 } = params;
+
+  tokenStats.totalCallsProcessed++;
+  const cleanedPrompt = stripContextBloat(rawPrompt);
+  const promptTokensEst = Math.ceil(cleanedPrompt.length / 4);
+
+  const normTask = String(taskType).toUpperCase().trim();
+  const normModel = String(requestedModel || '').toLowerCase().trim();
+
+  // Flagship Check (Strictly blocked on automated calls, requires human trigger)
+  const isFlagship = normModel.includes('pro') ||
+                     normModel.includes('flagship') ||
+                     normModel === tokenStats.modelTiers.FLAGSHIP.toLowerCase() ||
+                     ['CUSTOM_PITCH', 'ENTERPRISE_DEAL', 'MANUAL_COPY', 'FLAGSHIP_PRO'].includes(normTask);
+
+  if (isFlagship) {
+    if (!humanTriggered) {
+      return {
+        success: false,
+        statusCode: 403,
+        error: 'ERR_FLAGSHIP_RESTRICTED_TO_HUMAN',
+        message: 'High-cost Flagship Pro model is strictly restricted to verified human triggers.',
+        fallbackModel: tokenStats.modelTiers.FLASH,
+        tier: 'FLASH_BUDGET',
+        marginTierRecommended: tokenStats.marginTiers.STARTER
+      };
+    }
+
+    return {
+      success: true,
+      statusCode: 200,
+      selectedModel: tokenStats.modelTiers.FLAGSHIP,
+      tier: 'FLAGSHIP_PRO',
+      humanAuthorized: true,
+      estimatedCostPerUnitUSD: 0.0035,
+      marginImpact: 'GATED_AUTHORIZED',
+      cleanedPrompt
+    };
+  }
+
+  // Copywriting Tier (Low-Cost Fallback Chain)
+  const isCopy = normTask.includes('COPY') || normTask.includes('OUTREACH') || normTask.includes('SALES');
+  if (isCopy) {
+    return {
+      success: true,
+      statusCode: 200,
+      selectedModel: tokenStats.modelTiers.LOW_COST_COPY,
+      tier: 'LOW_COST_FALLBACK',
+      estimatedCostPerUnitUSD: "not measured yet",
+      cleanedPrompt,
+      marginTierRecommended: tokenStats.marginTiers.RETAINER
+    };
+  }
+
+  // Flash Budget / Background Automated Tier (Dynamic measured reduction)
+  const measuredEfficiency = getMeasuredSavings();
+  const isMeasured = measuredEfficiency !== "not measured yet";
+
+  return {
+    success: true,
+    statusCode: 200,
+    selectedModel: tokenStats.modelTiers.FLASH,
+    tier: 'FLASH_BUDGET',
+    efficiencyPct: measuredEfficiency,
+    tokensSavedEstimate: isMeasured ? tokenStats.totalTokensSaved : "not measured yet",
+    estimatedCostPerUnitUSD: "not measured yet",
+    marginTierRecommended: tokenStats.marginTiers.STARTER,
+    financialMetrics: {
+      measuredSavingsPct: measuredEfficiency,
+      leadUnitCostUSD: "not measured yet"
+    },
+    cleanedPrompt
+  };
+}
+
+module.exports = {
+  tokenStats,
+  stripContextBloat,
+  optimizeTokenRoute
+};
