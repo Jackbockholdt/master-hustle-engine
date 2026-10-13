@@ -12,3 +12,5 @@ coverage
 *.tmp
 *.bak
 *.dump
+reply_alert_state.json
+reply_alert_state.json.tmp
