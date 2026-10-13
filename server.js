@@ -1513,6 +1513,114 @@ app.get(['/router', '/router.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'router.html'));
 });
 
+// Lead Leak Audit Diagnostic Page
+app.get(['/audit', '/audit.html', '/quiz'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'audit.html'));
+});
+
+// Lead Leak Audit Ingestion Endpoint
+app.post('/api/audit-lead', async (req, res) => {
+  try {
+    const { isValidEmail, checkRateLimit, saveAuditLead, sendAuditNotification } = require('./lib/auditLeads');
+
+    // 1. IP extraction & rate limiting
+    const forwarded = req.headers['x-forwarded-for'];
+    const ip = typeof forwarded === 'string'
+      ? forwarded.split(',')[0].trim()
+      : (req.socket?.remoteAddress || req.ip || 'unknown');
+
+    const rateResult = checkRateLimit(ip);
+    if (!rateResult.allowed) {
+      return res.status(429).json({
+        success: false,
+        error: 'Too many submissions from this IP. Please try again later.'
+      });
+    }
+
+    // 2. Validate payload
+    const { name, email, business, answers, score } = req.body || {};
+    if (!email || !isValidEmail(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid email address is required.'
+      });
+    }
+
+    // 3. Save into SQLite
+    const saved = saveAuditLead({
+      name,
+      email,
+      business,
+      answers,
+      score,
+      ip
+    });
+
+    // 4. Send non-blocking notification to hello@master-hustle-engine.com
+    sendAuditNotification(saved).catch(err => {
+      console.warn('[Audit Notification Error]', err.message);
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Audit lead captured successfully',
+      id: saved.id,
+      score: saved.score
+    });
+  } catch (err) {
+    console.error('[Audit Lead Ingest Error]', err.message);
+    return res.status(500).json({
+      success: false,
+      error: 'Internal server error while processing audit lead'
+    });
+  }
+});
+
+// Admin-only list of audit leads, protected by ADMIN_KEY
+app.get(['/admin/audit-leads', '/api/admin/audit-leads'], (req, res) => {
+  const crypto = require('crypto');
+  const adminKey = process.env.ADMIN_KEY;
+  const isJson = req.headers.accept?.includes('application/json') || req.query.format === 'json';
+
+  if (!adminKey) {
+    if (isJson) {
+      return res.status(503).json({ success: false, error: 'Admin access is disabled: ADMIN_KEY is not set on this server' });
+    }
+    return res.status(503).type('text/plain').send('Admin access is disabled: ADMIN_KEY is not set on this server');
+  }
+
+  const providedRaw = req.query.key || req.headers['x-admin-key'];
+  const providedKey = typeof providedRaw === 'string' ? providedRaw : '';
+  const a = Buffer.from(providedKey);
+  const b = Buffer.from(adminKey);
+  const keyMatches = a.length > 0 && a.length === b.length && crypto.timingSafeEqual(a, b);
+
+  if (!keyMatches) {
+    if (isJson) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing admin key' });
+    }
+    return res.status(401).type('text/plain').send('Unauthorized: Invalid or missing admin key');
+  }
+
+  try {
+    const { getAuditLeads, getAuditLeadCount, renderAdminAuditLeadsHtml } = require('./lib/auditLeads');
+    const limit = Math.min(500, parseInt(req.query.limit || '100', 10));
+    const offset = Math.max(0, parseInt(req.query.offset || '0', 10));
+    const leads = getAuditLeads({ limit, offset });
+    const count = getAuditLeadCount();
+
+    if (isJson) {
+      return res.status(200).json({ success: true, count: leads.length, total: count, leads });
+    }
+
+    res.set('Cache-Control', 'no-store');
+    res.type('html').send(renderAdminAuditLeadsHtml(leads, count, adminKey));
+  } catch (err) {
+    console.error('[Admin Audit Leads Error]', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ─── Per-agency client report (/report) ────────────────────────────────────────
 // Admin pages use the same ADMIN_KEY auth as /admin/status. Share links are read-only
 // and are HMAC tokens per account (REPORT_SHARE_SECRET, falling back to ADMIN_KEY).
