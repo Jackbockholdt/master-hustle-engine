@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Case Study: Alpheynia Web Studio 7-Day Sprint | Master Hustle Engine</title>
+  <meta name="description" content="How Master Hustle Engine built a targeted cold outreach pipeline for Talha Kamdar's web studio, Alpheynia, targeting 50 local service businesses and gyms across Austin and Oklahoma.">
+  <link rel="canonical" href="https://master-hustle-engine.onrender.com/case-study">
+  <meta name="theme-color" content="#0f172a">
+
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Master Hustle Engine">
+  <meta property="og:url" content="https://master-hustle-engine.onrender.com/case-study">
+  <meta property="og:title" content="Case Study: Alpheynia Web Studio 7-Day Sprint">
+  <meta property="og:description" content="Targeted outreach engine approaching 50 local plumbers and gyms across Austin and Oklahoma with free homepage mockups.">
+  <meta property="og:image" content="https://master-hustle-engine.onrender.com/assets/og/master-hustle-engine-og.png">
+
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/site.css">
+  <style>
+    .cs-container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 36px 20px 64px;
+    }
+    .cs-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--accent-dark);
+      background: var(--accent-soft);
+      padding: 5px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+    .cs-hero {
+      margin-bottom: 40px;
+    }
+    .cs-hero h1 {
+      font-size: clamp(2rem, 4.5vw, 2.9rem);
+      font-weight: 800;
+      color: var(--ink);
+      line-height: 1.15;
+      margin-bottom: 14px;
+      letter-spacing: -0.02em;
+    }
+    .cs-lead {
+      font-size: 1.15rem;
+      line-height: 1.6;
+      color: var(--ink-2);
+      margin-bottom: 0;
+    }
+    .cs-card {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+    @media (max-width: 600px) {
+      .cs-card { padding: 22px 18px; }
+    }
+    .cs-section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .cs-section-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .cs-card h2 {
+      font-size: 1.35rem;
+      font-weight: 800;
+      margin: 0;
+      color: var(--ink);
+    }
+    .cs-text {
+      font-size: 1.02rem;
+      line-height: 1.65;
+      color: var(--ink-2);
+      margin-bottom: 16px;
+    }
+    .cs-text:last-child {
+      margin-bottom: 0;
+    }
+    .profile-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-top: 20px;
+    }
+    .meta-item strong {
+      display: block;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .meta-item span {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+    .step-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0 0 0;
+      display: grid;
+      gap: 16px;
+    }
+    .step-item {
+      display: flex;
+      gap: 14px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .step-icon {
+      font-size: 1.25rem;
+      line-height: 1;
+      padding-top: 2px;
+    }
+    .step-content strong {
+      display: block;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    .step-content p {
+      font-size: 0.92rem;
+      color: var(--ink-2);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 22px;
+    }
+    @media (max-width: 680px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .metric-card {
+      background: var(--bg-soft);
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 24px 18px;
+      text-align: center;
+      position: relative;
+    }
+    .metric-spot {
+      display: inline-block;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #94a3b8;
+      letter-spacing: 0.08em;
+      line-height: 1.1;
+      margin-bottom: 8px;
+      font-family: monospace;
+    }
+    .metric-label {
+      font-size: 0.88rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .metric-status {
+      display: inline-block;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: #64748b;
+      background: #e2e8f0;
+      padding: 3px 8px;
+      border-radius: 999px;
+    }
+    .metrics-note {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 14px;
+      text-align: center;
+      line-height: 1.45;
+    }
+    .cta-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 36px 32px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      margin-top: 36px;
+    }
+    .cta-card h2 {
+      font-size: 1.65rem;
+      color: #ffffff;
+      margin-bottom: 10px;
+    }
+    .cta-card p {
+      color: #cbd5e1;
+      font-size: 1.05rem;
+      max-width: 580px;
+      margin: 0 auto 24px auto;
+      line-height: 1.6;
+    }
+    .cta-actions {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .btn-demo {
+      background: var(--accent);
+      color: #ffffff;
+      border: 2px solid var(--accent);
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.15s;
+    }
+    .btn-demo:hover {
+      background: var(--accent-dark);
+      border-color: var(--accent-dark);
+      color: #ffffff;
+    }
+    .btn-secondary-white {
+      background: transparent;
+      color: #ffffff;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      font-weight: 700;
+      padding: 12px 24px;
+      border-radius: 10px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .btn-secondary-white:hover {
+      border-color: #ffffff;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+    }
+    .footer-bar {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .footer-bar a {
+      color: var(--ink-2);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer-bar a:hover {
+      color: var(--accent-dark);
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Navigation -->
+  <header class="nav">
+    <div class="wrap">
+      <a class="logo" href="/" id="logo-link">
+        <img src="/assets/favicon.svg" alt="" width="30" height="30">
+        Master Hustle Engine
+      </a>
+      <nav class="nav-links" aria-label="Main Navigation">
+        <a href="/demo" id="nav-demo-link">Live Demo</a>
+        <a href="/audit" id="nav-audit-link">Lead Leak Audit</a>
+        <a class="btn btn-primary btn-sm" href="/demo" id="nav-start-btn">See Demo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="cs-container">
+    <!-- Hero Header -->
+    <header class="cs-hero">
+      <div class="cs-badge">Campaign Case Study Template</div>
+      <h1>Alpheynia Web Studio: 7-Day Targeted Outreach Run</h1>
+      <p class="cs-lead">
+        A breakdown of how Master Hustle Engine set up and executed a hyper-local outbound sprint targeting service businesses across Texas and Oklahoma with an irresistible, value-first offer.
+      </p>
+    </header>
+
+    <!-- Section 1: Who He Is -->
+    <section class="cs-card" id="who-he-is-section">
+      <div class="cs-section-header">
+        <span class="cs-section-num">1</span>
+        <h2>Client Profile: Who He Is</h2>
+      </div>
+      <p class="cs-text">
+        Talha Kamdar operates Alpheynia, a boutique web design and development studio focused on building simple, fast, and modern websites for local trade businesses, home service companies, and independent gyms.
+      </p>
+      <p class="cs-text">
+        Like many specialized design studios, Talha delivers high-end craft but faced the common bottleneck of manual prospect hunting. High-ticket web revamps require building trust upfront, where cold messages asking for phone calls or pitch meetings are routinely ignored by busy local business owners.
+      </p>
+
+      <div class="profile-meta">
+        <div class="meta-item">
+          <strong>Client</strong>
+          <span>Talha Kamdar</span>
+        </div>
+        <div class="meta-item">
+          <strong>Agency / Studio</strong>
+          <span>Alpheynia</span>
+        </div>
+        <div class="meta-item">
+          <strong>Core Specialization</strong>
+          <span>Web Design & Development for Local Businesses</span>
+        </div>
+        <div class="meta-item">
+          <strong>Target Market</strong>
+          <span>Plumbers & Fitness Studios (Austin, OKC, Tulsa)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: What We Did -->
+    <section class="cs-card" id="what-we-did-section">
+      <div class="cs-section-header">
+        <span class="cs-section-num">2</span>
+        <h2>The Strategy: What We Did</h2>
+      </div>
+      <p class="cs-text">
+        To generate warm, qualified sales conversations for Talha without sounding like a generic offshore email blast, Master Hustle Engine structured a 7-day outbound test around authentic local research and upfront demonstration of value.
+      </p>
+
+      <ul class="step-list">
+        <li class="step-item">
+          <div class="step-icon">&#128269;</div>
+          <div class="step-content">
+            <strong>Targeted 50 Verified High-Intent Businesses</strong>
+            <p>Curated a tight list of 50 established plumbers and independent gyms across Austin TX, Oklahoma City OK, and Tulsa OK that had no website, a broken page, or an outdated layout.</p>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-icon">&#127912;</div>
+          <div class="step-content">
+            <strong>Created a Value-First "Free Homepage Mockup" Pitch</strong>
+            <p>Rather than pitching a sales call, Talha offered to build each prospect a free, tailored sample homepage mockup with zero charge and no strings attached. If they liked it, they could discuss a full site; if not, they kept the design anyway.</p>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-icon">&#128231;</div>
+          <div class="step-content">
+            <strong>Engineered a 3-Touch Follow-Up Cadence</strong>
+            <p>Designed a concise, human sequence consisting of Day 1 customized outreach, a gentle 48-hour follow-up bump, and a professional breakup note to maximize response rates without burning goodwill.</p>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-icon">&#9989;</div>
+          <div class="step-content">
+            <strong>Enforced Real-Time Deliverability and Domain Safety</strong>
+            <p>Pre-screened every target domain for live DNS MX records, verified on-site contact authenticity, and applied automated bounce suppression to keep sending domains spotless.</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <!-- Section 3: Performance Metrics (Blank Spots) -->
+    <section class="cs-card" id="metrics-section">
+      <div class="cs-section-header">
+        <span class="cs-section-num">3</span>
+        <h2>Campaign Performance Metrics</h2>
+      </div>
+      <p class="cs-text">
+        This template records actual, unvarnished campaign results. In accordance with our measured-only reporting policy, figures are left blank until the full multi-touch run and follow-up window are concluded.
+      </p>
+
+      <div class="metrics-grid">
+        <div class="metric-card" id="metric-emails-sent">
+          <div class="metric-spot">26</div>
+          <div class="metric-label">Emails Sent</div>
+          <span class="metric-status">Reported</span>
+        </div>
+        <div class="metric-card" id="metric-replies">
+          <div class="metric-spot">0</div>
+          <div class="metric-label">Replies Received</div>
+          <span class="metric-status">Reported</span>
+        </div>
+        <div class="metric-card" id="metric-calls-booked">
+          <div class="metric-spot">&nbsp;</div>
+          <div class="metric-label">Calls Booked</div>
+          <span class="metric-status">Pending</span>
+        </div>
+      </div>
+
+      <p class="metrics-note">
+        Note: Exact metrics are verified via live mail logs and inbox receipts upon campaign completion. No estimated numbers or projected savings are used.
+      </p>
+    </section>
+
+    <!-- Call to Action Card -->
+    <section class="cta-card" id="cta-section">
+      <h2>Explore How Master Hustle Engine Works</h2>
+      <p>
+        See how our white-label AI sales desk sources leads, drafts personalized messages, follows up autonomously, and fills calendars for agencies and client retainers.
+      </p>
+      <div class="cta-actions">
+        <a href="/demo" class="btn-demo" id="cta-demo-button">
+          Open Interactive Demo &rarr;
+        </a>
+        <a href="/audit" class="btn-secondary-white" id="cta-audit-button">
+          Take 2-Min Lead Leak Audit
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer Bar -->
+    <footer class="footer-bar">
+      <p>
+        &copy; Master Hustle Engine &middot; Private-label outbound sales automation for agencies.
+        <br>
+        <a href="/demo">Demo Walkthrough</a> &middot; <a href="/audit">Lead Leak Audit</a> &middot; <a href="/">Home</a>
+      </p>
+    </footer>
+  </main>
+</body>
+</html>

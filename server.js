@@ -1518,6 +1518,11 @@ app.get(['/audit', '/audit.html', '/quiz'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'audit.html'));
 });
 
+// Case Study Page: Talha / Alpheynia 7-Day Run
+app.get(['/case-study', '/case-study.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'case-study.html'));
+});
+
 // Lead Leak Audit Ingestion Endpoint
 app.post('/api/audit-lead', async (req, res) => {
   try {
